@@ -1,5 +1,5 @@
-import HomePage from "@/components/HomePage";
+import StatisticsPage from "@/components/StatisticsPage";
 
 export default function MainPage() {
-	return <HomePage />;
+	return <StatisticsPage />;
 }

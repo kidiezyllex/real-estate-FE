@@ -59,15 +59,15 @@ export const getDashboardMenuItems = (): MenuItem[] => [
 		icon: mdiFileDocument,
 		subMenu: [
 			{
-				id: "house-contract",
-				name: "Hợp đồng nhà",
-				path: "/contracts/house",
+				id: "home-contract",
+				name: "Hợp đồng căn hộ",
+				path: "/admin/contracts/home",
 				icon: mdiFileDocument,
 			},
 			{
 				id: "service-contract",
 				name: "Hợp đồng dịch vụ",
-				path: "/contracts/service",
+				path: "/admin/contracts/service",
 				icon: mdiFileDocumentEdit,
 			},
 		],
