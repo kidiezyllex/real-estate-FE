@@ -32,7 +32,7 @@ export default function RevenueChart() {
     }).format(value);
   };
 
-  const chartData = data?.data.months.map((item) => ({
+  const chartData = data?.data?.months?.map((item) => ({
     month: format(new Date(year, item.month - 1, 1), 'MMM', { locale: vi }),
     revenue: item.revenue,
     monthFull: format(new Date(year, item.month - 1, 1), 'MMMM', { locale: vi }),
@@ -66,6 +66,16 @@ export default function RevenueChart() {
       <Card className="p-6">
         <div className="text-mainDangerV1 p-4 bg-red-50 rounded-md">
           Lỗi khi tải dữ liệu doanh thu: {error.message}
+        </div>
+      </Card>
+    );
+  }
+
+  if (!data?.data?.months) {
+    return (
+      <Card className="p-6">
+        <div className="text-mainDangerV1 p-4 bg-red-50 rounded-md">
+          Không có dữ liệu doanh thu cho năm này.
         </div>
       </Card>
     );

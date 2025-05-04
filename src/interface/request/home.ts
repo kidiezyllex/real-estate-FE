@@ -10,17 +10,31 @@ export interface IGetHomeByOwnerParams {
   homeOwnerId: string;
 }
 
-export interface ICreateHomeBody {
-  name: string;
+export interface IHomeOwner {
+  _id: string;
+  fullname: string;
+  phone: string;
+  email: string;
+  citizenId: string;
+  citizen_date: string;
+  citizen_place: string;
+  birthday: string;
   address: string;
-  area: number;
-  floor: number;
-  bedroom: number;
-  toilet: number;
-  homeOwnerId: string;
-  price: number;
-  description: string;
-  status: number;
+  bankAccount: string;
+  bankName: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ICreateHomeBody {
+  address: string;
+  homeOwnerId: IHomeOwner;
+  district: string;
+  ward: string;
+  building: string;
+  apartmentNv: string;
+  active: boolean;
+  note: string;
 }
 
 export interface IUpdateHomeParams {
@@ -28,9 +42,14 @@ export interface IUpdateHomeParams {
 }
 
 export interface IUpdateHomeBody {
-  name?: string;
-  price?: number;
-  status?: number;
+  address?: string;
+  homeOwnerId?: IHomeOwner;
+  district?: string;
+  ward?: string;
+  building?: string;
+  apartmentNv?: string;
+  active?: boolean;
+  note?: string;
 }
 
 export interface IDeleteHomeParams {

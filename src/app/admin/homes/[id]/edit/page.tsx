@@ -1,3 +1,4 @@
+"use client";
 import { useParams } from 'next/navigation';
 import UpdateHomeForm from '@/components/HomesPage/UpdateHomeForm';
 
@@ -8,7 +9,7 @@ export default function AdminHomeEditPage() {
   if (!homeId) return null;
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto">
       <UpdateHomeForm homeId={homeId} />
     </div>
   );

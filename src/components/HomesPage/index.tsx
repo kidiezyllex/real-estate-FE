@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   IconHome, 
@@ -11,9 +11,8 @@ import {
   IconSortDescending,
   IconX
 } from '@tabler/icons-react';
-import { useGetHomes } from '@/hooks/useHome';
-import HomeList from '../HomePage/HomeList';
-import SearchHomes from '../HomePage/SearchHomes';
+import { useGetHomes, useSearchHomes } from '@/hooks/useHome';
+import HomeList from './HomeList';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { 
@@ -38,10 +37,16 @@ const HomesPage = () => {
   const [priceRange, setPriceRange] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('newest');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+
   const toggleFilters = () => {
     setIsFiltersVisible(!isFiltersVisible);
   };
+  const { data: homeSearchResults, isLoading, error } = useSearchHomes({ q: debouncedQuery });
+  const { data: allHomes, isLoading: isLoadingAllHomes, error: errorAllHomes } = useGetHomes();
   
   const resetFilters = () => {
     setPriceRange('all');
@@ -49,16 +54,35 @@ const HomesPage = () => {
     setSortDirection('desc');
   };
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setDebouncedQuery(searchQuery);
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+    setDebouncedQuery('');
+  };
+
+  const homes = debouncedQuery
+    ? (Array.isArray(homeSearchResults?.data) ? homeSearchResults.data : undefined)
+    : (Array.isArray(allHomes?.data) ? allHomes.data : undefined);
+  const total = homes ? homes.length : 0;
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedQuery, allHomes, homeSearchResults]);
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-mainCardV1 p-6 rounded-lg border border-lightBorderV1">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">Trang chủ</BreadcrumbLink>
+            <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>Bất động sản</BreadcrumbPage>
+            <BreadcrumbPage>Quản lý căn hộ</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -68,11 +92,11 @@ const HomesPage = () => {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="bg-mainCardV1 p-6 rounded-lg border border-lightBorderV1">
+        <div className="">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
             <div className="flex items-center">
-              <IconHome className="h-6 w-6 text-mainTextV1 mr-2" />
-              <h1 className="text-xl font-semibold text-mainTextV1">Danh sách bất động sản</h1>
+              <IconHome className="h-5 w-5 text-mainTextV1 mr-2" />
+              <h1 className="text-xl font-semibold text-mainTextV1">Danh sách các căn hộ hiện có</h1>
             </div>
             
             <div className="flex flex-wrap gap-2">
@@ -85,8 +109,8 @@ const HomesPage = () => {
                 Bộ lọc
               </Button>
               
-              <Link href="/homes/create">
-                <Button className="bg-mainSuccessV1 hover:bg-mainSuccessHoverV1">
+              <Link href="/admin/homes/create">
+                <Button>
                   <IconPlus className="h-4 w-4 mr-2" />
                   Thêm căn hộ
                 </Button>
@@ -95,7 +119,35 @@ const HomesPage = () => {
           </div>
           
           <div className="mb-6">
-            <SearchHomes />
+          <form onSubmit={handleSearch} className="relative">
+        <div className="relative">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm căn hộ..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-24 pl-10 h-12 w-full"
+          />
+          <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mainTextV1 h-5 w-5" />
+          
+          {searchQuery && (
+            <button 
+              type="button" 
+              onClick={clearSearch}
+              className="absolute right-28 top-1/2 transform -translate-y-1/2 text-mainTextV1 hover:text-mainTextHoverV1"
+            >
+              <IconX className="h-5 w-5" />
+            </button>
+          )}
+          
+          <Button 
+            type="submit"
+            className="absolute right-0 top-0 h-12 rounded-tl-none rounded-bl-none"
+          >
+            Tìm kiếm
+          </Button>
+        </div>
+      </form>
           </div>
           
           <motion.div
@@ -180,7 +232,15 @@ const HomesPage = () => {
             )}
           </motion.div>
           
-          <HomeList />
+          <HomeList 
+            homes={homes}
+            isLoading={debouncedQuery ? isLoading : isLoadingAllHomes}
+            error={debouncedQuery ? error : errorAllHomes}
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={setPage}
+          />
         </div>
       </motion.div>
     </div>

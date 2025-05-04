@@ -8,11 +8,15 @@ export interface IUserProfile {
 export interface IUserProfileResponse {
   statusCode: number;
   message: string;
-  data: IUserProfile;
+  data: {
+    user: IUserProfile;
+  };
 }
 
 export interface IUpdateUserProfileResponse {
   statusCode: number;
   message: string;
-  data: IUserProfile;
+  data: {
+    user: IUserProfile;
+  };
 } 

@@ -1,6 +1,4 @@
 "use client";
-
-import { useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -14,38 +12,32 @@ export const ToastProvider = () => {
 			closeOnClick
 			rtl={false}
 			pauseOnFocusLoss
-			draggable
+			draggable	
 			pauseOnHover
 			theme="light"
 			toastStyle={{
-				borderRadius: '8px',
+				overflow: 'hidden',
+				borderRadius: '4px',
 				fontSize: '14px',
+				background: '#fff',
+				color: '#5D7186',
+				fontWeight: 500,
+				boxShadow: '0 4px 24px 0 rgba(60,60,60,0.08)',
+				padding: '16px 20px',
+				minWidth: 320,
+				maxWidth: 400,
+				alignItems: 'center',
+				display: 'flex',
+				gap: '12px',
 			}}
 			toastClassName={(context) => {
 				const type = context?.type || 'default';
-				let borderColor = '';
-				
-				switch(type) {
-					case 'success':
-						borderColor = '#5CC184';
-						break;
-					case 'error':
-						borderColor = '#E66666';
-						break;
-					case 'warning':
-						borderColor = '#F0934E';
-						break;
-					case 'info':
-						borderColor = '#45C5CD';
-						break;
-					default:
-						borderColor = '#604AE3';
-				}
-				
-				return `relative border-l-4 shadow-lg ${type === 'success' ? 'border-l-mainSuccessV1' : 
-						type === 'error' ? 'border-l-mainDangerV1' : 
-						type === 'warning' ? 'border-l-mainWarningV1' : 
-						type === 'info' ? 'border-l-mainInfoV1' : 'border-l-mainTextHoverV1'}`;
+				return `relative border-l-4 shadow-lg flex items-center ${
+					type === 'success' ? 'border-l-mainSuccessV1' :
+					type === 'error' ? 'border-l-mainDangerV1' :
+					type === 'warning' ? 'border-l-mainWarningV1' :
+					type === 'info' ? 'border-l-mainInfoV1' : 'border-l-mainTextHoverV1'
+				}`;
 			}}
 		/>
 	);

@@ -17,37 +17,37 @@ export const getDashboardMenuItems = (): MenuItem[] => [
 	{
 		id: "statistic",
 		name: "Thống kê",
-		path: "/statistic",
+		path: "/admin",
 		icon: mdiViewDashboard,
 	},
 	{
-		id: "apartment-management",
+		id: "homes-management",
 		name: "Quản lý Căn hộ",
-		path: "/apartments",
+		path: "/admin/homes",
 		icon: mdiHomeCity,
 	},
 	{
 		id: "user-management",
 		name: "Quản lý người dùng",
-		path: "/users",
+		path: "/admin/users",
 		icon: mdiAccountGroup,
 		subMenu: [
 			{
 				id: "customer",
 				name: "Khách hàng",
-				path: "/users/customers",
+				path: "/admin/users/guests",
 				icon: mdiAccount,
 			},
 			{
 				id: "owner",
 				name: "Chủ nhà",
-				path: "/users/owners",
+				path: "/admin/users/home-owners",
 				icon: mdiAccountTie,
 			},
 			{
 				id: "receiver",
 				name: "Người nhận",
-				path: "/users/receivers",
+				path: "/admin/users/receivers",
 				icon: mdiAccountArrowRight,
 			},
 		],
@@ -55,19 +55,19 @@ export const getDashboardMenuItems = (): MenuItem[] => [
 	{
 		id: "contract-management",
 		name: "Quản lý Hợp đồng",
-		path: "/contracts",
+		path: "/admin/contracts",
 		icon: mdiFileDocument,
 		subMenu: [
 			{
-				id: "home-contract",
+				id: "home-contracts",
 				name: "Hợp đồng căn hộ",
-				path: "/admin/contracts/home",
+				path: "/admin/contracts/home-contracts",
 				icon: mdiFileDocument,
 			},
 			{
-				id: "service-contract",
+				id: "service-contracts",
 				name: "Hợp đồng dịch vụ",
-				path: "/admin/contracts/service",
+				path: "/admin/contracts/service-contracts",
 				icon: mdiFileDocumentEdit,
 			},
 		],
@@ -75,19 +75,19 @@ export const getDashboardMenuItems = (): MenuItem[] => [
 	{
 		id: "payment-management",
 		name: "Quản lý Thanh toán",
-		path: "/payments",
+		path: "/admin/invoice-payments",
 		icon: mdiCashMultiple,
 	},
 	{
 		id: "service-management",
 		name: "Quản lý Dịch vụ",
-		path: "/services",
+		path: "/admin/services",
 		icon: mdiRoomServiceOutline,
 	},
 	{
 		id: "system",
 		name: "Hệ thống",
-		path: "/system",
+		path: "/admin/system",
 		icon: mdiCog,
 	},
 ];

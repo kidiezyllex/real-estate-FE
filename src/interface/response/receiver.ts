@@ -20,25 +20,33 @@ export interface IReceiverSearchResult {
 export interface IReceiverListResponse {
   statusCode: number;
   message: string;
-  data: IReceiver[];
+  data: {
+    receivers: IReceiver[];
+  };
 }
 
 export interface IReceiverSearchResponse {
   statusCode: number;
   message: string;
-  data: IReceiverSearchResult[];
+  data: {
+    receivers: IReceiverSearchResult[];
+  };
 }
 
 export interface IReceiverDetailResponse {
   statusCode: number;
   message: string;
-  data: IReceiver;
+  data: {
+    receiver: IReceiver;
+  };
 }
 
 export interface IReceiverCreateResponse {
   statusCode: number;
   message: string;
-  data: IReceiver;
+  data: {
+    receiver: IReceiver;
+  };
 }
 
 export interface IReceiverUpdateResponse {

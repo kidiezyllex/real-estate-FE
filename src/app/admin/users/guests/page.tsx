@@ -2,20 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { useGetGuests, useSearchGuests, useDeleteGuest } from "@/hooks/useGuest";
-import { GuestBreadcrumb } from "@/components/GuestPage/GuestBreadcrumb";
-import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from '@/components/ui/breadcrumb'; import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GuestTable } from "@/components/GuestPage/GuestTable";
-import { GuestCreateDialog } from "@/components/GuestPage/GuestCreateDialog";
 import { GuestDeleteDialog } from "@/components/GuestPage/GuestDeleteDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
-import { IconSearch, IconPlus, IconUser } from "@tabler/icons-react";
+import { IconSearch, IconPlus } from "@tabler/icons-react";
 import { IGuestSearchResult } from "@/interface/response/guest";
+import Link from "next/link";
 
 export default function GuestPage() {
   const router = useRouter();
@@ -27,8 +32,8 @@ export default function GuestPage() {
   const [searchResults, setSearchResults] = useState<IGuestSearchResult[]>([]);
 
   const { data: guestsData, isLoading, refetch } = useGetGuests();
-  const { data: searchData, isLoading: isSearchLoading } = useSearchGuests({ 
-    q: debouncedQuery 
+  const { data: searchData, isLoading: isSearchLoading } = useSearchGuests({
+    q: debouncedQuery
   });
   const { mutate: deleteGuestMutation, isPending: isDeleting } = useDeleteGuest();
 
@@ -91,48 +96,46 @@ export default function GuestPage() {
     );
   };
 
-  const handleCreateSuccess = () => {
-    refetch();
-    setIsCreateDialogOpen(false);
-    toast.success("Thêm khách hàng mới thành công");
-  };
-
   return (
-    <div className="p-4 md:p-8 bg-mainBackgroundV1 min-h-screen">
+    <div className="space-y-8 bg-mainBackgroundV1 p-6 rounded-lg border border-lightBorderV1">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/homes">Quản lý người dùng</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Quản lý khách hàng</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <GuestBreadcrumb
-          items={[
-            { title: "Trang chủ", link: "/admin" },
-            { title: "Quản lý khách hàng", link: "/admin/guest" },
-          ]}
-          className="mb-6"
-        />
-
         <div className="flex flex-col gap-6">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <h1 className="text-2xl font-medium text-mainTextV1">Quản lý Khách hàng</h1>
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="relative w-full md:w-64">
-                <Input
-                  placeholder="Tìm kiếm khách hàng..."
-                  value={searchQuery}
-                  onChange={handleSearch}
-                  className="pl-10 pr-4 py-2 w-full border-lightBorderV1 focus:border-mainTextHoverV1 text-secondaryTextV1"
-                />
-                <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mainTextV1 w-5 h-5" />
-              </div>
-              <Button 
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-              >
-                <IconPlus className="mr-2 h-4 w-4" />
-                Thêm mới
-              </Button>
+          <div className="flex items-center justify-between gap-4 w-full md:w-auto">
+            <div className="relative w-full md:w-64">
+              <Input
+                placeholder="Tìm kiếm khách hàng..."
+                value={searchQuery}
+                onChange={handleSearch}
+                className="pl-10 pr-4 py-2 w-full border-lightBorderV1 focus:border-mainTextHoverV1 text-secondaryTextV1"
+              />
+              <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mainTextV1 w-5 h-5" />
             </div>
+          <Link href="/admin/users/guests/create">
+          <Button
+              className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+            >
+              <IconPlus className="mr-2 h-4 w-4" />
+              Thêm khách hàng
+            </Button></Link>
           </div>
 
           <Card className="p-0 overflow-hidden shadow-sm border border-lightBorderV1">
@@ -162,13 +165,6 @@ export default function GuestPage() {
           </Card>
         </div>
       </motion.div>
-
-      <GuestCreateDialog
-        isOpen={isCreateDialogOpen}
-        onClose={() => setIsCreateDialogOpen(false)}
-        onSuccess={handleCreateSuccess}
-      />
-
       <GuestDeleteDialog
         isOpen={isDeleteDialogOpen}
         isDeleting={isDeleting}

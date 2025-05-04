@@ -9,6 +9,8 @@ import "@fortawesome/fontawesome-svg-core/styles.css";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { CustomScrollArea } from "@/components/ui/custom-scroll-area";
 import { Open_Sans } from "next/font/google";
+import { UserProvider } from "@/context/useUserContext";
+import AppLayoutWrapper from "@/components/layout/AppLayoutWrapper";
 
 const openSans = Open_Sans({
 	subsets: ["latin", "vietnamese"],
@@ -32,6 +34,7 @@ export default function RootLayout({
 		<html lang="vi" suppressHydrationWarning className={openSans.className}>
 			<body className="bg-mainBackgroundV1 min-h-screen">
 				<ReactQueryClientProvider>
+					<UserProvider>
 						<NextTopLoader
 							color="#44D7B6"
 							initialPosition={0.08}
@@ -43,9 +46,8 @@ export default function RootLayout({
 							showSpinner={false}
 						/>
 						<ToastProvider />
-						<DashboardLayout>
-							<CustomScrollArea className="h-full">{children}</CustomScrollArea>
-						</DashboardLayout>
+						<AppLayoutWrapper>{children}</AppLayoutWrapper>
+					</UserProvider>
 				</ReactQueryClientProvider>
 			</body>
 		</html>

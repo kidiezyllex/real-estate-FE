@@ -41,7 +41,7 @@ const DeleteHomeDialog = ({ homeId, homeName, onSuccess, trigger }: DeleteHomeDi
           if (onSuccess) {
             onSuccess();
           } else {
-            router.push('/homes');
+            router.push('/admin/homes');
           }
         },
         onError: (error) => {

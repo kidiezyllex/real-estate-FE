@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useGetUserProfile } from "@/hooks/useUser";
 import { Bell, Settings, User, LogOut } from "lucide-react";
+import { useUser } from "@/context/useUserContext";
 
 declare global {
 	interface Window {
@@ -35,6 +36,7 @@ export default function DashboardHeader() {
 	const { data: userProfile } = useGetUserProfile();
 	const username = userProfile?.data?.name || "User";
 	const isLoading = false;
+	const { logoutUser } = useUser();
 	const handleSearchSubmit = () => {
 	};
 	const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,7 +118,7 @@ export default function DashboardHeader() {
 								<User className="w-4 h-4" />
 								Tài khoản
 							</DropdownMenuItem>
-							<DropdownMenuItem className="gap-2 text-red-500 font-medium">
+							<DropdownMenuItem className="gap-2 text-red-500 font-medium" onClick={logoutUser}>
 								<LogOut className="w-4 h-4" />	
 								Đăng xuất
 							</DropdownMenuItem>

@@ -41,19 +41,25 @@ export interface IServiceContractDetail {
 export interface IServiceContractListResponse {
   statusCode: number;
   message: string;
-  data: IServiceContract[];
+  data: {
+    contracts: IServiceContract[];
+  };
 }
 
 export interface IServiceContractDetailResponse {
   statusCode: number;
   message: string;
-  data: IServiceContractDetail;
+  data: {
+    contract: IServiceContractDetail;
+  };
 }
 
 export interface IServiceContractCreateResponse {
   statusCode: number;
   message: string;
-  data: IServiceContract;
+  data: {
+    contract: IServiceContract;
+  };
 }
 
 export interface IServiceContractUpdateResponse {

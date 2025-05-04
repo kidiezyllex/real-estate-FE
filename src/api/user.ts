@@ -2,7 +2,7 @@ import { sendGet, sendPut } from "./axios";
 import { IUserProfileResponse, IUpdateUserProfileResponse } from "@/interface/response/user";
 import { IUpdateUserProfileBody } from "@/interface/request/user";
 
-export const getUserProfile = async (): Promise<IUserProfileResponse> => {
+export const getProfile = async (): Promise<IUserProfileResponse> => {
   const res = await sendGet(`/user/profile`);
   return res;
 };

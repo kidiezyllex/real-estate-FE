@@ -1,17 +1,35 @@
+export interface IHomeOwner {
+  _id: string;
+  fullname: string;
+  phone: string;
+  email: string;
+  citizenId: string;
+  citizen_date: string; // ISO date string
+  citizen_place: string;
+  birthday: string; // ISO date string
+  bank: string;
+  bankAccount: string;
+  bankNumber: string;
+  active: boolean;
+  note: string;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  __v: number;
+}
+
 export interface IHome {
   _id: string;
-  name: string;
   address: string;
-  area: number;
-  floor: number;
-  bedroom: number;
-  toilet: number;
-  homeOwnerId: string;
-  status: number;
-  price: number;
-  description?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  district: string;
+  ward: string;
+  building: string;
+  apartmentNv: string;
+  homeOwnerId: IHomeOwner;
+  active: boolean;
+  note: string;
+  createdAt: string; // ISO date string
+  updatedAt: string; // ISO date string
+  __v: number;
 }
 
 export interface IHomeAvailable {
@@ -29,15 +47,17 @@ export interface IHomeAvailable {
 
 export interface IHomeSearchResult {
   _id: string;
-  name: string;
   address: string;
-  area: number;
-  floor: number;
-  bedroom: number;
-  toilet: number;
-  homeOwnerId: string;
-  status: number;
-  price: number;
+  district: string;
+  ward: string;
+  building: string;
+  apartmentNv: string;
+  homeOwnerId: IHomeOwner;
+  active: boolean;
+  note: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 }
 
 export interface IHomeDetail {
@@ -62,37 +82,49 @@ export interface IHomeDetail {
 export interface IHomeListResponse {
   statusCode: number;
   message: string;
-  data: IHome[];
+  data: {
+    homes: IHome[];
+  };
 }
 
 export interface IHomeAvailableListResponse {
   statusCode: number;
   message: string;
-  data: IHomeAvailable[];
+  data: {
+    homes: IHomeAvailable[];
+  };
 }
 
 export interface IHomeSearchResponse {
   statusCode: number;
   message: string;
-  data: IHomeSearchResult[];
+  data: {
+    homes: IHomeSearchResult[];
+  };
 }
 
 export interface IHomeListByOwnerResponse {
   statusCode: number;
   message: string;
-  data: IHomeAvailable[];
+  data: {
+    homes: IHomeAvailable[];
+  };
 }
 
 export interface IHomeDetailResponse {
   statusCode: number;
   message: string;
-  data: IHomeDetail;
+  data: {
+    home: IHome;
+  };
 }
 
 export interface IHomeCreateResponse {
   statusCode: number;
   message: string;
-  data: IHome;
+  data: {
+    home: IHome;
+  };
 }
 
 export interface IHomeUpdateResponse {
@@ -100,9 +132,6 @@ export interface IHomeUpdateResponse {
   message: string;
   data: {
     _id: string;
-    name?: string;
-    price?: number;
-    status?: number;
     updatedAt: string;
   };
 }

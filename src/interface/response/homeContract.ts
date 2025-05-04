@@ -63,25 +63,33 @@ export interface IHomeContractDetail {
 export interface IHomeContractListResponse {
   statusCode: number;
   message: string;
-  data: IHomeContract[];
+  data: {
+    contracts: IHomeContract[];
+  };
 }
 
 export interface IHomeContractSearchResponse {
   statusCode: number;
   message: string;
-  data: IHomeContractSearch[];
+  data: {
+    contracts: IHomeContractSearch[];
+  };
 }
 
 export interface IHomeContractDetailResponse {
   statusCode: number;
   message: string;
-  data: IHomeContractDetail;
+  data: {
+    contract: IHomeContractDetail;
+  };
 }
 
 export interface IHomeContractCreateResponse {
   statusCode: number;
   message: string;
-  data: IHomeContract;
+  data: {
+    contract: IHomeContract;
+  };
 }
 
 export interface IHomeContractUpdateResponse {

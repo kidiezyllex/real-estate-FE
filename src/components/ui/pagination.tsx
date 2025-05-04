@@ -1,27 +1,75 @@
-import { cn } from "@/lib/utils";
-import { Pagination as AntPagination } from "antd";
+import * as React from "react"
+import { cn } from "@/lib/utils"
 
-export interface PaginationProps {
-	className?: string;
-	current: number;
-	pageSize: number;
-	total: number;
-	onChange: (page: number, pageSize: number) => void;
+export interface PaginationProps extends React.HTMLAttributes<HTMLDivElement> {
+	page: number
+	pageSize: number
+	total: number
+	onPageChange: (page: number) => void
 }
 
-const Pagination = ({ className, current, pageSize, total, onChange, ...props }: PaginationProps) => {
-	return (
-		<div className={cn("flex justify-end py-4", className)}>
-			<AntPagination
-				current={current}
-				pageSize={pageSize}
-				total={total}
-				onChange={onChange}
-				showSizeChanger={false}
-				{...props}
-			/>
-		</div>
-	);
-};
+export function Pagination({
+	page,
+	pageSize,
+	total,
+	onPageChange,
+	className,
+	...props
+}: PaginationProps) {
+	const totalPages = Math.ceil(total / pageSize)
+	if (totalPages <= 1) return null
 
-export { Pagination };
+	const getPages = () => {
+		const pages = []
+		for (let i = 1; i <= totalPages; i++) {
+			pages.push(i)
+		}
+		return pages
+	}
+
+	return (
+		<nav
+			role="navigation"
+			aria-label="pagination navigation"
+			className={cn("flex justify-center py-4", className)}
+			{...props}
+		>
+			<ul className="inline-flex items-center -space-x-px">
+				<li>
+					<button
+						className="px-3 py-2 ml-0 leading-tight text-gray-500 bg-white border border-gray-300 rounded-l-lg hover:bg-gray-100 hover:text-gray-700"
+						onClick={() => onPageChange(page - 1)}
+						disabled={page === 1}
+					>
+						Trước
+					</button>
+				</li>
+				{getPages().map((p) => (
+					<li key={p}>
+						<button
+							className={cn(
+								"px-3 py-2 leading-tight border border-gray-300",
+								p === page
+									? "bg-mainTextHoverV1 text-white"
+									: "bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+							)}
+							onClick={() => onPageChange(p)}
+							aria-current={p === page ? "page" : undefined}
+						>
+							{p}
+						</button>
+					</li>
+				))}
+				<li>
+					<button
+						className="px-3 py-2 leading-tight text-gray-500 bg-white border border-gray-300 rounded-r-lg hover:bg-gray-100 hover:text-gray-700"
+						onClick={() => onPageChange(page + 1)}
+						disabled={page === totalPages}
+					>
+						Sau
+					</button>
+				</li>
+			</ul>
+		</nav>
+	)
+}

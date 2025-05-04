@@ -46,11 +46,19 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+import { useGetHomeOwners } from '@/hooks/useHomeOwner';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Tên căn hộ không được để trống').optional(),
-  price: z.coerce.number().min(1, 'Giá thuê phải lớn hơn 0').optional(),
-  status: z.coerce.number().min(0).max(3).optional(),
+  address: z.string().min(1, 'Địa chỉ không được để trống'),
+  homeOwnerId: z.string().min(1, 'Chủ sở hữu không được để trống'),
+  district: z.string().min(1, 'Quận/Huyện không được để trống'),
+  ward: z.string().min(1, 'Phường/Xã không được để trống'),
+  building: z.string().min(1, 'Tòa nhà không được để trống'),
+  apartmentNv: z.string().min(1, 'Số căn hộ không được để trống'),
+  active: z.boolean(),
+  note: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -62,35 +70,51 @@ interface UpdateHomeFormProps {
 const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
   const router = useRouter();
   const { data: homeData, isLoading: isLoadingHome, error: homeError } = useGetHomeDetail({ id: homeId });
+  console.log(homeData);
   const { mutate, isPending } = useUpdateHome();
+  const { data: allHomeOwners } = useGetHomeOwners();
 
   const home = homeData?.data;
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      price: 0,
-      status: 0,
+      address: '',
+      homeOwnerId: '',
+      district: '',
+      ward: '',
+      building: '',
+      apartmentNv: '',
+      active: true,
+      note: '',
     },
   });
 
   useEffect(() => {
     if (home) {
       form.reset({
-        name: home.name,
-        price: home.price,
-        status: home.status,
-      });
+        address: (home as any).address,
+        homeOwnerId: (home as any).homeOwnerId?._id || '',
+        district: (home as any).district,
+        ward: (home as any).ward,
+        building: (home as any).building,
+        apartmentNv: (home as any).apartmentNv,
+        active: (home as any).active,
+        note: (home as any).note || '',
+      }); 
     }
   }, [home, form]);
 
   const onSubmit = (values: FormValues) => {
     const updates: Record<string, any> = {};
-    
-    if (values.name !== home?.name) updates.name = values.name;
-    if (values.price !== home?.price) updates.price = values.price;
-    if (values.status !== home?.status) updates.status = values.status;
+    if (values.address !== (home as any).address) updates.address = values.address;
+    if (values.homeOwnerId !== (home as any).homeOwnerId?._id) updates.homeOwnerId = values.homeOwnerId;
+    if (values.district !== (home as any).district) updates.district = values.district;
+    if (values.ward !== (home as any).ward) updates.ward = values.ward;
+    if (values.building !== (home as any).building) updates.building = values.building;
+    if (values.apartmentNv !== (home as any).apartmentNv) updates.apartmentNv = values.apartmentNv;
+    if (values.active !== (home as any).active) updates.active = values.active;
+    if (values.note !== (home as any).note) updates.note = values.note;
     
     if (Object.keys(updates).length === 0) {
       toast.info('Không có thông tin nào được thay đổi.');
@@ -103,7 +127,7 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
     }, {
       onSuccess: () => {
         toast.success('Cập nhật căn hộ thành công!');
-        router.push(`/homes/${homeId}`);
+        router.push(`/admin/homes/${homeId}`);
       },
       onError: (error) => {
         toast.error(`Lỗi: ${error.message || 'Không thể cập nhật căn hộ'}`);
@@ -150,23 +174,19 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-mainCardV1 p-6 rounded-lg border border-lightBorderV1">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">Trang chủ</BreadcrumbLink>
+            <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/homes">Bất động sản</BreadcrumbLink>
+            <BreadcrumbLink href="/admin/homes">Quản lý căn hộ</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href={`/homes/${homeId}`}>{home.name}</BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Cập nhật</BreadcrumbPage>
+            <BreadcrumbPage>Cập nhật căn hộ</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -176,14 +196,7 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="border border-lightBorderV1">
-          <CardHeader>
-            <CardTitle className="flex items-center text-xl font-semibold text-mainTextV1">
-              <IconHome className="mr-2 h-5 w-5" />
-              Cập nhật căn hộ
-            </CardTitle>
-          </CardHeader>
-          
+        <Card className="border border-lightBorderV1 bg-mainBackgroundV1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <CardContent className="space-y-6">
@@ -193,57 +206,136 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
                     Bạn chỉ có thể cập nhật những thông tin dưới đây. Các thông tin khác không thể thay đổi.
                   </p>
                 </div>
-                
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Tên căn hộ</FormLabel>
+                      <FormLabel className="text-mainTextV1">Địa chỉ</FormLabel>
                       <FormControl>
-                        <Input placeholder="Nhập tên căn hộ" {...field} />
+                        <Input placeholder="Nhập địa chỉ căn hộ" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
-                <FormField
-                  control={form.control}
-                  name="price"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Giá thuê (VNĐ)</FormLabel>
-                      <FormControl>
-                        <Input type="number" min="1" placeholder="Nhập giá thuê" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trạng thái</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        defaultValue={field.value.toString()}
-                      >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="district"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-mainTextV1">Quận/Huyện</FormLabel>
                         <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Chọn trạng thái" />
-                          </SelectTrigger>
+                          <Input placeholder="Nhập quận/huyện" {...field} />
                         </FormControl>
-                        <SelectContent>
-                          <SelectItem value="0">Không khả dụng</SelectItem>
-                          <SelectItem value="1">Khả dụng</SelectItem>
-                          <SelectItem value="2">Đang cho thuê</SelectItem>
-                          <SelectItem value="3">Đang bảo trì</SelectItem>
-                        </SelectContent>
-                      </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="ward"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-mainTextV1">Phường/Xã</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập phường/xã" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="building"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-mainTextV1">Tòa nhà</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập tên tòa nhà" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="apartmentNv"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-mainTextV1">Số căn hộ</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập số căn hộ" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <FormField
+                  control={form.control}
+                  name="homeOwnerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-mainTextV1">Chọn chủ nhà</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={isPending}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn chủ nhà" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(allHomeOwners?.data as any)?.map((owner: any) => (
+                              <SelectItem key={owner._id} value={owner._id}>
+                                {owner.fullname} {owner.phone ? `- ${owner.phone}` : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-white">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none" >
+                        <FormLabel className="text-mainTextV1">Trạng thái hoạt động</FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          Chọn nếu căn hộ đang hoạt động và có thể cho thuê
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="note"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-mainTextV1">Ghi chú</FormLabel>
+                      <FormControl>
+                        <Textarea 
+                          placeholder="Nhập ghi chú về căn hộ (nếu có)" 
+                          className="min-h-[120px]" 
+                          {...field} 
+                        />
+                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -261,7 +353,6 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
                 </Button>
                 <Button 
                   type="submit"
-                  className="bg-mainWarningV1 hover:bg-mainWarningHoverV1"
                   disabled={isPending}
                 >
                   {isPending ? (

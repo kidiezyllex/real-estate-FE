@@ -49,7 +49,7 @@ export default function DashboardLayout({
 		<div className="flex min-h-screen bg-mainDarkBackgroundV1">
 			<div
 				className={cn(
-					"bg-mainDarkBackgroundV1 border-r border-r-lightBorderV1 fixed top-0 left-0 right-0 z-50 mt-[78px] shadow-sm min-h-screen transition-all duration-300",
+					"bg-mainDarkBackgroundV1 fixed top-0 left-0 right-0 z-50 mt-[78px] shadow-sm min-h-screen transition-all duration-300",
 					isOpen ? "w-[260px]" : "w-0 md:w-16 overflow-hidden flex justify-center",
 				)}
 			>
@@ -204,7 +204,7 @@ export default function DashboardLayout({
 			<div className="flex-1 flex flex-col">
 				<DashboardHeader />
 				<main
-					className={`flex-1 overflow-auto bg-mainBackgroundV1 ${isOpen ? "pl-[260px]" : "pl-[68px]"} mt-[78px] min-h-screen transition-all duration-300`}
+					className={`flex-1 overflow-auto bg-mainDarkBackgroundV1 ${isOpen ? "pl-[276px]" : "pl-[68px]"} mt-[78px] min-h-screen transition-all duration-300 p-4`}
 				>
 					{children}
 				</main>

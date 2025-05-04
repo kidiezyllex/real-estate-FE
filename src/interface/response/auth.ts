@@ -9,7 +9,7 @@ export interface ILoginResponse {
   statusCode: number;
   message: string;
   data: {
-    accessToken: string;
+    token: string;
     user: IUser;
   };
 }

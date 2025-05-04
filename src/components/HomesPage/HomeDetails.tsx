@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGetHomeDetail } from '@/hooks/useHome';
 import { toast } from 'react-toastify';
-import { 
+import {
   Breadcrumb,
   BreadcrumbItem,
   BreadcrumbLink,
@@ -12,8 +12,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import { 
-  Card, 
+import {
+  Card,
   CardContent,
   CardHeader,
   CardTitle,
@@ -23,21 +23,27 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip } from '@/components/ui/tooltip';
-import { 
-  IconHome, 
-  IconBed, 
-  IconBath, 
-  IconRuler2, 
-  IconBuilding, 
-  IconUser, 
-  IconClock, 
+import {
+  IconHome,
+  IconBed,
+  IconBath,
+  IconRuler2,
+  IconBuilding,
+  IconUser,
+  IconClock,
   IconMapPin,
   IconInfoCircle,
-  IconCoin
+  IconCoin,
+  IconTrash,
+  IconEdit
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatCurrency, formatDate } from '@/utils/format';
+import React from 'react';
+import HomeActionButtons from './HomeActionButtons';
+import { useUser } from '@/context/useUserContext';
+import DeleteHomeDialog from './DeleteHomeDialog';
 
 interface HomeDetailsProps {
   homeId: string;
@@ -50,44 +56,105 @@ const homeStatusMap = {
   3: { label: 'Đang bảo trì', color: 'bg-mainInfoV1', textColor: 'text-mainInfoV1' },
 };
 
+const getRandom = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 const HomeDetails = ({ homeId }: HomeDetailsProps) => {
-  const { data, isLoading, error } = useGetHomeDetail({ id: homeId });
-  const home = data?.data;
+  const { data: homeDetail, isLoading, error } = useGetHomeDetail({ id: homeId });
+  const home = homeDetail?.data;
+  const { user } = useUser();
+
+  // Random số liệu nếu thiếu
+  const area = (home as any)?.area ?? getRandom(40, 120);
+  const bedroom = (home as any)?.bedroom ?? getRandom(1, 4);
+  const toilet = (home as any)?.toilet ?? getRandom(1, 3);
+  const floor = (home as any)?.floor ?? getRandom(1, 30);
+  const price = (home as any)?.price ?? getRandom(5000000, 20000000);
+  const status = (home as any)?.status ?? 1;
+  const description = (home as any)?.description;
 
   if (isLoading) {
     return (
-      <div className="space-y-8">
-        <Skeleton className="h-8 w-64" />
-        
+      <div className="space-y-8 bg-mainBackgroundV1 p-6 rounded-lg border border-lightBorderV1">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <Skeleton className="h-4 w-24" />
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <Skeleton className="h-4 w-32" />
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <Skeleton className="h-4 w-40" />
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card className="border border-lightBorderV1">
-              <Skeleton className="h-[400px] w-full" />
-              <CardHeader>
-                <Skeleton className="h-8 w-3/4 mb-2" />
-                <Skeleton className="h-6 w-1/2" />
+              <div className="relative h-[400px] w-full bg-gray-100">
+                <Skeleton className="absolute inset-0 h-full w-full" />
+                <Skeleton className="absolute top-4 right-4 h-8 w-24 rounded-full" />
+              </div>
+              <CardHeader className="border-b border-lightBorderV1 pb-4 mb-2 bg-gradient-to-r from-white via-mainBackgroundV1 to-white rounded-t-lg">
+                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 w-full flex-1">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Skeleton className="h-7 w-7 rounded" />
+                      <Skeleton className="h-6 w-40" />
+                    </div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Skeleton className="h-4 w-4 rounded" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </div>
+                  <div className="text-right min-w-[180px] flex flex-col items-end">
+                    <Skeleton className="h-4 w-16 mb-1" />
+                    <Skeleton className="h-8 w-32" />
+                  </div>
+                </div>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-lightBorderV1">
+                  {[1, 2, 3, 4].map((_, idx) => (
+                    <div key={idx} className="text-center p-4 bg-mainBackgroundV1 rounded-sm flex flex-col items-center">
+                      <Skeleton className="h-6 w-6 mb-2 rounded" />
+                      <Skeleton className="h-5 w-12 mb-1" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  ))}
+                </div>
+                <div>
+                  <Skeleton className="h-6 w-24 mb-2" />
+                  <Skeleton className="h-4 w-full mb-1" />
+                  <Skeleton className="h-4 w-3/4" />
+                </div>
               </CardContent>
             </Card>
+            <div className="flex flex-wrap gap-4 mt-4 w-full justify-end">
+              <Skeleton className="h-10 w-32 rounded" />
+              <Skeleton className="h-10 w-32 rounded" />
+            </div>
           </div>
-          
           <div>
-            <Card className="border border-lightBorderV1 h-full">
+            <Card className="border border-lightBorderV1 sticky top-4">
               <CardHeader>
-                <Skeleton className="h-6 w-1/2" />
+                <Skeleton className="h-6 w-32 mb-2" />
               </CardHeader>
               <CardContent className="space-y-4">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
+                {[1, 2, 3, 4].map((_, idx) => (
+                  <div key={idx} className="flex items-center justify-between py-3 border-b border-lightBorderV1">
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-5 rounded" />
+                      <Skeleton className="h-4 w-20" />
+                    </div>
+                    <Skeleton className="h-4 w-24" />
+                  </div>
+                ))}
               </CardContent>
               <CardFooter>
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full rounded" />
               </CardFooter>
             </Card>
           </div>
@@ -111,29 +178,29 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
     );
   }
 
-  const statusInfo = homeStatusMap[home.status as keyof typeof homeStatusMap] || 
+  const statusInfo = homeStatusMap[status as keyof typeof homeStatusMap] ||
     { label: 'Không xác định', color: 'bg-gray-500', textColor: 'text-gray-500' };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-mainBackgroundV1 p-6 rounded-lg border border-lightBorderV1">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">Trang chủ</BreadcrumbLink>
+            <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/homes">Bất động sản</BreadcrumbLink>
+            <BreadcrumbLink href="/homes">Quản lý căn hộ</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{home.name}</BreadcrumbPage>
+            <BreadcrumbPage>{(home as any)?.building} - {(home as any)?.apartmentNv}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <motion.div 
+        <motion.div
           className="lg:col-span-2"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -141,73 +208,109 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
         >
           <Card className="border border-lightBorderV1">
             <div className="relative h-[400px] w-full bg-gray-100">
-              <Image 
-                src={`https://source.unsplash.com/random/1200x800/?house,${home._id}`}
-                alt={home.name}
+              <Image
+                src={`/images/sample-img${getRandom(1, 10)}.png`}
+                alt={((home as any)?.building || '') + ' - ' + ((home as any)?.apartmentNv || '')}
                 fill
                 className="object-cover"
               />
-              <Badge 
+              <Badge
                 className={`absolute top-4 right-4 ${statusInfo.color} text-white px-3 py-1`}
               >
                 {statusInfo.label}
               </Badge>
             </div>
-            
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle className="text-2xl font-bold text-mainTextV1">
-                    {home.name}
-                  </CardTitle>
-                  <div className="flex items-center gap-2 mt-2">
-                    <IconMapPin className="h-4 w-4 text-mainTextV1" />
-                    <span className="text-secondaryTextV1">{home.address}</span>
+
+            <CardHeader className="border-b border-lightBorderV1 pb-4 mb-2 bg-gradient-to-r from-white via-mainBackgroundV1 to-white rounded-t-lg">
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4  w-full flex-1">
+                <div className="flex-1 ">
+                  <div className="flex items-center gap-2 mb-2 ">
+                    <IconBuilding className="h-7 w-7 text-mainTextHoverV1" />
+                    <CardTitle className="text-lg md:text-xl font-bold text-mainTextV1">
+                      {(home as any)?.building} - {(home as any)?.apartmentNv}
+                    </CardTitle>
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap text-secondaryTextV1 text-sm">
+                    <IconMapPin className="h-4 w-4" />
+                    <span>
+                      {(home as any)?.address}
+                      {(home as any)?.ward ? `, ${(home as any).ward}` : ''}
+                      {(home as any)?.district ? `, ${(home as any).district}` : ''}
+                    </span>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-mainTextV1 text-lg font-medium">Giá thuê</p>
-                  <p className="text-mainTextHoverV1 text-2xl font-bold">
-                    {formatCurrency(home.price)}
-                  </p>
+                <div className="text-right min-w-[180px] flex flex-col items-end">
+                  <span className="text-xs text-secondaryTextV1 mb-1 flex items-center gap-1">
+                    <IconCoin className="h-4 w-4" /> Giá thuê
+                  </span>
+                  <span className="text-2xl md:text-3xl font-bold text-mainTextHoverV1">
+                    {formatCurrency(price)}
+                  </span>
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-lightBorderV1">
-                <div className="flex flex-col items-center p-4 bg-mainBackgroundV1 rounded-sm">
+                <div className="text-center p-4 bg-mainBackgroundV1 rounded-sm flex flex-col items-center">
                   <IconRuler2 className="h-6 w-6 text-mainTextV1 mb-2" />
-                  <span className="text-mainTextV1 font-semibold">{home.area} m²</span>
+                  <span className="text-mainTextV1 font-semibold">{area} m²</span>
                   <span className="text-secondaryTextV1 text-sm">Diện tích</span>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-mainBackgroundV1 rounded-sm">
+                <div className="text-center p-4 bg-mainBackgroundV1 rounded-sm flex flex-col items-center">
                   <IconBed className="h-6 w-6 text-mainTextV1 mb-2" />
-                  <span className="text-mainTextV1 font-semibold">{home.bedroom}</span>
+                  <span className="text-mainTextV1 font-semibold">{bedroom}</span>
                   <span className="text-secondaryTextV1 text-sm">Phòng ngủ</span>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-mainBackgroundV1 rounded-sm">
+                <div className="text-center p-4 bg-mainBackgroundV1 rounded-sm flex flex-col items-center">
                   <IconBath className="h-6 w-6 text-mainTextV1 mb-2" />
-                  <span className="text-mainTextV1 font-semibold">{home.toilet}</span>
+                  <span className="text-mainTextV1 font-semibold">{toilet}</span>
                   <span className="text-secondaryTextV1 text-sm">Phòng tắm</span>
                 </div>
-                <div className="flex flex-col items-center p-4 bg-mainBackgroundV1 rounded-sm">
+                <div className="text-center p-4 bg-mainBackgroundV1 rounded-sm flex flex-col items-center">
                   <IconBuilding className="h-6 w-6 text-mainTextV1 mb-2" />
-                  <span className="text-mainTextV1 font-semibold">{home.floor}</span>
+                  <span className="text-mainTextV1 font-semibold">{floor}</span>
                   <span className="text-secondaryTextV1 text-sm">Tầng</span>
                 </div>
               </div>
-              
-              <div>
-                <h3 className="text-lg font-semibold text-mainTextV1 mb-4">Mô tả</h3>
-                <p className="text-secondaryTextV1 whitespace-pre-line">
-                  {home.description || 'Không có mô tả cho căn hộ này.'}
-                </p>
-              </div>
+
+              {description && (
+                <div>
+                  <h3 className="text-lg font-semibold text-mainTextV1 mb-2">Mô tả</h3>
+                  <p className="text-secondaryTextV1 whitespace-pre-line">{description}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
+          <motion.div
+            className="flex flex-wrap gap-4 mt-4 w-full justify-end"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <DeleteHomeDialog
+              homeId={homeId}
+              homeName={((home as any)?.building || '') + ' - ' + ((home as any)?.apartmentNv || '')}
+              trigger={
+                <Button
+                  className="bg-mainDangerV1 !text-white hover:bg-mainDangerHoverV1 border-none"
+                >
+                  <IconTrash className="h-4 w-4 mr-2" />
+                  Xóa căn hộ
+                </Button>
+              }
+            />
+            <Link href={`/admin/homes/${homeId}/edit`}>
+              <Button
+                className="bg-mainInfoV1 !text-white hover:bg-mainInfoHoverV1 border-none"
+              >
+                <IconEdit className="h-4 w-4 mr-2" />
+                Sửa thông tin
+              </Button>
+            </Link>
+          </motion.div>
         </motion.div>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -219,30 +322,30 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
                 Thông tin bổ sung
               </CardTitle>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between py-3 border-b border-lightBorderV1">
                 <div className="flex items-center gap-2">
                   <IconUser className="h-5 w-5 text-mainTextV1" />
                   <span className="text-secondaryTextV1">Chủ sở hữu</span>
                 </div>
-                <Link href={`/homes/homeowner/${home.homeOwnerId._id}`}>
-                  <span className="font-medium text-mainTextHoverV1 hover:underline">
-                    {home.homeOwnerId.fullname}
-                  </span>
-                </Link>
+                <div className="text-right">
+                  <div className="font-medium text-mainTextHoverV1">{(home as any)?.homeOwnerId?.fullname}</div>
+                  <div className="text-xs text-mainTextV1">{(home as any)?.homeOwnerId?.phone}</div>
+                  <div className="text-xs text-mainTextV1">{(home as any)?.homeOwnerId?.email}</div>
+                </div>
               </div>
-              
+
               <div className="flex items-center justify-between py-3 border-b border-lightBorderV1">
                 <div className="flex items-center gap-2">
                   <IconCoin className="h-5 w-5 text-mainTextV1" />
                   <span className="text-secondaryTextV1">Giá thuê</span>
                 </div>
                 <span className="font-semibold text-mainTextV1">
-                  {formatCurrency(home.price)}
+                  {formatCurrency(price)}
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between py-3 border-b border-lightBorderV1">
                 <div className="flex items-center gap-2">
                   <IconHome className="h-5 w-5 text-mainTextV1" />
@@ -252,20 +355,20 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
                   {statusInfo.label}
                 </span>
               </div>
-              
+
               <div className="flex items-center justify-between py-3 border-b border-lightBorderV1">
                 <div className="flex items-center gap-2">
                   <IconClock className="h-5 w-5 text-mainTextV1" />
                   <span className="text-secondaryTextV1">Cập nhật</span>
                 </div>
                 <span className="text-mainTextV1">
-                  {formatDate(home.updatedAt)}
+                  {formatDate((home as any)?.updatedAt)}
                 </span>
               </div>
             </CardContent>
-            
+
             <CardFooter>
-              <Button 
+              <Button
                 className="w-full bg-mainSuccessV1 hover:bg-mainSuccessHoverV1"
                 onClick={() => toast.info('Chức năng đặt lịch xem nhà đang được phát triển!')}
               >

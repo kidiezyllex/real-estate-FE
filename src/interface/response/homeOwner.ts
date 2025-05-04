@@ -24,25 +24,33 @@ export interface IHomeOwnerSearchResult {
 export interface IHomeOwnerListResponse {
   statusCode: number;
   message: string;
-  data: IHomeOwner[];
+  data: {
+    owners: IHomeOwner[];
+  };
 }
 
 export interface IHomeOwnerSearchResponse {
   statusCode: number;
   message: string;
-  data: IHomeOwnerSearchResult[];
+  data: {
+    owners: IHomeOwnerSearchResult[];
+  };
 }
 
 export interface IHomeOwnerDetailResponse {
   statusCode: number;
   message: string;
-  data: IHomeOwner;
+  data: {
+    owner: IHomeOwner;
+  };
 }
 
 export interface IHomeOwnerCreateResponse {
   statusCode: number;
   message: string;
-  data: IHomeOwner;
+  data: {
+    owner: IHomeOwner;
+  };
 }
 
 export interface IHomeOwnerUpdateResponse {

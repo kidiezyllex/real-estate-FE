@@ -20,21 +20,11 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { 
   Card, 
   CardContent, 
   CardFooter, 
-  CardHeader, 
-  CardTitle 
 } from '@/components/ui/card';
 import {
-  IconHome,
   IconLoader2
 } from '@tabler/icons-react';
 import {
@@ -45,18 +35,26 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ICreateHomeBody } from '@/interface/request/home';
+import { useGetHomeOwners } from '@/hooks/useHomeOwner';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const formSchema = z.object({
-  name: z.string().min(1, 'Tên căn hộ không được để trống'),
   address: z.string().min(1, 'Địa chỉ không được để trống'),
-  area: z.coerce.number().min(1, 'Diện tích phải lớn hơn 0'),
-  floor: z.coerce.number().min(1, 'Số tầng phải lớn hơn 0'),
-  bedroom: z.coerce.number().min(0, 'Số phòng ngủ không được âm'),
-  toilet: z.coerce.number().min(0, 'Số phòng tắm không được âm'),
   homeOwnerId: z.string().min(1, 'Chủ sở hữu không được để trống'),
-  price: z.coerce.number().min(1, 'Giá thuê phải lớn hơn 0'),
-  description: z.string().optional(),
-  status: z.coerce.number().min(0).max(3),
+  district: z.string().min(1, 'Quận/Huyện không được để trống'),
+  ward: z.string().min(1, 'Phường/Xã không được để trống'),
+  building: z.string().min(1, 'Tòa nhà không được để trống'),
+  apartmentNv: z.string().min(1, 'Số căn hộ không được để trống'),
+  active: z.boolean(),
+  note: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -65,31 +63,40 @@ interface CreateHomeFormProps {
   defaultHomeOwnerId?: string;
 }
 
-const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
+const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps = {}) => {
   const router = useRouter();
   const { mutate, isPending } = useCreateHome();
-  
+  const {data: allHomeOwners} = useGetHomeOwners();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
       address: '',
-      area: 0,
-      floor: 1,
-      bedroom: 0,
-      toilet: 0,
       homeOwnerId: defaultHomeOwnerId || '',
-      price: 0,
-      description: '',
-      status: 1,
+      district: '',
+      ward: '',
+      building: '',
+      apartmentNv: '',
+      active: true,
+      note: '',
     },
   });
 
   const onSubmit = (values: FormValues) => {
-    mutate(values, {
+    const payload: ICreateHomeBody = {
+      address: values.address,
+      homeOwnerId: values.homeOwnerId as any,
+      district: values.district,
+      ward: values.ward,
+      building: values.building,
+      apartmentNv: values.apartmentNv,
+      active: values.active,
+      note: values.note || '',
+    };
+
+    mutate(payload, {
       onSuccess: (response) => {
         toast.success('Tạo căn hộ mới thành công!');
-        router.push(`/homes/${response.data._id}`);
+        router.push(`/admin/homes`);
       },
       onError: (error) => {
         toast.error(`Lỗi: ${error.message || 'Không thể tạo căn hộ'}`);
@@ -98,15 +105,15 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 bg-mainCardV1 p-6 rounded-lg border border-lightBorderV1">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink href="/">Trang chủ</BreadcrumbLink>
+            <BreadcrumbLink href="/">Dashboard</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/homes">Bất động sản</BreadcrumbLink>
+            <BreadcrumbLink href="/admin/homes">Quản lý căn hộ</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -120,53 +127,16 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <Card className="border border-lightBorderV1">
-          <CardHeader>
-            <CardTitle className="flex items-center text-xl font-semibold text-mainTextV1">
-              <IconHome className="mr-2 h-5 w-5" />
-              Tạo căn hộ mới
-            </CardTitle>
-          </CardHeader>
-          
+        <Card className="border border-lightBorderV1 bg-mainBackgroundV1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
               <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Tên căn hộ</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Nhập tên căn hộ" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="price"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Giá thuê (VNĐ)</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" placeholder="Nhập giá thuê" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
                 <FormField
                   control={form.control}
                   name="address"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Địa chỉ</FormLabel>
+                      <FormLabel className="text-mainTextV1">Địa chỉ</FormLabel>
                       <FormControl>
                         <Input placeholder="Nhập địa chỉ căn hộ" {...field} />
                       </FormControl>
@@ -174,16 +144,16 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
                     </FormItem>
                   )}
                 />
-                
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="area"
+                    name="district"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Diện tích (m²)</FormLabel>
+                        <FormLabel className="text-mainTextV1">Quận/Huyện</FormLabel>
                         <FormControl>
-                          <Input type="number" min="1" placeholder="Diện tích" {...field} />
+                          <Input placeholder="Nhập quận/huyện" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -192,40 +162,12 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
                   
                   <FormField
                     control={form.control}
-                    name="floor"
+                    name="ward"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Số tầng</FormLabel>
+                        <FormLabel className="text-mainTextV1">Phường/Xã</FormLabel>
                         <FormControl>
-                          <Input type="number" min="1" placeholder="Số tầng" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="bedroom"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phòng ngủ</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" placeholder="Số phòng ngủ" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="toilet"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Phòng tắm</FormLabel>
-                        <FormControl>
-                          <Input type="number" min="0" placeholder="Số phòng tắm" {...field} />
+                          <Input placeholder="Nhập phường/xã" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -236,12 +178,12 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="homeOwnerId"
+                    name="building"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>ID Chủ sở hữu</FormLabel>
+                        <FormLabel className="text-mainTextV1">Tòa nhà</FormLabel>
                         <FormControl>
-                          <Input placeholder="Nhập ID chủ sở hữu" {...field} />
+                          <Input placeholder="Nhập tên tòa nhà" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -250,26 +192,13 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
                   
                   <FormField
                     control={form.control}
-                    name="status"
+                    name="apartmentNv"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Trạng thái</FormLabel>
-                        <Select 
-                          onValueChange={(value) => field.onChange(parseInt(value))}
-                          defaultValue={field.value.toString()}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Chọn trạng thái" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="0">Không khả dụng</SelectItem>
-                            <SelectItem value="1">Khả dụng</SelectItem>
-                            <SelectItem value="2">Đang cho thuê</SelectItem>
-                            <SelectItem value="3">Đang bảo trì</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel className="text-mainTextV1">Số căn hộ</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Nhập số căn hộ" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -278,13 +207,63 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
                 
                 <FormField
                   control={form.control}
-                  name="description"
+                  name="homeOwnerId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mô tả</FormLabel>
+                      <FormLabel className="text-mainTextV1">Chọn chủ nhà</FormLabel>
+                      <FormControl>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={isPending}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn chủ nhà" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(allHomeOwners?.data as any)?.map((owner: any) => (
+                              <SelectItem key={owner._id} value={owner._id}>
+                                {owner.fullname} {owner.phone ? `- ${owner.phone}` : ""}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-white">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none" >
+                        <FormLabel className="text-mainTextV1">Trạng thái hoạt động</FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          Chọn nếu căn hộ đang hoạt động và có thể cho thuê
+                        </p>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="note"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-mainTextV1">Ghi chú</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Nhập mô tả chi tiết về căn hộ" 
+                          placeholder="Nhập ghi chú về căn hộ (nếu có)" 
                           className="min-h-[120px]" 
                           {...field} 
                         />
@@ -306,7 +285,6 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps) => {
                 </Button>
                 <Button 
                   type="submit"
-                  className="bg-mainSuccessV1 hover:bg-mainSuccessHoverV1"
                   disabled={isPending}
                 >
                   {isPending ? (

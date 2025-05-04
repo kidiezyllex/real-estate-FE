@@ -8,7 +8,9 @@ export interface IGeneralStatistics {
 export interface IGeneralStatisticsResponse {
   statusCode: number;
   message: string;
-  data: IGeneralStatistics;
+  data: {
+    statistics: IGeneralStatistics;
+  };
 }
 
 export interface IRevenueByMonth {
@@ -25,7 +27,9 @@ export interface IRevenueStatistics {
 export interface IRevenueStatisticsResponse {
   statusCode: number;
   message: string;
-  data: IRevenueStatistics;
+  data: {
+    statistics: IRevenueStatistics;
+  };
 }
 
 export interface IHomeStatistics {
@@ -37,7 +41,9 @@ export interface IHomeStatistics {
 export interface IHomeStatisticsResponse {
   statusCode: number;
   message: string;
-  data: IHomeStatistics;
+  data: {
+    statistics: IHomeStatistics;
+  };
 }
 
 export interface IContractStatistics {
@@ -51,7 +57,9 @@ export interface IContractStatistics {
 export interface IContractStatisticsResponse {
   statusCode: number;
   message: string;
-  data: IContractStatistics;
+  data: {
+    statistics: IContractStatistics;
+  };
 }
 
 export interface IPaymentStatistics {
@@ -64,7 +72,9 @@ export interface IPaymentStatistics {
 export interface IPaymentStatisticsResponse {
   statusCode: number;
   message: string;
-  data: IPaymentStatistics;
+  data: {
+    statistics: IPaymentStatistics;
+  };
 }
 
 export interface IDuePayment {
@@ -87,5 +97,7 @@ export interface IDuePaymentsStatistics {
 export interface IDuePaymentsStatisticsResponse {
   statusCode: number;
   message: string;
-  data: IDuePaymentsStatistics;
+  data: {
+    statistics: IDuePaymentsStatistics;
+  };
 } 
