@@ -70,7 +70,6 @@ interface UpdateHomeFormProps {
 const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
   const router = useRouter();
   const { data: homeData, isLoading: isLoadingHome, error: homeError } = useGetHomeDetail({ id: homeId });
-  console.log(homeData);
   const { mutate, isPending } = useUpdateHome();
   const { data: allHomeOwners } = useGetHomeOwners();
 
