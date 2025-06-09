@@ -3,6 +3,7 @@ import { type VariantProps, cva } from "class-variance-authority";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { RippleEffect } from "./ripple-effect";
 
 const buttonVariants = cva(
 	"inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-sm text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 !margin-0",
@@ -11,17 +12,17 @@ const buttonVariants = cva(
 			variant: {
 				default: "bg-[#604AE3] text-maintext text-mainBackgroundV1 shadow hover:bg-[#5A47D2] font-semibold",
 				destructive: "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-				outline: "border border-[#604AE3] !text-[#604AE3] font-semibold bg-transparent shadow-sm hover:bg-accent hover:text-accent-foreground",
+				outline: "border border-[#604AE3] !bg-[#604AE320] !text-[#604AE3] font-semibold shadow-sm hover:bg-accent hover:text-accent-foreground",
 				secondary: "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
 				ghost: "hover:bg-accent hover:text-accent-foreground",
 				link: "text-primary underline-offset-4 hover:underline",
 			},
 			size: {
 				default: "h-9 px-4 py-2",
-				sm: "h-8 rounded-sm px-3 text-xs",
-				lg: "h-10 rounded-sm px-8",
+				sm: "h-8 rounded-[6px] px-3 text-xs",
+				lg: "h-10 rounded-[6px] px-8",
 				icon: "h-9 w-9",
-			},
+			  },
 		},
 		defaultVariants: {
 			variant: "default",
@@ -34,12 +35,31 @@ export interface ButtonProps
 	extends React.ButtonHTMLAttributes<HTMLButtonElement>,
 		VariantProps<typeof buttonVariants> {
 	asChild?: boolean;
+	ripple?: boolean;
+	rippleColor?: string;
+	rippleDuration?: number;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-	({ className, variant, size, asChild = false, ...props }, ref) => {
+	({ className, variant, size, asChild = false, ripple = false, rippleColor, rippleDuration, ...props }, ref) => {
 		const Comp = asChild ? Slot : "button";
-		return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+		const buttonElement = (
+			<Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />
+		);
+
+		if (ripple) {
+			return (
+				<RippleEffect
+					rippleColor={rippleColor || "rgba(255, 255, 255, 0.4)"}
+					duration={rippleDuration || 500}
+					className="inline-flex"
+				>
+					{buttonElement}
+				</RippleEffect>
+			);
+		}
+
+		return buttonElement;
 	},
 );
 Button.displayName = "Button";

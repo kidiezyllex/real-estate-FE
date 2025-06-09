@@ -9,6 +9,8 @@ export interface IGuest {
   birthday: string;
   hometown: string;
   note: string;
+  gender?: boolean; // true for male, false for female
+  avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -144,7 +144,7 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
           <CardHeader>
             <Skeleton className="h-8 w-1/3" />
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
             <Skeleton className="h-10 w-full" />
@@ -199,7 +199,7 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
         <Card className="border border-lightBorderV1 bg-mainBackgroundV1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="bg-mainBackgroundV1 p-4 rounded-sm mb-6 border border-lightBorderV1">
                   <p className="text-mainTextV1 flex items-center">
                     <IconInfoCircle className="h-5 w-5 mr-2 text-mainInfoV1" />
@@ -219,7 +219,7 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
                     </FormItem>
                   )}
                 />
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="district"
@@ -247,7 +247,7 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
                     )}
                   />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="building"

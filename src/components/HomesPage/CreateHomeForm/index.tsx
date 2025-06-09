@@ -130,7 +130,7 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps = {}) => {
         <Card className="border border-lightBorderV1 bg-mainBackgroundV1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <FormField
                   control={form.control}
                   name="address"
@@ -145,7 +145,7 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps = {}) => {
                   )}
                 />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="district"
@@ -175,7 +175,7 @@ const CreateHomeForm = ({ defaultHomeOwnerId }: CreateHomeFormProps = {}) => {
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <FormField
                     control={form.control}
                     name="building"

@@ -12,6 +12,7 @@ import { useState } from "react";
 import DashboardHeader from "../Common/DashboardHeader";
 import { getDashboardMenuItems } from "./dashboardMenuItems";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { RippleEffect } from "@/components/ui/ripple-effect";
 
 export default function DashboardLayout({
 	children,
@@ -66,9 +67,47 @@ export default function DashboardLayout({
 									>
 										{(!menu.subMenu || menu.subMenu.length === 0) ? (
 											<Link href={menu.path}>
+												<RippleEffect
+													rippleColor="rgba(68, 215, 182, 0.3)"
+													duration={500}
+												>
+													<div
+														className={cn(
+															"flex items-center rounded-lg p-[10px] h-[46px] text-sm font-medium transition-colors",
+															isMenuActive(menu)
+																? "bg-[#29323A] text-white"
+																: "text-white/70 hover:bg-[#29323A]",
+															!isOpen && "!justify-center w-[46px]",
+														)}
+													>
+														<div
+															className={cn(
+																"!w-7 !h-7 flex-shrink-0 rounded-sm flex items-center justify-center bg-[#29323A]",
+																isOpen ? "mr-4" : "mr-0",
+															)}
+														>
+															<Icon
+																path={menu.icon}
+																size={0.8}
+																className={cn(
+																	isMenuActive(menu)
+																		? "!text-white flex-shrink-0"
+																		: "!text-white/70 flex-shrink-0",
+																)}
+															/>
+														</div>
+														{isOpen && <span className="text-nowrap">{menu.name}</span>}
+													</div>
+												</RippleEffect>
+											</Link>
+										) : (
+											<RippleEffect
+												rippleColor="rgba(68, 215, 182, 0.3)"
+												duration={500}
+											>
 												<div
 													className={cn(
-														"flex items-center rounded-lg p-[10px] h-[46px] text-sm font-medium transition-colors",
+														"flex items-center  rounded-lg p-[10px] h-[46px] text-sm font-medium transition-colors cursor-pointer",
 														isMenuActive(menu)
 															? "bg-[#29323A] text-white"
 															: "text-white/70 hover:bg-[#29323A]",
@@ -77,7 +116,7 @@ export default function DashboardLayout({
 												>
 													<div
 														className={cn(
-															"!w-7 !h-7 flex-shrink-0 rounded-sm flex items-center justify-center bg-[#29323A]",
+															"!w-7 !h-7 flex-shrink-0 rounded-sm flex items-center justify-center bg-[#29323A] ",
 															isOpen ? "mr-4" : "mr-0",
 														)}
 													>
@@ -91,46 +130,18 @@ export default function DashboardLayout({
 															)}
 														/>
 													</div>
-													{isOpen && <span className="text-nowrap">{menu.name}</span>}
-												</div>
-											</Link>
-										) : (
-											<div
-												className={cn(
-													"flex items-center  rounded-lg p-[10px] h-[46px] text-sm font-medium transition-colors cursor-pointer",
-													isMenuActive(menu)
-														? "bg-[#29323A] text-white"
-														: "text-white/70 hover:bg-[#29323A]",
-													!isOpen && "!justify-center w-[46px]",
-												)}
-											>
-												<div
-													className={cn(
-														"!w-7 !h-7 flex-shrink-0 rounded-sm flex items-center justify-center bg-[#29323A] ",
-														isOpen ? "mr-4" : "mr-0",
+													{isOpen && (
+														<span className="text-nowrap flex items-center justify-between gap-1 flex-1">
+															{menu.name}
+															{expandedMenu === menu.id ? (
+																<IconChevronUp size={18} className="ml-1" />
+															) : (
+																<IconChevronDown size={18} className="ml-1" />
+															)}
+														</span>
 													)}
-												>
-													<Icon
-														path={menu.icon}
-														size={0.8}
-														className={cn(
-															isMenuActive(menu)
-																? "!text-white flex-shrink-0"
-																: "!text-white/70 flex-shrink-0",
-														)}
-													/>
 												</div>
-												{isOpen && (
-													<span className="text-nowrap flex items-center justify-between gap-1 flex-1">
-														{menu.name}
-														{expandedMenu === menu.id ? (
-															<IconChevronUp size={18} className="ml-1" />
-														) : (
-															<IconChevronDown size={18} className="ml-1" />
-														)}
-													</span>
-												)}
-											</div>
+											</RippleEffect>
 										)}
 										{/* SubMenu expand/collapse */}
 										{isOpen && menu.subMenu && menu.subMenu.length > 0 && (
@@ -151,26 +162,31 @@ export default function DashboardLayout({
 														{menu.subMenu.map((sub) => (
 															<li key={sub.id}>
 																<Link href={sub.path}>
-																	<div
-																		className={cn(
-																			"flex items-center rounded-lg p-[8px] h-[38px] text-sm font-normal transition-colors",
-																		pathname === sub.path
-																			? "bg-[#29323A] text-white"
-																			: "text-white/70 hover:bg-[#29323A]",
-																		)}
+																	<RippleEffect
+																		rippleColor="rgba(68, 215, 182, 0.2)"
+																		duration={400}
 																	>
-																		<Icon
-																			path={sub.icon || ""}
-																			size={0.7}
+																		<div
 																			className={cn(
-																				pathname === sub.path
-																					? "!text-white flex-shrink-0"
-																					: "!text-white/70 flex-shrink-0",
-																				"mr-3"
+																				"flex items-center rounded-lg p-[8px] h-[38px] text-sm font-normal transition-colors",
+																			pathname === sub.path
+																				? "bg-[#29323A] text-white"
+																				: "text-white/70 hover:bg-[#29323A]",
 																			)}
-																		/>
-																		<span>{sub.name}</span>
-																	</div>
+																		>
+																			<Icon
+																				path={sub.icon || ""}
+																				size={0.7}
+																				className={cn(
+																					pathname === sub.path
+																						? "!text-white flex-shrink-0"
+																						: "!text-white/70 flex-shrink-0",
+																					"mr-3"
+																				)}
+																			/>
+																			<span>{sub.name}</span>
+																		</div>
+																	</RippleEffect>
 																</Link>
 															</li>
 														))}

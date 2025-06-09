@@ -6,24 +6,23 @@ import { Button } from "@/components/ui/button";
 import { IGuest, IGuestSearchResult } from "@/interface/response/guest";
 import { formatDate } from "@/utils/dateFormat";
 import { motion } from "framer-motion";
-import { IconEye, IconEdit, IconTrash, IconPhone, IconMail, IconId } from "@tabler/icons-react";
+import { IconEdit, IconTrash, IconPhone, IconMail, IconId, IconUserCircle } from "@tabler/icons-react";
 
 interface GuestTableProps {
   guests: (IGuest | IGuestSearchResult)[];
   isSearching: boolean;
-  onView: (id: string) => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export const GuestTable = ({ guests, isSearching, onView, onEdit, onDelete }: GuestTableProps) => {
+export const GuestTable = ({ guests, isSearching, onEdit, onDelete }: GuestTableProps) => {
   const [hoveredRow, setHoveredRow] = useState<string | null>(null);
 
   return (
     <div className="w-full overflow-auto">
       <Table>
-        <TableHeader>
-          <TableRow className="bg-gray-50 hover:bg-gray-50">
+        <TableHeader >
+          <TableRow className="bg-[#604AE320] hover:bg-gray-50">
             <TableHead className="font-medium text-mainTextV1">Tên khách hàng</TableHead>
             <TableHead className="font-medium text-mainTextV1">Số điện thoại</TableHead>
             <TableHead className="font-medium text-mainTextV1">Email</TableHead>
@@ -43,13 +42,16 @@ export const GuestTable = ({ guests, isSearching, onView, onEdit, onDelete }: Gu
             </TableRow>
           ) : (
             guests.map((guest) => (
-              <TableRow 
+              <TableRow
                 key={guest._id}
                 className="hover:bg-gray-50 transition-colors"
                 onMouseEnter={() => setHoveredRow(guest._id)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
-                <TableCell className="font-medium text-mainTextV1">{guest.fullname}</TableCell>
+                <TableCell className="flex items-center">
+                  <IconUserCircle className="w-4 h-4 mr-1 text-mainTextV1" />
+                  <span className="text-secondaryTextV1 font-semibold">{guest.fullname}</span>
+                </TableCell>
                 <TableCell>
                   <div className="flex items-center">
                     <IconPhone className="w-4 h-4 mr-1 text-mainTextV1" />
@@ -80,21 +82,8 @@ export const GuestTable = ({ guests, isSearching, onView, onEdit, onDelete }: Gu
                       whileTap={{ scale: 0.95 }}
                     >
                       <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onView(guest._id)}
-                        className="text-mainTextV1 hover:text-mainTextHoverV1 hover:bg-transparent"
-                      >
-                        <IconEye className="h-4 w-4" />
-                      </Button>
-                    </motion.div>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
+                        variant="outline"
+                        size="icon"
                         onClick={() => onEdit(guest._id)}
                         className="text-mainTextV1 hover:text-mainTextHoverV1 hover:bg-transparent"
                       >
@@ -106,8 +95,8 @@ export const GuestTable = ({ guests, isSearching, onView, onEdit, onDelete }: Gu
                       whileTap={{ scale: 0.95 }}
                     >
                       <Button
-                        variant="ghost"
-                        size="sm"
+                       variant="outline"
+                        size="icon"
                         onClick={() => onDelete(guest._id)}
                         className="text-mainTextV1 hover:text-mainDangerV1 hover:bg-transparent"
                       >

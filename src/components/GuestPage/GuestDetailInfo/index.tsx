@@ -10,77 +10,137 @@ import {
   IconCalendar, 
   IconMapPin, 
   IconHome, 
-  IconNotes 
+  IconNotes,
+  IconGenderMale,
+  IconGenderFemale
 } from "@tabler/icons-react";
+import { Card, CardHeader } from "@/components/ui/card";
 
 interface GuestDetailInfoProps {
   guest: IGuest;
 }
 
 export const GuestDetailInfo = ({ guest }: GuestDetailInfoProps) => {
-  const details = [
+  const personalContactInfo = [
     {
-      icon: <IconUser className="h-5 w-5 text-mainTextV1" />,
+      icon: <IconUser className="h-4 w-4 text-slate-600" />,
       label: "Họ tên",
       value: guest.fullname,
     },
     {
-      icon: <IconPhone className="h-5 w-5 text-mainTextV1" />,
+      icon: <IconPhone className="h-4 w-4 text-green-600" />,
       label: "Số điện thoại",
       value: guest.phone,
     },
     {
-      icon: <IconMail className="h-5 w-5 text-mainTextV1" />,
+      icon: <IconMail className="h-4 w-4 text-blue-600" />,
       label: "Email",
       value: guest.email,
     },
     {
-      icon: <IconId className="h-5 w-5 text-mainTextV1" />,
-      label: "Số CMND/CCCD",
-      value: guest.citizenId,
+      icon: guest.gender !== undefined ? (guest.gender ? <IconGenderMale className="h-4 w-4 text-blue-600" /> : <IconGenderFemale className="h-4 w-4 text-pink-600" />) : <IconUser className="h-4 w-4 text-gray-400" />,
+      label: "Giới tính",
+      value: guest.gender !== undefined ? (guest.gender ? "Nam" : "Nữ") : "",
     },
     {
-      icon: <IconCalendar className="h-5 w-5 text-mainTextV1" />,
-      label: "Ngày cấp",
-      value: guest.citizen_date ? formatDateOnly(guest.citizen_date) : "",
-    },
-    {
-      icon: <IconMapPin className="h-5 w-5 text-mainTextV1" />,
-      label: "Nơi cấp",
-      value: guest.citizen_place,
-    },
-    {
-      icon: <IconCalendar className="h-5 w-5 text-mainTextV1" />,
+      icon: <IconCalendar className="h-4 w-4 text-slate-600" />,
       label: "Ngày sinh",
       value: guest.birthday ? formatDateOnly(guest.birthday) : "",
     },
     {
-      icon: <IconHome className="h-5 w-5 text-mainTextV1" />,
+      icon: <IconHome className="h-4 w-4 text-slate-600" />,
       label: "Quê quán",
       value: guest.hometown,
-    },
-    {
-      icon: <IconNotes className="h-5 w-5 text-mainTextV1" />,
-      label: "Ghi chú",
-      value: guest.note,
-    },
+    }
   ];
 
+  const identityAdditionalInfo = [
+    {
+      icon: <IconId className="h-4 w-4 text-red-600" />,
+      label: "Số CMND/CCCD",
+      value: guest.citizenId,
+    },
+    {
+      icon: <IconCalendar className="h-4 w-4 text-slate-600" />,
+      label: "Ngày cấp",
+      value: guest.citizen_date ? formatDateOnly(guest.citizen_date) : "",
+    },
+    {
+      icon: <IconMapPin className="h-4 w-4 text-slate-600" />,
+      label: "Nơi cấp",
+      value: guest.citizen_place,
+    },
+    ...(guest.note ? [{
+      icon: <IconNotes className="h-4 w-4 text-slate-600" />,
+      label: "Ghi chú",
+      value: guest.note,
+    }] : [])
+  ];
+
+  const InfoRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) => (
+    <div className="flex items-center gap-3 py-2">
+      <div className="flex-shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+          {label}
+        </span>
+        <p className="text-sm text-slate-900 mt-0.5 truncate">
+          {value || <span className="text-slate-400 italic">Chưa cập nhật</span>}
+        </p>
+      </div>
+    </div>
+  );
+
+  const InfoSection = ({ title, items, className = "" }: { title: string, items: any[], className?: string }) => (
+    <Card className={`border border-slate-200 bg-white overflow-hidden ${className}`}>
+      <CardHeader>
+      {title}
+      </CardHeader>
+  
+      <div className="px-4 py-3 space-y-1">
+        {items.map((item, index) => (
+          <InfoRow key={index} {...item} />
+        ))}
+      </div>
+    </Card>
+  );
+
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-        {details.map((detail, index) => (
-          <div 
-            key={index} 
-            className={`flex items-start gap-3 ${index === details.length - 1 && details.length % 2 !== 0 ? "md:col-span-2" : ""}`}
-          >
-            <div className="flex-shrink-0 mt-1">{detail.icon}</div>
-            <div>
-              <p className="text-sm font-medium text-gray-500 mb-1">{detail.label}</p>
-              <p className="text-base text-mainTextV1">{detail.value || "N/A"}</p>
+    <div className="space-y-4">
+      {/* Header with Avatar */}
+      {guest.avatarUrl && (
+        <Card className="border border-slate-200">
+          <div className="px-4 py-4">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-slate-200 flex-shrink-0">
+                <img 
+                  src={guest.avatarUrl} 
+                  alt={guest.fullname}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-lg font-semibold text-slate-900 truncate">{guest.fullname}</h2>
+                <p className="text-sm text-slate-600">{guest.phone}</p>
+              </div>
             </div>
           </div>
-        ))}
+        </Card>
+      )}
+
+      {/* Information Grid - Only 2 Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 bg-transparent">
+        <InfoSection 
+          title="Thông tin cá nhân & liên hệ" 
+          items={personalContactInfo}
+        />
+        
+        <InfoSection 
+          title="Thông tin giấy tờ & bổ sung" 
+          items={identityAdditionalInfo}
+        />
       </div>
     </div>
   );

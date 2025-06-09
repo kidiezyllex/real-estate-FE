@@ -65,7 +65,7 @@ export default function StatisticsPage() {
 				animate="show"
 			>
 				<motion.div variants={item}>
-					<h1 className="text-3xl font-bold mb-8 text-mainTextV1">Dashboard</h1>
+					<h1 className="text-3xl font-semibold mb-8 text-mainTextV1">Dashboard</h1>
 				</motion.div>
 
 				<motion.div variants={item}>

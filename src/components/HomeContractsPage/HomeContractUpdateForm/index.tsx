@@ -105,10 +105,10 @@ const HomeContractUpdateForm = ({ contractId }: HomeContractUpdateFormProps) => 
     return (
       <div className="space-y-8 bg-mainCardV1 p-6 rounded-lg border border-lightBorderV1">
         <Skeleton className="h-10 w-full max-w-md" />
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[...Array(5)].map((_, index) => (
                   <div key={index} className="space-y-2">
                     <Skeleton className="h-4 w-24" />
@@ -200,8 +200,8 @@ const HomeContractUpdateForm = ({ contractId }: HomeContractUpdateFormProps) => 
               </p>
             </div>
 
-            <form id="home-contract-update-form" onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form id="home-contract-update-form" onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="price" className="text-secondaryTextV1">
                     Giá thuê <span className="text-mainDangerV1">*</span>

@@ -36,7 +36,7 @@ const StatCard = ({
             <Icon size={24} className="text-mainTextV1" style={{ color }} />
           </div>
         </div>
-        <p className="text-3xl font-bold mt-auto" style={{ color }}>
+        <p className="text-3xl font-semibold mt-auto" style={{ color }}>
           {value.toLocaleString()}
         </p>
       </Card>
@@ -49,7 +49,7 @@ export default function StatCards() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[...Array(4)].map((_, i) => (
           <Card key={i} className="p-6 h-full">
             <div className="flex items-center justify-between mb-4">
@@ -99,7 +99,7 @@ export default function StatCards() {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat, index) => (
         <StatCard
           key={stat.title}

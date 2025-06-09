@@ -6,7 +6,7 @@ export default function NotFound() {
 	return (
 		<div>
 			<div className="text-center mt-20">
-				<h1 className="text-3xl font-bold text-gray-600 mb-4">Page Not Found</h1>
+				<h1 className="text-3xl font-semibold text-gray-600 mb-4">Page Not Found</h1>
 				<p className="text-[#909296] mb-6">Oops! Page not found.</p>
 				<button
 					className="bg-primary hover:bg-opacity-90 !text-emerald-50/80 px-6 py-2 rounded-lg"

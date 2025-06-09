@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { LoadingSpinnerWithText } from "@/components/ui/LoadingSpinner";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -18,7 +19,15 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }, [isLoading, isAuth, checkAndRedirect, profileData]);
 
   if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Đang tải...</div>;
+    return (
+      <div className="min-h-screen">
+        <LoadingSpinnerWithText 
+          text="Đang tải..." 
+          size="lg" 
+          className="min-h-screen"
+        />
+      </div>
+    );
   }
 
   // Nếu không được xác thực, không hiển thị nội dung

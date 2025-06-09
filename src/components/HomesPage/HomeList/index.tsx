@@ -59,7 +59,7 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array(6).fill(0).map((_, i) => (
           <Card key={i} className="overflow-hidden border border-lightBorderV1">
             <div className="relative h-48 w-full bg-gray-100">
@@ -108,7 +108,7 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
   return (
     <React.Fragment>
       <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
         variants={container}
         initial="hidden"
         animate="show"
@@ -134,7 +134,7 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
                 <CardTitle className="text-lg font-semibold text-mainTextV1 line-clamp-1">
                   {home.building} - {home.apartmentNv}
                 </CardTitle>
-                <p className="text-mainTextV1 font-bold text-lg">
+                <p className="text-mainTextV1 font-semibold text-lg">
                   {formatCurrency((home as any).price)}
                 </p>
                 <p className="text-mainTextV1 text-sm">

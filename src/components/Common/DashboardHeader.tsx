@@ -21,6 +21,7 @@ import {
 import { useGetUserProfile } from "@/hooks/useUser";
 import { Bell, Settings, User, LogOut } from "lucide-react";
 import { useUser } from "@/context/useUserContext";
+import Image from "next/image";
 
 declare global {
 	interface Window {
@@ -51,11 +52,12 @@ export default function DashboardHeader() {
 			>
 				<div className="flex items-center w-[244px] justify-between">
 					<Link href="/">
-						<div className="text-mainActiveV1 text-3xl font-bold flex items-center gap-0">
-							<span className="mr-[-3px] tracking-tighter text-primary">Rent</span>
-							<IconHomeFilled size={30} className="text-white/70" />
-							<span className="text-primary ml-[-5px] tracking-tighter">Smart</span>
-						</div>
+						<Image 
+						height={300}
+						width={300}
+						draggable={false}
+						quality={100}
+						src="/images/logo.svg" alt="logo" className="w-auto h-8" />
 					</Link>
 					<Button
 						variant="ghost"

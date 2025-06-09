@@ -1,5 +1,14 @@
-import GuestDetails from "@/components/GuestPage/GuestDetails";
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function page() {
-  return <GuestDetails />;
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.replace("/admin/users/guests");
+  }, [router]);
+
+  return null;
 }

@@ -114,7 +114,7 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-6">
+              <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-lightBorderV1">
                   {[1, 2, 3, 4].map((_, idx) => (
                     <div key={idx} className="text-center p-4 bg-mainBackgroundV1 rounded-sm flex flex-col items-center">
@@ -225,7 +225,7 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
                 <div className="flex-1 ">
                   <div className="flex items-center gap-2 mb-2 ">
                     <IconBuilding className="h-7 w-7 text-mainTextHoverV1" />
-                    <CardTitle className="text-lg md:text-xl font-bold text-mainTextV1">
+                    <CardTitle className="text-lg md:text-xl font-semibold text-mainTextV1">
                       {(home as any)?.building} - {(home as any)?.apartmentNv}
                     </CardTitle>
                   </div>
@@ -242,14 +242,14 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
                   <span className="text-xs text-secondaryTextV1 mb-1 flex items-center gap-1">
                     <IconCoin className="h-4 w-4" /> Giá thuê
                   </span>
-                  <span className="text-2xl md:text-3xl font-bold text-mainTextHoverV1">
+                  <span className="text-2xl md:text-3xl font-semibold text-mainTextHoverV1">
                     {formatCurrency(price)}
                   </span>
                 </div>
               </div>
             </CardHeader>
 
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-4 border-y border-lightBorderV1">
                 <div className="text-center p-4 bg-mainBackgroundV1 rounded-sm flex flex-col items-center">
                   <IconRuler2 className="h-6 w-6 text-mainTextV1 mb-2" />

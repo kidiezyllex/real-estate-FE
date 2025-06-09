@@ -109,10 +109,10 @@ const HomeContractCreateForm = () => {
     return (
       <div className="space-y-8 bg-mainCardV1 p-6 rounded-lg border border-lightBorderV1">
         <Skeleton className="h-10 w-full max-w-md" />
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Card>
             <CardContent className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {[...Array(8)].map((_, index) => (
                   <div key={index} className="space-y-2">
                     <Skeleton className="h-4 w-24" />
@@ -175,8 +175,8 @@ const HomeContractCreateForm = () => {
               </h1>
             </div>
 
-            <form id="home-contract-create-form" onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form id="home-contract-create-form" onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="homeId" className="text-secondaryTextV1">
                     Căn hộ <span className="text-mainDangerV1">*</span>

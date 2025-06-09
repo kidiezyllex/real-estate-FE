@@ -13,21 +13,21 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
 import { GuestTable } from "@/components/GuestPage/GuestTable";
-import { GuestDeleteDialog } from "@/components/GuestPage/GuestDeleteDialog";
+// import { GuestDeleteDialog } from "@/components/GuestPage/GuestDeleteDialog";
+import { GuestCreateDialog } from "@/components/GuestPage/GuestCreateDialog";
+import { GuestDetailsDialog } from "@/components/GuestPage/GuestDetailsDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { IconSearch, IconPlus } from "@tabler/icons-react";
 import { IGuestSearchResult } from "@/interface/response/guest";
-import Link from "next/link";
 
 export default function GuestPage() {
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [searchResults, setSearchResults] = useState<IGuestSearchResult[]>([]);
@@ -61,12 +61,9 @@ export default function GuestPage() {
     setSearchQuery(e.target.value);
   };
 
-  const handleViewDetail = (id: string) => {
-    router.push(`/admin/users/guest/${id}`);
-  };
-
   const handleEdit = (id: string) => {
-    router.push(`/admin/users/guest/${id}/edit`);
+    setSelectedGuestId(id);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -119,7 +116,7 @@ export default function GuestPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between gap-4 w-full md:w-auto">
             <div className="relative w-full md:w-64">
               <Input
@@ -130,13 +127,13 @@ export default function GuestPage() {
               />
               <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mainTextV1 w-5 h-5" />
             </div>
-          <Link href="/admin/users/guests/create">
           <Button
-              className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-            >
-              <IconPlus className="mr-2 h-4 w-4" />
-              Thêm khách hàng
-            </Button></Link>
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+          >
+            <IconPlus className="mr-2 h-4 w-4" />
+            Thêm khách hàng
+          </Button>
           </div>
 
           <Card className="p-0 overflow-hidden shadow-sm border border-lightBorderV1">
@@ -158,7 +155,6 @@ export default function GuestPage() {
               <GuestTable
                 guests={searchResults.length > 0 ? searchResults : (guestsData?.data || [])}
                 isSearching={!!debouncedQuery}
-                onView={handleViewDetail}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -166,12 +162,30 @@ export default function GuestPage() {
           </Card>
         </div>
       </motion.div>
-      <GuestDeleteDialog
+      {/* <GuestDeleteDialog
         isOpen={isDeleteDialogOpen}
         isDeleting={isDeleting}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
+      /> */}
+      
+      <GuestCreateDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={() => refetch()}
       />
+      
+      {selectedGuestId && (
+        <GuestDetailsDialog
+          isOpen={isDetailsDialogOpen}
+          onClose={() => {
+            setIsDetailsDialogOpen(false);
+            setSelectedGuestId(null);
+          }}
+          guestId={selectedGuestId}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 } 

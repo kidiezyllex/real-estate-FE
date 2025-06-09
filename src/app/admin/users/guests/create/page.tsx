@@ -1,5 +1,14 @@
-import GuestCreateForm from '@/components/GuestPage/GuestCreateForm';
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function page() {
-  return <GuestCreateForm />;
+  const router = useRouter();
+  
+  useEffect(() => {
+    router.replace("/admin/users/guests");
+  }, [router]);
+
+  return null;
 } 

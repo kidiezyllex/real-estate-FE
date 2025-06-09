@@ -16,6 +16,8 @@ export interface ICreateGuestBody {
   birthday: string;
   hometown: string;
   note: string;
+  gender?: boolean; // true for male, false for female
+  avatarUrl?: string;
 }
 
 export interface IUpdateGuestParams {
@@ -25,7 +27,15 @@ export interface IUpdateGuestParams {
 export interface IUpdateGuestBody {
   fullname?: string;
   phone?: string;
+  email?: string;
+  citizenId?: string;
+  citizen_date?: string;
+  citizen_place?: string;
+  birthday?: string;
+  hometown?: string;
   note?: string;
+  gender?: boolean;
+  avatarUrl?: string;
 }
 
 export interface IDeleteGuestParams {

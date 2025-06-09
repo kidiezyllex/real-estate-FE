@@ -116,8 +116,8 @@ const HomeOwnerCreateForm = () => {
                                 Tạo chủ nhà mới
                             </h1>
                         </div>
-                        <form id="homeowner-create-form" onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <form id="homeowner-create-form" onSubmit={handleSubmit} className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="fullname" className="text-secondaryTextV1">
                                         Họ tên <span className="text-mainDangerV1">*</span>

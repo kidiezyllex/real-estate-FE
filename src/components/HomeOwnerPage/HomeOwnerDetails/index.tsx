@@ -76,7 +76,7 @@ export default function HomeOwnerDetailPage() {
         <div className="mb-6 h-8">
           <Skeleton className="h-8 w-64" />
         </div>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <Skeleton className="h-8 w-64" />
             <div className="flex gap-4">
@@ -122,7 +122,7 @@ export default function HomeOwnerDetailPage() {
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <Button
