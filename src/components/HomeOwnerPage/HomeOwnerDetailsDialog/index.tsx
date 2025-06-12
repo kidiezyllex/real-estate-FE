@@ -218,8 +218,53 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
-          <DialogHeader>
+          <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle>Thông tin chủ nhà</DialogTitle>
+            <div className="flex flex-row items-center justify-between gap-4">
+                <div className="flex w-full items-center justify-end gap-4">
+                  {!isEditing ? (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={handleDelete}
+                      >
+                        <IconTrash className="h-4 w-4 mr-2" />
+                        Xóa
+                      </Button>
+                      <Button
+                        variant="default"
+                        onClick={handleEdit}
+                      >
+                        <IconPencil className="h-4 w-4 mr-2" />
+                        Chỉnh sửa
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={handleCancelEdit}
+                        disabled={isUpdating}
+                      >
+                        <IconX className="h-4 w-4 mr-2" />
+                        Hủy
+                      </Button>
+                      <Button
+                        onClick={handleUpdate}
+                        disabled={isUpdating}
+                        className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+                      >
+                        {isUpdating ? (
+                          <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
+                        ) : (
+                          <IconCheck className="h-4 w-4 mr-2" />
+                        )}
+                        Cập nhật
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
           </DialogHeader>
 
           {isEditing ? (
@@ -359,26 +404,13 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
               {ownerData?.data && (
                 <HomeOwnerDetailInfo homeOwner={ownerData.data} />
               )}
-              <DialogFooter>
-                <Button variant="outline" onClick={handleClose}>
-                  Đóng
-                </Button>
-                <Button variant="destructive" onClick={handleDelete}>
-                  <IconTrash className="mr-2 h-4 w-4" />
-                  Xóa
-                </Button>
-                <Button onClick={handleEdit}>
-                  <IconPencil className="mr-2 h-4 w-4" />
-                  Chỉnh sửa
-                </Button>
-              </DialogFooter>
             </>
           )}
         </DialogContent>
       </Dialog>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
+        <DialogContent size="small" className="bg-white max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Xác nhận xóa</DialogTitle>
             <DialogDescription>

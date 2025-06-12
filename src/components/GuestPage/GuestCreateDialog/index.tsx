@@ -59,7 +59,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
     avatarUrl: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Address selection states
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -151,7 +151,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
       const provinceName = provinces.find(p => p.code.toString() === selectedProvince)?.name || "";
       const districtName = districts.find(d => d.code.toString() === selectedDistrict)?.name || "";
       const wardName = wards.find(w => w.code.toString() === selectedWard)?.name || "";
-      
+
       const fullAddress = `${specificAddress}, ${wardName}, ${districtName}, ${provinceName}`;
       setFormData(prev => ({ ...prev, hometown: fullAddress }));
     }
@@ -283,12 +283,35 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
-        <DialogHeader>
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-xl font-medium text-mainTextV1">
             Tạo khách hàng mới
           </DialogTitle>
+          <div className="flex items-center justify-between gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleClose}
+              disabled={isPending}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="submit"
+              onClick={handleSubmit}
+              disabled={isPending}
+              className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+            >
+              {isPending ? (
+                <>
+                  <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Đang tạo...
+                </>
+              ) : 'Tạo khách hàng'}
+            </Button>
+          </div>
         </DialogHeader>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -303,8 +326,8 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                   <div className="flex items-center gap-4">
                     {formData.avatarUrl && (
                       <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white ">
-                        <img 
-                          src={formData.avatarUrl} 
+                        <img
+                          src={formData.avatarUrl}
                           alt="Avatar"
                           className="w-full h-full object-cover"
                         />
@@ -346,7 +369,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       <p className="text-sm text-mainDangerV1">{errors.fullname}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="text-secondaryTextV1">
                       Số điện thoại <span className="text-mainDangerV1">*</span>
@@ -363,7 +386,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       <p className="text-sm text-mainDangerV1">{errors.phone}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-secondaryTextV1">
                       Email
@@ -380,7 +403,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       <p className="text-sm text-mainDangerV1">{errors.email}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="citizenId" className="text-secondaryTextV1">
                       Số CMND/CCCD <span className="text-mainDangerV1">*</span>
@@ -398,7 +421,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       <p className="text-sm text-mainDangerV1">{errors.citizenId}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="citizen_date" className="text-secondaryTextV1">
                       Ngày cấp
@@ -409,7 +432,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       placeholder="Chọn ngày cấp"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="citizen_place" className="text-secondaryTextV1">
                       Nơi cấp
@@ -423,7 +446,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       className="border-lightBorderV1"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="birthday" className="text-secondaryTextV1">
                       Ngày sinh
@@ -456,7 +479,6 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
 
                 {/* Address Selection */}
                 <div className="space-y-4">
-                  <Label className="text-secondaryTextV1 text-lg font-semibold">Địa chỉ</Label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label className="text-secondaryTextV1">Tỉnh/Thành phố</Label>
@@ -487,10 +509,10 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       >
                         <SelectTrigger className="border-lightBorderV1">
                           <SelectValue placeholder={
-                            !selectedProvince 
-                              ? "Vui lòng chọn tỉnh/thành phố trước" 
-                              : loadingDistricts 
-                                ? "Đang tải..." 
+                            !selectedProvince
+                              ? "Vui lòng chọn tỉnh/thành phố trước"
+                              : loadingDistricts
+                                ? "Đang tải..."
                                 : "Chọn quận/huyện"
                           } />
                         </SelectTrigger>
@@ -513,10 +535,10 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       >
                         <SelectTrigger className="border-lightBorderV1">
                           <SelectValue placeholder={
-                            !selectedDistrict 
-                              ? "Vui lòng chọn quận/huyện trước" 
-                              : loadingWards 
-                                ? "Đang tải..." 
+                            !selectedDistrict
+                              ? "Vui lòng chọn quận/huyện trước"
+                              : loadingWards
+                                ? "Đang tải..."
                                 : "Chọn phường/xã"
                           } />
                         </SelectTrigger>
@@ -567,29 +589,6 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                 </div>
               </form>
             </CardContent>
-            <CardFooter className="flex justify-end space-x-4 border-t border-lightBorderV1 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleClose}
-                disabled={isPending}
-              >
-                Hủy
-              </Button>
-              <Button
-                type="submit"
-                onClick={handleSubmit}
-                disabled={isPending}
-                className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-              >
-                {isPending ? (
-                  <>
-                    <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Đang tạo...
-                  </>
-                ) : 'Tạo khách hàng'}
-              </Button>
-            </CardFooter>
           </Card>
         </motion.div>
       </DialogContent>

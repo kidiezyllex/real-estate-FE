@@ -44,7 +44,7 @@ export const GuestDeleteDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent size="small" className="sm:max-w-[400px]">
+      <DialogContent size="small" className="bg-white max-w-[400px]">
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
             <IconAlertTriangle className="h-5 w-5 mr-2" />

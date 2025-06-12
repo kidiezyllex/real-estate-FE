@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useGetGuestDetail, useUpdateGuest, useDeleteGuest } from "@/hooks/useGuest";
 import { useGetHomeContractsByGuest } from "@/hooks/useHomeContract";
 import { useGetServiceContractsByGuest } from "@/hooks/useServiceContract";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,11 +85,11 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   const [selectedContractType, setSelectedContractType] = useState<'home' | 'service' | null>(null);
   const [isHomeContractDialogOpen, setIsHomeContractDialogOpen] = useState(false);
   const [isServiceContractDialogOpen, setIsServiceContractDialogOpen] = useState(false);
-  
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-  
+
   const [formData, setFormData] = useState<IUpdateGuestBody>({
     fullname: "",
     phone: "",
@@ -104,7 +104,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
     avatarUrl: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   // Address selection states
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -117,49 +117,57 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
 
-  const { data: guestData, isLoading, error, refetch } = useGetGuestDetail({ 
-    id: guestId 
+  const { data: guestData, isLoading, error, refetch } = useGetGuestDetail({
+    id: guestId
   });
-  
+
   const { data: homeContractsData, isLoading: isLoadingHomeContracts } = useGetHomeContractsByGuest({
     guestId: guestId
   });
-  
+
   const { data: serviceContractsData, isLoading: isLoadingServiceContracts } = useGetServiceContractsByGuest({
     guestId: guestId
   });
-  
+
   const { mutate: updateGuestMutation, isPending: isUpdating } = useUpdateGuest();
   const { mutate: deleteGuestMutation, isPending: isDeleting } = useDeleteGuest();
 
   // Combine contracts for unified table
+  const homeContracts = Array.isArray(homeContractsData?.data)
+    ? homeContractsData.data
+    : homeContractsData?.data?.contracts || [];
+
+  const serviceContracts = Array.isArray(serviceContractsData?.data)
+    ? serviceContractsData.data
+    : serviceContractsData?.data?.contracts || [];
+
   const combinedContracts: CombinedContract[] = [
-    ...(homeContractsData?.data?.contracts || []).map((contract: IHomeContract): CombinedContract => ({
+    ...homeContracts.map((contract: any): CombinedContract => ({
       _id: contract._id,
       type: 'home',
       contractCode: contract.contractCode,
-      homeName: typeof contract.homeId === 'object' ? 
-        `${(contract.homeId as any).building} - ${(contract.homeId as any).apartmentNv || ''}` : 
-        `Căn hộ #${contract.homeId}`,
-      homeAddress: typeof contract.homeId === 'object' ? 
-        `${(contract.homeId as any).address}, ${(contract.homeId as any).ward}, ${(contract.homeId as any).district}` : 
+      homeName: contract.homeId ?
+        `${contract.homeId.building} - ${contract.homeId.apartmentNv || ''}` :
+        `Căn hộ #${contract._id}`,
+      homeAddress: contract.homeId ?
+        `${contract.homeId.address}, ${contract.homeId.ward}, ${contract.homeId.district}` :
         '',
-      startDate: (contract as any).dateStar || contract.dateStar,
+      startDate: contract.dateStar,
       duration: contract.duration,
-      price: (contract as any).renta || contract.price,
-      deposit: (contract as any).deposit || contract.deposit,
+      price: contract.renta,
+      deposit: contract.deposit,
       payCycle: contract.payCycle,
       status: contract.status,
       createdAt: contract.createdAt,
     })),
-    ...(serviceContractsData?.data?.contracts || []).map((contract: IServiceContract): CombinedContract => ({
+    ...serviceContracts.map((contract: any): CombinedContract => ({
       _id: contract._id,
       type: 'service',
-      serviceName: typeof (contract as any).serviceId === 'object' ? 
-        (contract as any).serviceId.name : 
+      serviceName: contract.serviceId && typeof contract.serviceId === 'object' ?
+        contract.serviceId.name :
         `Dịch vụ #${contract.serviceId}`,
-      homeName: typeof (contract as any).homeId === 'object' ? 
-        `${(contract as any).homeId.building} - ${(contract as any).homeId.apartmentNv || ''}` : 
+      homeName: contract.homeId && typeof contract.homeId === 'object' ?
+        `${contract.homeId.building} - ${contract.homeId.apartmentNv || ''}` :
         `Căn hộ #${contract.homeId}`,
       startDate: contract.dateStar,
       duration: contract.duration,
@@ -171,7 +179,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   ];
 
   // Sort contracts by creation date (newest first)
-  const sortedContracts = combinedContracts.sort((a, b) => 
+  const sortedContracts = combinedContracts.sort((a, b) =>
     new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
   );
 
@@ -260,7 +268,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
       const provinceName = provinces.find(p => p.code.toString() === selectedProvince)?.name || "";
       const districtName = districts.find(d => d.code.toString() === selectedDistrict)?.name || "";
       const wardName = wards.find(w => w.code.toString() === selectedWard)?.name || "";
-      
+
       const fullAddress = `${specificAddress}, ${wardName}, ${districtName}, ${provinceName}`;
       setFormData(prev => ({ ...prev, hometown: fullAddress }));
     }
@@ -438,7 +446,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   const handleViewContract = (contractId: string, contractType: 'home' | 'service') => {
     setSelectedContractId(contractId);
     setSelectedContractType(contractType);
-    
+
     if (contractType === 'home') {
       setIsHomeContractDialogOpen(true);
     } else {
@@ -461,9 +469,9 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
 
   const getContractTypeBadge = (type: 'home' | 'service') => {
     return type === 'home' ? (
-      <Badge className="bg-blue-500 hover:bg-blue-600 text-white">Thuê nhà</Badge>
+      <Badge className="bg-blue-500 hover:bg-blue-600 text-white text-nowrap">Thuê nhà</Badge>
     ) : (
-      <Badge className="bg-purple-500 hover:bg-purple-600 text-white">Dịch vụ</Badge>
+      <Badge className="bg-purple-500 hover:bg-purple-600 text-white text-nowrap">Dịch vụ</Badge>
     );
   };
 
@@ -485,13 +493,13 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="large" className="max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-medium text-mainTextV1">
               Chi tiết khách hàng
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <Skeleton className="h-8 w-64" />
@@ -500,7 +508,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                 <Skeleton className="h-10 w-24" />
               </div>
             </div>
-            <Card className="p-6">
+            <Card className="!p-0">
               <div className="space-y-4">
                 {[...Array(6)].map((_, index) => (
                   <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -519,67 +527,68 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="large" className="max-h-[90vh] overflow-y-auto bg-white">
-          <DialogHeader>
+        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle className="text-xl font-medium text-mainTextV1">
               {isEditing ? "Chỉnh sửa thông tin khách hàng" : "Chi tiết khách hàng"}
             </DialogTitle>
+            <div className="flex flex-row items-center justify-between gap-4">
+              <div className="flex w-full items-center justify-end gap-4">
+                {!isEditing ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleDelete}
+                    >
+                      <IconTrash className="h-4 w-4 mr-2" />
+                      Xóa
+                    </Button>
+                    <Button
+                      variant="default"
+                      onClick={handleEdit}
+                    >
+                      <IconPencil className="h-4 w-4 mr-2" />
+                      Chỉnh sửa
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={isUpdating}
+                    >
+                      <IconX className="h-4 w-4 mr-2" />
+                      Hủy
+                    </Button>
+                    <Button
+                      onClick={handleUpdate}
+                      disabled={isUpdating}
+                      className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+                    >
+                      {isUpdating ? (
+                        <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <IconCheck className="h-4 w-4 mr-2" />
+                      )}
+                      Cập nhật
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </DialogHeader>
-          
+
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
             <div className="flex flex-col gap-6">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex w-full items-center justify-end gap-4">
-                  {!isEditing ? (
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={handleDelete}
-                      >
-                        <IconTrash className="h-4 w-4 mr-2" />
-                        Xóa
-                      </Button>
-                      <Button
-                        variant="default"
-                        onClick={handleEdit}
-                      >
-                        <IconPencil className="h-4 w-4 mr-2" />
-                        Chỉnh sửa
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        variant="outline"
-                        onClick={handleCancelEdit}
-                        disabled={isUpdating}
-                      >
-                        <IconX className="h-4 w-4 mr-2" />
-                        Hủy
-                      </Button>
-                      <Button
-                        onClick={handleUpdate}
-                        disabled={isUpdating}
-                        className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-                      >
-                        {isUpdating ? (
-                          <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <IconCheck className="h-4 w-4 mr-2" />
-                        )}
-                        Cập nhật
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </div>
+
 
               {/* Guest Information Card */}
-              <Card className="border border-lightBorderV1">
+              <Card className="border border-lightBorderV1 bg-[#F9F9FC]">
                 {isEditing ? (
                   <form onSubmit={handleUpdate} className="p-6 space-y-6">
                     {/* Avatar Upload */}
@@ -588,8 +597,8 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                       <div className="flex items-center gap-4">
                         {formData.avatarUrl && (
                           <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white ">
-                            <img 
-                              src={formData.avatarUrl} 
+                            <img
+                              src={formData.avatarUrl}
                               alt="Avatar"
                               className="w-full h-full object-cover"
                             />
@@ -771,10 +780,10 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                           >
                             <SelectTrigger className="border-lightBorderV1">
                               <SelectValue placeholder={
-                                !selectedProvince 
-                                  ? "Vui lòng chọn tỉnh/thành phố trước" 
-                                  : loadingDistricts 
-                                    ? "Đang tải..." 
+                                !selectedProvince
+                                  ? "Vui lòng chọn tỉnh/thành phố trước"
+                                  : loadingDistricts
+                                    ? "Đang tải..."
                                     : "Chọn quận/huyện"
                               } />
                             </SelectTrigger>
@@ -797,10 +806,10 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                           >
                             <SelectTrigger className="border-lightBorderV1">
                               <SelectValue placeholder={
-                                !selectedDistrict 
-                                  ? "Vui lòng chọn quận/huyện trước" 
-                                  : loadingWards 
-                                    ? "Đang tải..." 
+                                !selectedDistrict
+                                  ? "Vui lòng chọn quận/huyện trước"
+                                  : loadingWards
+                                    ? "Đang tải..."
                                     : "Chọn phường/xã"
                               } />
                             </SelectTrigger>
@@ -851,7 +860,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                     </div>
                   </form>
                 ) : (
-                  guestData?.data &&<div className="p-4 bg-[#F9F9FC]">
+                  guestData?.data && <div className="p-4 bg-[#F9F9FC]">
                     <GuestDetailInfo guest={guestData.data} />
                   </div>
                 )}
@@ -860,13 +869,10 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
               {/* Contracts Table */}
               {!isEditing && (
                 <Card className="border border-lightBorderV1">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-lg font-semibold text-mainTextV1">
-                        Danh sách hợp đồng ({totalContracts})
-                      </h3>
-                    </div>
-
+                  <CardHeader>
+                    Danh sách hợp đồng ({totalContracts})
+                  </CardHeader>
+                  <div className="!p-0">
                     {isLoadingHomeContracts || isLoadingServiceContracts ? (
                       <div className="space-y-4">
                         {[...Array(3)].map((_, index) => (
@@ -882,7 +888,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                         <div className="w-full overflow-x-auto">
                           <Table className="text-mainTextV1">
                             <TableHeader>
-                              <TableRow className="bg-gray-50 hover:bg-gray-50">
+                              <TableRow>
                                 <TableHead className="font-medium text-mainTextV1">Loại</TableHead>
                                 <TableHead className="font-medium text-mainTextV1">Mã hợp đồng</TableHead>
                                 <TableHead className="font-medium text-mainTextV1">Thông tin</TableHead>
@@ -984,7 +990,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => !open && setIsDeleteDialogOpen(false)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
               <IconAlertTriangle className="h-5 w-5 mr-2" />
