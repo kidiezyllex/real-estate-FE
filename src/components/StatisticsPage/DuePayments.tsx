@@ -78,7 +78,7 @@ export default function DuePayments() {
         <h3 className="text-xl font-semibold text-mainTextV1 mb-4">Thanh toán sắp đến hạn</h3>
         <div className="flex items-center justify-center flex-col p-8 text-center">
           <AlertCircle size={48} className="text-secondaryTextV1 mb-4" />
-          <p className="text-secondaryTextV1">Không có thanh toán nào sắp đến hạn</p>
+          <p className="text-secondaryTextV1">Chưa có thanh toán nào sắp đến hạn</p>
         </div>
       </Card>
     );

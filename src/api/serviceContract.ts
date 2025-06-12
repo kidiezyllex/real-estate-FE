@@ -4,7 +4,8 @@ import {
   IServiceContractDetailResponse,
   IServiceContractCreateResponse,
   IServiceContractUpdateResponse,
-  IServiceContractDeleteResponse
+  IServiceContractDeleteResponse,
+  IServiceContractSearchResponse
 } from "@/interface/response/serviceContract";
 import {
   IGetServiceContractByHomeParams,
@@ -15,11 +16,17 @@ import {
   ICreateServiceContractBody,
   IUpdateServiceContractParams,
   IUpdateServiceContractBody,
-  IDeleteServiceContractParams
+  IDeleteServiceContractParams,
+  ISearchServiceContractParams
 } from "@/interface/request/serviceContract";
 
 export const getServiceContracts = async (): Promise<IServiceContractListResponse> => {
   const res = await sendGet(`/service-contracts`);
+  return res;
+};
+
+export const searchServiceContracts = async (params: ISearchServiceContractParams): Promise<IServiceContractSearchResponse> => {
+  const res = await sendGet(`/service-contracts/search?q=${params.q}`);
   return res;
 };
 

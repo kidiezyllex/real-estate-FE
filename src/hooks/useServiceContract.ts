@@ -1,6 +1,7 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   getServiceContracts,
+  searchServiceContracts,
   getServiceContractsByHome,
   getServiceContractsByGuest,
   getServiceContractsByHomeContract,
@@ -15,7 +16,8 @@ import {
   IServiceContractDetailResponse,
   IServiceContractCreateResponse,
   IServiceContractUpdateResponse,
-  IServiceContractDeleteResponse
+  IServiceContractDeleteResponse,
+  IServiceContractSearchResponse
 } from '@/interface/response/serviceContract';
 import {
   IGetServiceContractByHomeParams,
@@ -27,12 +29,21 @@ import {
   IUpdateServiceContractParams,
   IUpdateServiceContractBody,
   IDeleteServiceContractParams,
+  ISearchServiceContractParams
 } from '@/interface/request/serviceContract';
 
 export const useGetServiceContracts = () => {
   return useQuery<IServiceContractListResponse, Error>({
     queryKey: ['service-contracts'],
     queryFn: getServiceContracts,
+  });
+};
+
+export const useSearchServiceContracts = (params: ISearchServiceContractParams) => {
+  return useQuery<IServiceContractSearchResponse, Error>({
+    queryKey: ['service-contracts', 'search', params.q],
+    queryFn: () => searchServiceContracts(params),
+    enabled: !!params.q,
   });
 };
 

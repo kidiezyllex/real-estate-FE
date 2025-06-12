@@ -27,6 +27,7 @@ function getLocalAccessToken() {
 const instance = axios.create({
 	timeout: 3 * 60 * 1000,
 	baseURL: `http://localhost:5000/api/v1`,
+	// baseURL: `https://real-estate-be-vzr6.onrender.com/api/v1`,
 	headers: {
 		"Content-Type": "application/json",
 		Accept: "application/json",

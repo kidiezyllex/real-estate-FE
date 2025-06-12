@@ -108,7 +108,7 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
                       <Skeleton className="h-4 w-48" />
                     </div>
                   </div>
-                  <div className="text-right min-w-[180px] flex flex-col items-end">
+                  <div className=" min-w-[180px] flex flex-col items-end">
                     <Skeleton className="h-4 w-16 mb-1" />
                     <Skeleton className="h-8 w-32" />
                   </div>
@@ -178,7 +178,7 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
   }
 
   const statusInfo = homeStatusMap[status as keyof typeof homeStatusMap] ||
-    { label: 'Không xác định', color: 'bg-gray-500', textColor: 'text-gray-500' };
+    { label: 'Không xác định', color: 'bg-gray-500', textColor: 'text-mainTextV1' };
 
   return (
     <div className="space-y-8 bg-mainBackgroundV1 p-6 rounded-lg border border-lightBorderV1">
@@ -238,7 +238,7 @@ const HomeDetails = ({ homeId }: HomeDetailsProps) => {
                     </span>
                   </div>
                 </div>
-                <div className="text-right min-w-[180px] flex flex-col items-end">
+                <div className=" min-w-[180px] flex flex-col items-end">
                   <span className="text-xs text-secondaryTextV1 mb-1 flex items-center gap-1">
                     <IconCoin className="h-4 w-4" /> Giá thuê
                   </span>

@@ -75,7 +75,7 @@ export default function RevenueChart() {
     return (
       <Card className="p-6">
         <div className="text-mainDangerV1 p-4 bg-red-50 rounded-md">
-          Không có dữ liệu doanh thu cho năm này.
+          Chưa có dữ liệu doanh thu cho năm này.
         </div>
       </Card>
     );

@@ -13,14 +13,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { IconSearch, IconPlus, IconFilter, IconSortAscending, IconSortDescending, IconX } from "@tabler/icons-react";
-import Link from "next/link";
 import { HomeContractTable } from "./HomeContractTable";
 import { HomeContractDeleteDialog } from "./HomeContractDeleteDialog";
+import { HomeContractCreateDialog } from "./HomeContractCreateDialog";
+import { HomeContractDetailsDialog } from "./HomeContractDetailsDialog";
 import { 
   Select, 
   SelectContent, 
@@ -30,9 +30,10 @@ import {
 } from '@/components/ui/select';
 
 export default function HomeContractsPage() {
-  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -46,7 +47,6 @@ export default function HomeContractsPage() {
   });
   const { mutate: deleteContractMutation, isPending: isDeleting } = useDeleteHomeContract();
 
-  // Debounce search query
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
@@ -68,11 +68,13 @@ export default function HomeContractsPage() {
   };
 
   const handleViewDetail = (id: string) => {
-    router.push(`/admin/contracts/home-contracts/${id}`);
+    setSelectedContractId(id);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/admin/contracts/home-contracts/${id}/edit`);
+    setSelectedContractId(id);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -103,24 +105,20 @@ export default function HomeContractsPage() {
     );
   };
 
-  // Lọc và sắp xếp danh sách hợp đồng
   const filteredAndSortedContracts = () => {
-    // Lấy dữ liệu từ kết quả tìm kiếm hoặc dữ liệu gốc
     const contracts = debouncedSearchQuery && searchResults?.data 
-      ? searchResults.data.contracts 
-      : contractsData?.data?.contracts;
+      ? searchResults.data 
+      : contractsData?.data;
     
     if (!contracts) return [];
     
-    let result = [...contracts];
+    let result = [...(contracts as any)];
     
-    // Lọc theo trạng thái
     if (statusFilter !== "all") {
       const statusNumber = parseInt(statusFilter);
       result = result.filter(contract => contract.status === statusNumber);
     }
     
-    // Sắp xếp
     result.sort((a, b) => {
       if (sortBy === "newest") {
         const dateA = new Date((a as any).createdAt || '').getTime();
@@ -182,14 +180,13 @@ export default function HomeContractsPage() {
                 Bộ lọc
               </Button>
             </div>
-            <Link href="/admin/contracts/home-contracts/create">
-              <Button
-                className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-              >
-                <IconPlus className="mr-2 h-4 w-4" />
-                Thêm hợp đồng
-              </Button>
-            </Link>
+            <Button
+              className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              <IconPlus className="mr-2 h-4 w-4" />
+              Thêm hợp đồng
+            </Button>
           </div>
 
           <motion.div
@@ -259,11 +256,12 @@ export default function HomeContractsPage() {
                   </Button>
                 </div>
                 
-                <div className="md:col-span-3 flex justify-end mt-4">
+                <div className="md:col-span-3 flex justify-end">
                   <Button
                     variant="outline"
-                    className="flex items-center"
+                    size="sm"
                     onClick={resetFilters}
+                    className="text-sm"
                   >
                     <IconX className="h-4 w-4 mr-2" />
                     Đặt lại bộ lọc
@@ -273,7 +271,7 @@ export default function HomeContractsPage() {
             )}
           </motion.div>
 
-          <Card className="p-0 overflow-hidden shadow-sm border border-lightBorderV1">
+          <Card className="p-0 overflow-hidden   border border-lightBorderV1">
             {isLoadingData ? (
               <div className="p-6">
                 <div className="flex flex-col gap-4">
@@ -290,7 +288,7 @@ export default function HomeContractsPage() {
               </div>
             ) : (
               <HomeContractTable
-                contracts={filteredAndSortedContracts() as any}
+                contracts={filteredAndSortedContracts()}
                 onView={handleViewDetail}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -299,12 +297,31 @@ export default function HomeContractsPage() {
           </Card>
         </div>
       </motion.div>
+
       <HomeContractDeleteDialog
         isOpen={isDeleteDialogOpen}
         isDeleting={isDeleting}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
       />
+      
+      <HomeContractCreateDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={() => refetch()}
+      />
+      
+      {selectedContractId && (
+        <HomeContractDetailsDialog
+          isOpen={isDetailsDialogOpen}
+          onClose={() => {
+            setIsDetailsDialogOpen(false);
+            setSelectedContractId(null);
+          }}
+          contractId={selectedContractId}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 } 

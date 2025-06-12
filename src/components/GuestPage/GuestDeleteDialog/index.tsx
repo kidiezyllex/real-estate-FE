@@ -8,39 +8,56 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
-} from "@/components/ui/dialog";  
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { IconAlertTriangle, IconLoader2, IconTrash } from "@tabler/icons-react";
+import { toast } from "react-toastify";
 
-interface HomeContractDeleteDialogProps {
+interface GuestDeleteDialogProps {
   isOpen: boolean;
   isDeleting: boolean;
   onClose: () => void;
-  onConfirm: () => void;
+  onConfirm: () => Promise<any>;
 }
 
-export const HomeContractDeleteDialog = ({
+export const GuestDeleteDialog = ({
   isOpen,
   isDeleting,
   onClose,
   onConfirm,
-}: HomeContractDeleteDialogProps) => {
+}: GuestDeleteDialogProps) => {
+  const handleDelete = async () => {
+    try {
+      const response = await onConfirm();
+      if (response?.statusCode === 200 || response?.statusCode === 201) {
+        toast.success(response.message || "Xóa khách hàng thành công!");
+        onClose();
+      } else if (response?.statusCode === 500) {
+        toast.error(response.message || "Lỗi hệ thống, vui lòng thử lại sau");
+      } else {
+        toast.error(response.message || "Xóa khách hàng thất bại");
+      }
+    } catch (error: any) {
+      const errorMessage = error.response?.data?.message || error.message || "Có lỗi xảy ra khi xóa khách hàng";
+    }
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent size="small" className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
             <IconAlertTriangle className="h-5 w-5 mr-2" />
-            Xác nhận xóa hợp đồng
+            Xác nhận xóa khách hàng
           </DialogTitle>
           <DialogDescription className="text-secondaryTextV1 pt-2">
-            Bạn có chắc chắn muốn xóa hợp đồng này? Hành động này không thể hoàn tác.
+            Bạn có chắc chắn muốn xóa khách hàng này? Hành động này không thể hoàn tác.
           </DialogDescription>
         </DialogHeader>
 
         <div className="bg-red-50 p-4 my-4 rounded-sm border border-red-200">
           <p className="text-mainTextV1 text-sm">
-            Khi xóa hợp đồng, tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống và không thể khôi phục.
+            Khi xóa khách hàng, tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống và không thể khôi phục.
           </p>
         </div>
 
@@ -53,7 +70,7 @@ export const HomeContractDeleteDialog = ({
 
           <Button
             type="button"
-            onClick={onConfirm}
+            onClick={handleDelete}
             className="bg-red-600 hover:bg-red-700 text-white"
             disabled={isDeleting}
           >

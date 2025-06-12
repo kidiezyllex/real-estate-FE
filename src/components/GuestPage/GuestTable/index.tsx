@@ -30,7 +30,7 @@ export const GuestTable = ({ guests, isSearching, onEdit, onDelete }: GuestTable
             {!isSearching && (
               <TableHead className="font-medium text-mainTextV1">Ngày tạo</TableHead>
             )}
-            <TableHead className="text-right font-medium text-mainTextV1">Thao tác</TableHead>
+            <TableHead className=" font-medium text-mainTextV1">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -48,9 +48,24 @@ export const GuestTable = ({ guests, isSearching, onEdit, onDelete }: GuestTable
                 onMouseEnter={() => setHoveredRow(guest._id)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
-                <TableCell className="flex items-center">
-                  <IconUserCircle className="w-4 h-4 mr-1 text-mainTextV1" />
-                  <span className="text-secondaryTextV1 font-semibold">{guest.fullname}</span>
+                <TableCell className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center">
+                    {guest.avatarUrl ? (
+                      <img
+                        src={guest.avatarUrl}
+                        alt={guest.fullname}
+                        className="w-full h-full rounded-full object-cover"
+                      />
+                    ) : (
+                      <IconUserCircle className="w-6 h-6 text-slate-400" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-mainTextV1">{guest.fullname}</p>
+                    <p className="text-sm text-secondaryTextV1">
+                      {guest.gender !== undefined ? (guest.gender ? "Nam" : "Nữ") : "Chưa cập nhật"}
+                    </p>
+                  </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center">

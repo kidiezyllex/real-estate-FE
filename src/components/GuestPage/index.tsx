@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { GuestTable } from "@/components/GuestPage/GuestTable";
-// import { GuestDeleteDialog } from "@/components/GuestPage/GuestDeleteDialog";
+import { GuestDeleteDialog } from "@/components/GuestPage/GuestDeleteDialog";
 import { GuestCreateDialog } from "@/components/GuestPage/GuestCreateDialog";
 import { GuestDetailsDialog } from "@/components/GuestPage/GuestDetailsDialog";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,7 +36,7 @@ export default function GuestPage() {
   const { data: searchData, isLoading: isSearchLoading } = useSearchGuests({
     q: debouncedQuery
   });
-  const { mutate: deleteGuestMutation, isPending: isDeleting } = useDeleteGuest();
+  const { mutateAsync: deleteGuestMutation, isPending: isDeleting } = useDeleteGuest();
 
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
@@ -71,27 +71,17 @@ export default function GuestPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (!selectedGuestId) return;
+  const confirmDelete = async () => {
+    if (!selectedGuestId) {
+      return Promise.resolve();
+    }
 
-    deleteGuestMutation(
-      { id: selectedGuestId },
-      {
-        onSuccess: (data) => {
-          if (data.statusCode === 200) {
-            toast.success("Xóa khách hàng thành công");
-            refetch();
-            setIsDeleteDialogOpen(false);
-            setSelectedGuestId(null);
-          } else {
-            toast.error("Xóa khách hàng thất bại");
-          }
-        },
-        onError: (error) => {
-          toast.error(`Lỗi: ${error.message}`);
-        }
-      }
-    );
+    try {
+      const response = await deleteGuestMutation({ id: selectedGuestId });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   };
 
   return (
@@ -136,7 +126,7 @@ export default function GuestPage() {
           </Button>
           </div>
 
-          <Card className="p-0 overflow-hidden shadow-sm border border-lightBorderV1">
+          <Card className="p-0 overflow-hidden   border border-lightBorderV1">
             {isLoading ? (
               <div className="p-6">
                 <div className="flex flex-col gap-4">
@@ -162,12 +152,12 @@ export default function GuestPage() {
           </Card>
         </div>
       </motion.div>
-      {/* <GuestDeleteDialog
+      <GuestDeleteDialog
         isOpen={isDeleteDialogOpen}
         isDeleting={isDeleting}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
-      /> */}
+      />
       
       <GuestCreateDialog
         isOpen={isCreateDialogOpen}

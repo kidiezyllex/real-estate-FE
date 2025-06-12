@@ -108,7 +108,7 @@ export const GuestDetailInfo = ({ guest }: GuestDetailInfoProps) => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-[#F9F9FC]">
       {/* Header with Avatar */}
       {guest.avatarUrl && (
         <Card className="border border-slate-200">
@@ -131,7 +131,7 @@ export const GuestDetailInfo = ({ guest }: GuestDetailInfoProps) => {
       )}
 
       {/* Information Grid - Only 2 Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 bg-transparent">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 bg-[#F9F9FC]">
         <InfoSection 
           title="Thông tin cá nhân & liên hệ" 
           items={personalContactInfo}

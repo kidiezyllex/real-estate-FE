@@ -1,16 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DatePicker } from "@/components/ui/date-picker";
-import { useCreateGuest } from "@/hooks/useGuest";
-import { ICreateGuestBody } from "@/interface/request/guest";
-import { toast } from "react-toastify"
+import { useCreateHomeOwner } from "@/hooks/useHomeOwner";
+import { ICreateHomeOwnerBody } from "@/interface/request/homeOwner";
+import { toast } from "react-toastify";
 import { IconLoader2, IconUpload } from "@tabler/icons-react";
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,32 +19,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
-interface GuestCreateDialogProps {
+interface HomeOwnerCreateDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
 }
 
-interface Province {
-  code: number;
-  name: string;
-}
-
-interface District {
-  code: number;
-  name: string;
-  province_code: number;
-}
-
-interface Ward {
-  code: number;
-  name: string;
-  district_code: number;
-}
-
-export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDialogProps) => {
-  const [formData, setFormData] = useState<ICreateGuestBody>({
+export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerCreateDialogProps) => {
+  const [formData, setFormData] = useState<ICreateHomeOwnerBody>({
     fullname: "",
     phone: "",
     email: "",
@@ -57,105 +40,13 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
     note: "",
     gender: undefined,
     avatarUrl: "",
+    address: "",
+    bankAccount: "",
+    bankName: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
-  // Address selection states
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedWard, setSelectedWard] = useState("");
-  const [specificAddress, setSpecificAddress] = useState("");
-  const [loadingProvinces, setLoadingProvinces] = useState(false);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
-  const [loadingWards, setLoadingWards] = useState(false);
 
-  const { mutate: createGuestMutation, isPending } = useCreateGuest();
-
-  useEffect(() => {
-    const fetchProvinces = async () => {
-      try {
-        setLoadingProvinces(true);
-        const response = await fetch('https://provinces.open-api.vn/api/');
-        const data = await response.json();
-        setProvinces(data);
-      } catch (error) {
-        toast.error('Không thể tải danh sách tỉnh/thành');
-      } finally {
-        setLoadingProvinces(false);
-      }
-    };
-
-    if (isOpen) {
-      fetchProvinces();
-    }
-  }, [isOpen]);
-
-  // Fetch districts when province changes
-  useEffect(() => {
-    if (selectedProvince) {
-      const fetchDistricts = async () => {
-        try {
-          setLoadingDistricts(true);
-          const response = await fetch(`https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`);
-          const data = await response.json();
-          setDistricts(data.districts || []);
-          setSelectedDistrict("");
-          setSelectedWard("");
-          setWards([]);
-        } catch (error) {
-          toast.error('Không thể tải danh sách quận/huyện');
-        } finally {
-          setLoadingDistricts(false);
-        }
-      };
-
-      fetchDistricts();
-    } else {
-      setDistricts([]);
-      setWards([]);
-      setSelectedDistrict("");
-      setSelectedWard("");
-    }
-  }, [selectedProvince]);
-
-  // Fetch wards when district changes
-  useEffect(() => {
-    if (selectedDistrict) {
-      const fetchWards = async () => {
-        try {
-          setLoadingWards(true);
-          const response = await fetch(`https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`);
-          const data = await response.json();
-          setWards(data.wards || []);
-          setSelectedWard("");
-        } catch (error) {
-          toast.error('Không thể tải danh sách phường/xã');
-        } finally {
-          setLoadingWards(false);
-        }
-      };
-
-      fetchWards();
-    } else {
-      setWards([]);
-      setSelectedWard("");
-    }
-  }, [selectedDistrict]);
-
-  // Update hometown when address components change
-  useEffect(() => {
-    if (selectedProvince && selectedDistrict && selectedWard && specificAddress) {
-      const provinceName = provinces.find(p => p.code.toString() === selectedProvince)?.name || "";
-      const districtName = districts.find(d => d.code.toString() === selectedDistrict)?.name || "";
-      const wardName = wards.find(w => w.code.toString() === selectedWard)?.name || "";
-      
-      const fullAddress = `${specificAddress}, ${wardName}, ${districtName}, ${provinceName}`;
-      setFormData(prev => ({ ...prev, hometown: fullAddress }));
-    }
-  }, [selectedProvince, selectedDistrict, selectedWard, specificAddress, provinces, districts, wards]);
+  const { mutate: createHomeOwnerMutation, isPending } = useCreateHomeOwner();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -181,6 +72,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      // In a real app, you would upload to a server and get back a URL
       const reader = new FileReader();
       reader.onload = (event) => {
         setFormData((prev) => ({ ...prev, avatarUrl: event.target?.result as string }));
@@ -191,25 +83,14 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.fullname.trim()) {
-      newErrors.fullname = "Họ tên không được để trống";
-      toast.error("Vui lòng nhập họ tên");
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Số điện thoại không được để trống";
-      toast.error("Vui lòng nhập số điện thoại");
-    }
-    if (!formData.citizenId.trim()) {
-      newErrors.citizenId = "Số CMND/CCCD không được để trống";
-      toast.error("Vui lòng nhập số CMND/CCCD");
-    }
+    if (!formData.fullname.trim()) newErrors.fullname = "Họ tên không được để trống";
+    if (!formData.phone.trim()) newErrors.phone = "Số điện thoại không được để trống";
+    if (!formData.citizenId.trim()) newErrors.citizenId = "Số CMND/CCCD không được để trống";
     if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = "Email không hợp lệ";
-      toast.error("Email không đúng định dạng");
     }
     if (formData.phone && !/^(0|\+84)[3|5|7|8|9][0-9]{8}$/.test(formData.phone)) {
       newErrors.phone = "Số điện thoại không hợp lệ";
-      toast.error("Số điện thoại không đúng định dạng");
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -218,14 +99,10 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    createGuestMutation(formData, {
-      onSuccess: (response: any) => {
-        if (response.statusCode === 500) {
-          toast.error(response.message || "Lỗi hệ thống, vui lòng thử lại sau");
-          return;
-        }
-        if (response.statusCode === 200 || response.statusCode === 201) {
-          toast.success(response.message || "Tạo khách hàng thành công!");
+    createHomeOwnerMutation(formData, {
+      onSuccess: (data) => {
+        if (data.statusCode === 200 || data.statusCode === 201) {
+          toast.success("Tạo chủ nhà thành công!");
           setFormData({
             fullname: "",
             phone: "",
@@ -238,22 +115,19 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
             note: "",
             gender: undefined,
             avatarUrl: "",
+            address: "",
+            bankAccount: "",
+            bankName: "",
           });
           setErrors({});
-          setSelectedProvince("");
-          setSelectedDistrict("");
-          setSelectedWard("");
-          setSpecificAddress("");
           onSuccess?.();
           onClose();
         } else {
-          toast.error(response.message || "Tạo khách hàng thất bại");
+          toast.error("Tạo chủ nhà thất bại");
         }
       },
-      onError: (error: any) => {
-        console.error("Error:", error); // For debugging
-        const errorMessage = error.response?.data?.message || error.message || "Có lỗi xảy ra khi tạo khách hàng";
-        toast.error(errorMessage);
+      onError: (error) => {
+        toast.error(`Lỗi: ${error.message}`);
       }
     });
   };
@@ -271,12 +145,11 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
       note: "",
       gender: undefined,
       avatarUrl: "",
+      address: "",
+      bankAccount: "",
+      bankName: "",
     });
     setErrors({});
-    setSelectedProvince("");
-    setSelectedDistrict("");
-    setSelectedWard("");
-    setSpecificAddress("");
     onClose();
   };
 
@@ -285,7 +158,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
       <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
           <DialogTitle className="text-xl font-medium text-mainTextV1">
-            Tạo khách hàng mới
+            Tạo chủ nhà mới
           </DialogTitle>
         </DialogHeader>
         
@@ -294,7 +167,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <Card className="bg-[#F9F9FC]">
+          <Card className="border border-lightBorderV1 bg-mainBackgroundV1">
             <CardContent className="space-y-6 pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Avatar Upload */}
@@ -386,7 +259,6 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                       Số CMND/CCCD <span className="text-mainDangerV1">*</span>
                     </Label>
                     <Input
-                      type="number"
                       id="citizenId"
                       name="citizenId"
                       value={formData.citizenId}
@@ -438,118 +310,34 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                   <div className="space-y-2">
                     <Label className="text-secondaryTextV1">Giới tính</Label>
                     <RadioGroup
-                      value={formData.gender === true ? "male" : formData.gender === false ? "female" : ""}
+                      value={formData.gender === true ? "male" : formData.gender === false ? "female" : undefined}
                       onValueChange={handleGenderChange}
-                      className="flex gap-6"
+                      className="flex gap-4"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="male" id="male" />
-                        <Label htmlFor="male">Nam</Label>
+                        <RadioGroupItem value="male" id="r1" />
+                        <Label htmlFor="r1">Nam</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="female" id="female" />
-                        <Label htmlFor="female">Nữ</Label>
+                        <RadioGroupItem value="female" id="r2" />
+                        <Label htmlFor="r2">Nữ</Label>
                       </div>
                     </RadioGroup>
                   </div>
                 </div>
 
-                {/* Address Selection */}
-                <div className="space-y-4">
-                  <Label className="text-secondaryTextV1 text-lg font-semibold">Địa chỉ</Label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Tỉnh/Thành phố</Label>
-                      <Select
-                        value={selectedProvince}
-                        onValueChange={setSelectedProvince}
-                        disabled={loadingProvinces}
-                      >
-                        <SelectTrigger className="border-lightBorderV1">
-                          <SelectValue placeholder={loadingProvinces ? "Đang tải..." : "Chọn tỉnh/thành phố"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {provinces.map((province) => (
-                            <SelectItem key={province.code} value={province.code.toString()}>
-                              {province.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Quận/Huyện</Label>
-                      <Select
-                        value={selectedDistrict}
-                        onValueChange={setSelectedDistrict}
-                        disabled={!selectedProvince || loadingDistricts}
-                      >
-                        <SelectTrigger className="border-lightBorderV1">
-                          <SelectValue placeholder={
-                            !selectedProvince 
-                              ? "Vui lòng chọn tỉnh/thành phố trước" 
-                              : loadingDistricts 
-                                ? "Đang tải..." 
-                                : "Chọn quận/huyện"
-                          } />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {districts.map((district) => (
-                            <SelectItem key={district.code} value={district.code.toString()}>
-                              {district.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Phường/Xã</Label>
-                      <Select
-                        value={selectedWard}
-                        onValueChange={setSelectedWard}
-                        disabled={!selectedDistrict || loadingWards}
-                      >
-                        <SelectTrigger className="border-lightBorderV1">
-                          <SelectValue placeholder={
-                            !selectedDistrict 
-                              ? "Vui lòng chọn quận/huyện trước" 
-                              : loadingWards 
-                                ? "Đang tải..." 
-                                : "Chọn phường/xã"
-                          } />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {wards.map((ward) => (
-                            <SelectItem key={ward.code} value={ward.code.toString()}>
-                              {ward.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Địa chỉ cụ thể</Label>
-                      <Input
-                        value={specificAddress}
-                        onChange={(e) => setSpecificAddress(e.target.value)}
-                        placeholder="Số nhà, tên đường..."
-                        className="border-lightBorderV1"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label className="text-secondaryTextV1">Địa chỉ đầy đủ</Label>
-                    <Input
-                      value={formData.hometown}
-                      readOnly
-                      className="border-lightBorderV1 bg-gray-50"
-                      placeholder="Địa chỉ sẽ được tự động tạo từ các trường trên"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="hometown" className="text-secondaryTextV1">
+                    Địa chỉ
+                  </Label>
+                  <Input
+                    id="hometown"
+                    name="hometown"
+                    value={formData.hometown}
+                    onChange={handleChange}
+                    placeholder="Nhập địa chỉ"
+                    className="border-lightBorderV1"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -587,7 +375,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                     <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
                     Đang tạo...
                   </>
-                ) : 'Tạo khách hàng'}
+                ) : 'Tạo chủ nhà'}
               </Button>
             </CardFooter>
           </Card>

@@ -13,15 +13,10 @@ export interface IGuest {
   avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
+  __v?: number;
 }
 
-export interface IGuestSearchResult {
-  _id: string;
-  fullname: string;
-  phone: string;
-  email: string;
-  citizenId: string;
-}
+export interface IGuestSearchResult extends IGuest {}
 
 export interface IGuestListResponse {
   statusCode: number;
@@ -50,13 +45,7 @@ export interface IGuestCreateResponse {
 export interface IGuestUpdateResponse {
   statusCode: number;
   message: string;
-  data: {
-    _id: string;
-    fullname?: string;
-    phone?: string;
-    note?: string;
-    updatedAt: string;
-  };
+  data: IGuest;
 }
 
 export interface IGuestDeleteResponse {

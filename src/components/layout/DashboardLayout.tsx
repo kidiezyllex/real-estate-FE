@@ -50,7 +50,7 @@ export default function DashboardLayout({
 		<div className="flex min-h-screen bg-mainDarkBackgroundV1">
 			<div
 				className={cn(
-					"bg-mainDarkBackgroundV1 fixed top-0 left-0 right-0 z-50 mt-[78px] shadow-sm min-h-screen transition-all duration-300",
+					"bg-mainDarkBackgroundV1 fixed top-0 left-0 right-0 z-50 mt-[78px]   min-h-screen transition-all duration-300",
 					isOpen ? "w-[260px]" : "w-0 md:w-16 overflow-hidden flex justify-center",
 				)}
 			>
@@ -161,7 +161,7 @@ export default function DashboardLayout({
 													>
 														{menu.subMenu.map((sub) => (
 															<li key={sub.id}>
-																<Link href={sub.path}>
+																<Link href={sub.path} onClick={(e) => e.stopPropagation()}>
 																	<RippleEffect
 																		rippleColor="rgba(68, 215, 182, 0.2)"
 																		duration={400}

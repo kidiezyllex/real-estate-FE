@@ -17,6 +17,10 @@ export interface ICreateHomeOwnerBody {
   address: string;
   bankAccount: string;
   bankName: string;
+  gender?: boolean;
+  note?: string;
+  avatarUrl?: string;
+  hometown?: string;
 }
 
 export interface IUpdateHomeOwnerParams {
@@ -24,9 +28,17 @@ export interface IUpdateHomeOwnerParams {
 }
 
 export interface IUpdateHomeOwnerBody {
-  phone?: string;
-  bankAccount?: string;
-  bankName?: string;
+  fullname: string;
+  phone: string;
+  email: string;
+  citizenId: string;
+  citizen_date: string;
+  citizen_place: string;
+  birthday: string;
+  bank: string;
+  bankAccount: string;
+  bankNumber: string;
+  note: string;
 }
 
 export interface IDeleteHomeOwnerParams {

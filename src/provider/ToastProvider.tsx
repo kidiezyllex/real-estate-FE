@@ -32,7 +32,7 @@ export const ToastProvider = () => {
 			}}
 			toastClassName={(context) => {
 				const type = context?.type || 'default';
-				return `relative border-l-4 shadow-lg flex items-center ${
+				return `relative border-l-4 flex items-center ${
 					type === 'success' ? 'border-l-mainSuccessV1' :
 					type === 'error' ? 'border-l-mainDangerV1' :
 					type === 'warning' ? 'border-l-mainWarningV1' :

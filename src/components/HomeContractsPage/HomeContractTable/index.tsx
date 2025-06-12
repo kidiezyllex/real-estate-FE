@@ -25,9 +25,9 @@ export const HomeContractTable = ({ contracts, onView, onEdit, onDelete }: HomeC
       case 0:
         return <Badge variant="destructive">Đã hủy</Badge>;
       case 1:
-        return <Badge className="bg-green-500 hover:bg-green-600">Đang hoạt động</Badge>;
+        return <Badge className="bg-green-500 hover:bg-green-600 text-white border-2 border-green-100 text-nowrap">Hoạt động</Badge>;
       case 2:
-        return <Badge variant="outline">Đã hết hạn</Badge>;
+        return <Badge variant="outline">Hết hạn</Badge>;
       default:
         return <Badge variant="secondary">Không xác định</Badge>;
     }
@@ -50,23 +50,25 @@ export const HomeContractTable = ({ contracts, onView, onEdit, onDelete }: HomeC
 
   if (contracts.length === 0) {
     return (
-      <div className="w-full">
+      <div className="w-full overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50 hover:bg-gray-50">
-              <TableHead className="font-medium text-mainTextV1 w-[200px]">Mã hợp đồng</TableHead>
+              <TableHead className="font-medium text-mainTextV1 w-[150px]">Mã hợp đồng</TableHead>
+              <TableHead className="font-medium text-mainTextV1">Thông tin khách hàng</TableHead>
               <TableHead className="font-medium text-mainTextV1">Thông tin căn hộ</TableHead>
               <TableHead className="font-medium text-mainTextV1">Giá thuê</TableHead>
+              <TableHead className="font-medium text-mainTextV1">Tiền cọc</TableHead>
               <TableHead className="font-medium text-mainTextV1">Thời hạn</TableHead>
-              <TableHead className="font-medium text-mainTextV1">Chu kỳ thanh toán</TableHead>
+              <TableHead className="font-medium text-mainTextV1">Ngày bắt đầu</TableHead>
               <TableHead className="font-medium text-mainTextV1">Trạng thái</TableHead>
-              <TableHead className="text-right font-medium text-mainTextV1">Thao tác</TableHead>
+              <TableHead className=" font-medium text-mainTextV1">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-secondaryTextV1">
-                Không có hợp đồng thuê nhà nào được tìm thấy
+              <TableCell colSpan={9} className="text-center py-8 text-secondaryTextV1">
+                Chưa có hợp đồng thuê nhà nào được tìm thấy
               </TableCell>
             </TableRow>
           </TableBody>
@@ -74,24 +76,25 @@ export const HomeContractTable = ({ contracts, onView, onEdit, onDelete }: HomeC
       </div>
     );
   }
-
   return (
-    <div className="w-full overflow-auto">
-      <Table>
+    <div className="w-full">
+      <Table className="text-mainTextV1">
         <TableHeader>
           <TableRow className="bg-gray-50 hover:bg-gray-50">
-            <TableHead className="font-medium text-mainTextV1 w-[200px]">Mã hợp đồng</TableHead>
-            <TableHead className="font-medium text-mainTextV1">Thông tin căn hộ</TableHead>
+            <TableHead className="font-medium text-mainTextV1 w-[120px]">Mã hợp đồng</TableHead>
+            <TableHead className="font-medium text-mainTextV1">Khách hàng</TableHead>
+            <TableHead className="font-medium text-mainTextV1 w-[150px]">Thông tin căn hộ</TableHead>
             <TableHead className="font-medium text-mainTextV1">Giá thuê</TableHead>
+            <TableHead className="font-medium text-mainTextV1">Tiền cọc</TableHead>
             <TableHead className="font-medium text-mainTextV1">Thời hạn</TableHead>
-            <TableHead className="font-medium text-mainTextV1">Chu kỳ thanh toán</TableHead>
+            <TableHead className="font-medium text-mainTextV1">Ngày bắt đầu</TableHead>
             <TableHead className="font-medium text-mainTextV1">Trạng thái</TableHead>
-            <TableHead className="text-right font-medium text-mainTextV1">Thao tác</TableHead>
+            <TableHead className=" font-medium text-mainTextV1">Thao tác</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {contracts.map((contract) => (
-            <TableRow 
+            <TableRow
               key={contract._id}
               className="hover:bg-gray-50 transition-colors"
               onMouseEnter={() => setHoveredRow(contract._id)}
@@ -99,32 +102,60 @@ export const HomeContractTable = ({ contracts, onView, onEdit, onDelete }: HomeC
             >
               <TableCell className="font-medium text-mainTextV1">
                 <div className="flex flex-col">
-                  <span>{contract._id.substring(0, 8)}...</span>
-                  <span className="text-xs text-gray-500">{formatDate(contract.createdAt || '')}</span>
+                  <span className="text-sm">{contract._id.substring(0, 8)}...</span>
                 </div>
               </TableCell>
               <TableCell>
                 <div className="flex flex-col">
-                  <span className="font-medium">
-                    {contract.homeId && typeof contract.homeId === 'object' && 'name' in contract.homeId
-                      ? (contract.homeId as any).name 
+                  <span className="font-medium text-sm">
+                    {contract.guestId && typeof contract.guestId === 'object' && 'fullname' in contract.guestId
+                      ? (contract.guestId as any).fullname
+                      : contract.guestId}
+                  </span>
+                  <span className="text-xs text-mainTextV1">
+                    ({contract.guestId && typeof contract.guestId === 'object' && 'phone' in contract.guestId
+                      ? (contract.guestId as any).phone
+                      : ''})
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="font-medium text-sm">
+                    {contract.homeId && typeof contract.homeId === 'object' && 'building' in contract.homeId
+                      ? `${(contract.homeId as any).building} - ${(contract.homeId as any).apartmentNv || ''}`
                       : 'Căn hộ #' + contract.homeId}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    Khách hàng: {contract.guestId && typeof contract.guestId === 'object' && 'fullname' in contract.guestId
-                      ? (contract.guestId as any).fullname 
-                      : contract.guestId}
+                  <span className="text-xs text-mainTextV1">
+                    {contract.homeId && typeof contract.homeId === 'object' && 'address' in contract.homeId
+                      ? (contract.homeId as any).address
+                      : ''}
+                  </span>
+                  <span className="text-xs text-mainTextV1">
+                    {contract.homeId && typeof contract.homeId === 'object' && 'district' in contract.homeId
+                      ? `${(contract.homeId as any).ward}, ${(contract.homeId as any).district}`
+                      : ''}
                   </span>
                 </div>
               </TableCell>
               <TableCell className="font-medium">
-                {formatCurrency((contract as any).price)}
+                <div className="flex flex-col">
+                  <span>{formatCurrency((contract as any).renta)}</span>
+                  <span className="text-xs text-mainTextV1">
+                    {getPayCycleText(contract.payCycle)}
+                  </span>
+                </div>
               </TableCell>
-              <TableCell>
+              <TableCell className="font-medium">
+                {formatCurrency((contract as any).deposit)}
+              </TableCell>
+              <TableCell className="text-sm font-medium">
                 {contract.duration} tháng
               </TableCell>
               <TableCell>
-                {getPayCycleText(contract.payCycle)}
+                <span className="text-sm font-medium">
+                  {formatDate((contract as any).dateStar || '')}
+                </span>
               </TableCell>
               <TableCell>
                 {getStatusBadge(contract.status)}
@@ -136,21 +167,8 @@ export const HomeContractTable = ({ contracts, onView, onEdit, onDelete }: HomeC
                     whileTap={{ scale: 0.95 }}
                   >
                     <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => onView(contract._id)}
-                      className="text-mainTextV1 hover:text-mainTextHoverV1 hover:bg-transparent"
-                    >
-                      <IconEye className="h-4 w-4" />
-                    </Button>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
+                      variant="outline"
+                      size="icon"
                       onClick={() => onEdit(contract._id)}
                       className="text-mainTextV1 hover:text-mainTextHoverV1 hover:bg-transparent"
                     >
@@ -162,8 +180,8 @@ export const HomeContractTable = ({ contracts, onView, onEdit, onDelete }: HomeC
                     whileTap={{ scale: 0.95 }}
                   >
                     <Button
-                      variant="ghost"
-                      size="sm"
+                      variant="outline"
+                      size="icon"
                       onClick={() => onDelete(contract._id)}
                       className="text-mainTextV1 hover:text-mainDangerV1 hover:bg-transparent"
                     >

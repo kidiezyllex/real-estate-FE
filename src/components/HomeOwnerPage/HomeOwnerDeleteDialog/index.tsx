@@ -1,7 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { IconLoader2 } from "@tabler/icons-react";
+import { IconLoader2, IconTrash, IconAlertTriangle } from "@tabler/icons-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
 
 interface HomeOwnerDeleteDialogProps {
   isOpen: boolean;
@@ -16,37 +25,52 @@ export const HomeOwnerDeleteDialog = ({
   onClose,
   onConfirm,
 }: HomeOwnerDeleteDialogProps) => {
-  if (!isOpen) return null;
-  
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 max-w-md w-full">
-        <h3 className="text-xl font-medium mb-4">Xác nhận xóa</h3>
-        <p className="mb-6">Bạn có chắc chắn muốn xóa chủ nhà này không? Hành động này không thể hoàn tác.</p>
-        <div className="flex justify-end gap-4">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center text-red-600">
+            <IconAlertTriangle className="h-5 w-5 mr-2" />
+            Xác nhận xóa chủ nhà
+          </DialogTitle>
+          <DialogDescription className="text-secondaryTextV1 pt-2">
+            Bạn có chắc chắn muốn xóa chủ nhà này? Hành động này không thể hoàn tác.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="bg-red-50 p-4 my-4 rounded-sm border border-red-200">
+          <p className="text-mainTextV1 text-sm">
+            Khi xóa chủ nhà, tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống và không thể khôi phục.
+          </p>
+        </div>
+
+        <DialogFooter className="flex flex-row justify-end gap-2 sm:gap-0">
+          <DialogClose asChild>
+            <Button type="button" variant="outline" disabled={isDeleting} className="text-secondaryTextV1">
+              Hủy
+            </Button>
+          </DialogClose>
+
           <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isDeleting}
-            className="border-lightBorderV1 text-mainTextV1"
-          >
-            Hủy
-          </Button>
-          <Button
-            variant="destructive"
+            type="button"
             onClick={onConfirm}
+            className="bg-red-600 hover:bg-red-700 text-white"
             disabled={isDeleting}
-            className="bg-mainDangerV1 hover:bg-mainDanger/90 text-white"
           >
             {isDeleting ? (
               <>
                 <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
                 Đang xóa...
               </>
-            ) : "Xóa"}
+            ) : (
+              <>
+                <IconTrash className="mr-2 h-4 w-4" />
+                Xóa
+              </>
+            )}
           </Button>
-        </div>
-      </div>
-    </div>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }; 

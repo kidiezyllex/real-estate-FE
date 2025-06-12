@@ -35,7 +35,7 @@ export default function DashboardHeader() {
 	const [searchTerm, setSearchTerm] = useState("");
 	const inputRef = useRef<HTMLInputElement>(null);
 	const { data: userProfile } = useGetUserProfile();
-	const username = userProfile?.data?.name || "User";
+	const username = userProfile?.data?.user?.name || "User";
 	const isLoading = false;
 	const { logoutUser } = useUser();
 	const handleSearchSubmit = () => {
@@ -46,8 +46,7 @@ export default function DashboardHeader() {
 	return (
 		<>
 			<div
-				className="
-      w-full fixed top-0 left-0 right-0 z-[1000]
+				className="w-full fixed top-0 left-0 right-0 z-50
       p-4 px-6 bg-mainDarkBackgroundV1 border-b border-b-darkBorderV1 flex justify-between items-center h-[78px]"
 			>
 				<div className="flex items-center w-[244px] justify-between">
@@ -74,11 +73,11 @@ export default function DashboardHeader() {
 				</div>
 				<div className="relative hidden md:block">
 					<form onSubmit={handleSearchSubmit} className="relative flex items-center gap-4">
-						<div className="relative w-[440px] flex justify-between items-center border border-mainActiveV1/50 rounded-sm bg-mainBackgroundV1">
+						<div className="relative w-[440px] flex justify-between items-center border border-mainTextV1 rounded-sm bg-transparent">
 							<Input
 								ref={inputRef}
 								placeholder="Search..."
-								className="w-[90%] h-9 text-maintext pr-10 border-none focus:!outline-none focus:!ring-0 focus:!border-none bg-mainBackgroundV1"
+								className="w-[90%] h-9 text-maintext pr-10 border-none focus:!outline-none focus:!ring-0 focus:!border-none !bg-transparent text-mainTextV1"
 								value={searchTerm}
 								onChange={handleSearchChange}
 								disabled={isLoading}

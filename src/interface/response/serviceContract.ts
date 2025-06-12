@@ -82,4 +82,11 @@ export interface IServiceContractDeleteResponse {
     _id: string;
     deleted: boolean;
   };
+}
+
+export interface IServiceContractSearchResponse {
+  statusCode: number;
+  data: {
+    contracts: IServiceContract[];
+  }
 } 

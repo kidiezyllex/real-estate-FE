@@ -13,29 +13,30 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { useRouter } from "next/navigation";
+import { HomeOwnerTable } from "@/components/HomeOwnerPage/HomeOwnerTable";
+import { HomeOwnerDeleteDialog } from "@/components/HomeOwnerPage/HomeOwnerDeleteDialog";
+import { HomeOwnerCreateDialog } from "@/components/HomeOwnerPage/HomeOwnerCreateDialog";
+import { HomeOwnerDetailsDialog } from "@/components/HomeOwnerPage/HomeOwnerDetailsDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import { IconSearch, IconPlus } from "@tabler/icons-react";
-import Link from "next/link";
-import { IHomeOwnerSearchResult } from "@/interface/response/homeOwner";
-import { HomeOwnerTable } from "@/components/HomeOwnerPage/HomeOwnerTable";
-import { HomeOwnerDeleteDialog } from "@/components/HomeOwnerPage/HomeOwnerDeleteDialog";
+import { IHomeOwner } from "@/interface/response/homeOwner";
 
-export default function HomeOwnersPage() {
-  const router = useRouter();
+export default function HomeOwnerPage() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedHomeOwnerId, setSelectedHomeOwnerId] = useState<string | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [selectedOwnerId, setSelectedOwnerId] = useState<string | null>(null);
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<IHomeOwnerSearchResult[]>([]);
+  const [searchResults, setSearchResults] = useState<IHomeOwner[]>([]);
 
-  const { data: homeOwnersData, isLoading, refetch } = useGetHomeOwners();
+  const { data: ownersData, isLoading, refetch } = useGetHomeOwners();
   const { data: searchData, isLoading: isSearchLoading } = useSearchHomeOwners({
     q: debouncedQuery
   });
-  const { mutate: deleteHomeOwnerMutation, isPending: isDeleting } = useDeleteHomeOwner();
+  const { mutate: deleteOwnerMutation, isPending: isDeleting } = useDeleteHomeOwner();
 
   useEffect(() => {
     const debounceTimeout = setTimeout(() => {
@@ -51,8 +52,8 @@ export default function HomeOwnersPage() {
   }, [searchQuery]);
 
   useEffect(() => {
-    if (searchData?.data?.owners) {
-      setSearchResults(searchData.data.owners);
+    if (searchData?.data) {
+      setSearchResults(searchData?.data as any);
     }
   }, [searchData]);
 
@@ -60,31 +61,28 @@ export default function HomeOwnersPage() {
     setSearchQuery(e.target.value);
   };
 
-  const handleViewDetail = (id: string) => {
-    router.push(`/admin/users/home-owners/${id}`);
-  };
-
   const handleEdit = (id: string) => {
-    router.push(`/admin/users/home-owners/${id}/edit`);
+    setSelectedOwnerId(id);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
-    setSelectedHomeOwnerId(id);
+    setSelectedOwnerId(id);
     setIsDeleteDialogOpen(true);
   };
 
   const confirmDelete = () => {
-    if (!selectedHomeOwnerId) return;
+    if (!selectedOwnerId) return;
 
-    deleteHomeOwnerMutation(
-      { id: selectedHomeOwnerId },
+    deleteOwnerMutation(
+      { id: selectedOwnerId },
       {
         onSuccess: (data) => {
           if (data.statusCode === 200) {
             toast.success("Xóa chủ nhà thành công");
             refetch();
             setIsDeleteDialogOpen(false);
-            setSelectedHomeOwnerId(null);
+            setSelectedOwnerId(null);
           } else {
             toast.error("Xóa chủ nhà thất bại");
           }
@@ -96,8 +94,6 @@ export default function HomeOwnersPage() {
     );
   };
 
-  const displayData = searchResults.length > 0 ? searchResults : (homeOwnersData?.data?.owners || []);
-
   return (
     <div className="space-y-8 bg-mainBackgroundV1 p-6 rounded-lg border border-lightBorderV1">
       <Breadcrumb>
@@ -107,7 +103,7 @@ export default function HomeOwnersPage() {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink href="/admin/users">Quản lý người dùng</BreadcrumbLink>
+            <BreadcrumbLink href="/homes">Quản lý người dùng</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -131,17 +127,16 @@ export default function HomeOwnersPage() {
               />
               <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-mainTextV1 w-5 h-5" />
             </div>
-            <Link href="/admin/users/home-owners/create">
-              <Button
-                className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-              >
-                <IconPlus className="mr-2 h-4 w-4" />
-                Thêm chủ nhà
-              </Button>
-            </Link>
+            <Button
+              onClick={() => setIsCreateDialogOpen(true)}
+              className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+            >
+              <IconPlus className="mr-2 h-4 w-4" />
+              Thêm chủ nhà
+            </Button>
           </div>
 
-          <Card className="p-0 overflow-hidden shadow-sm border border-lightBorderV1">
+          <Card className="p-0 overflow-hidden   border border-lightBorderV1">
             {isLoading ? (
               <div className="p-6">
                 <div className="flex flex-col gap-4">
@@ -158,9 +153,8 @@ export default function HomeOwnersPage() {
               </div>
             ) : (
               <HomeOwnerTable
-                homeOwners={displayData}
+                homeOwners={searchResults.length > 0 ? searchResults : (ownersData?.data || [])}
                 isSearching={!!debouncedQuery}
-                onView={handleViewDetail}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />
@@ -175,6 +169,24 @@ export default function HomeOwnersPage() {
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
       />
+      
+      <HomeOwnerCreateDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={() => refetch()}
+      />
+      
+      {selectedOwnerId && (
+        <HomeOwnerDetailsDialog
+          isOpen={isDetailsDialogOpen}
+          onClose={() => {
+            setIsDetailsDialogOpen(false);
+            setSelectedOwnerId(null);
+          }}
+          ownerId={selectedOwnerId}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 } 

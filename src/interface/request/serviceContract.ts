@@ -42,4 +42,8 @@ export interface IUpdateServiceContractBody {
 
 export interface IDeleteServiceContractParams {
   id: string;
+}
+
+export interface ISearchServiceContractParams {
+  q: string;
 } 

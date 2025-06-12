@@ -116,7 +116,7 @@ const UpdateHomeForm = ({ homeId }: UpdateHomeFormProps) => {
     if (values.note !== (home as any).note) updates.note = values.note;
     
     if (Object.keys(updates).length === 0) {
-      toast.info('Không có thông tin nào được thay đổi.');
+      toast.info('Chưa có thông tin nào được thay đổi.');
       return;
     }
 

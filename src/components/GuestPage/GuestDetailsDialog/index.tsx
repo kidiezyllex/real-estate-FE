@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useGetGuestDetail, useUpdateGuest, useDeleteGuest } from "@/hooks/useGuest";
+import { useGetHomeContractsByGuest } from "@/hooks/useHomeContract";
+import { useGetServiceContractsByGuest } from "@/hooks/useServiceContract";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,11 +13,20 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { DatePicker } from "@/components/ui/date-picker";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Pagination } from "@/components/ui/pagination";
 import { GuestDetailInfo } from "@/components/GuestPage/GuestDetailInfo";
+import { HomeContractDetailsDialog } from "@/components/HomeContractsPage/HomeContractDetailsDialog";
+import { ServiceContractDetailsDialog } from "@/components/ServiceContractsPage/ServiceContractDetailsDialog";
 import { IUpdateGuestBody } from "@/interface/request/guest";
+import { IHomeContract } from "@/interface/response/homeContract";
+import { IServiceContract } from "@/interface/response/serviceContract";
+import { formatDate } from "@/utils/dateFormat";
+import { formatCurrency } from "@/utils/format";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { IconPencil, IconTrash, IconLoader2, IconCheck, IconX, IconUpload, IconAlertTriangle } from "@tabler/icons-react";
+import { IconPencil, IconTrash, IconLoader2, IconCheck, IconX, IconUpload, IconAlertTriangle, IconEye } from "@tabler/icons-react";
 import {
   Dialog,
   DialogContent,
@@ -50,9 +61,35 @@ interface Ward {
   district_code: number;
 }
 
+// Combined contract interface for unified table
+interface CombinedContract {
+  _id: string;
+  type: 'home' | 'service';
+  contractCode?: string;
+  serviceName?: string;
+  homeName?: string;
+  homeAddress?: string;
+  startDate: string;
+  duration: number;
+  price: number;
+  deposit?: number;
+  payCycle: number;
+  status: number;
+  createdAt?: string;
+}
+
 export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: GuestDetailsDialogProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
+  const [selectedContractType, setSelectedContractType] = useState<'home' | 'service' | null>(null);
+  const [isHomeContractDialogOpen, setIsHomeContractDialogOpen] = useState(false);
+  const [isServiceContractDialogOpen, setIsServiceContractDialogOpen] = useState(false);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+  
   const [formData, setFormData] = useState<IUpdateGuestBody>({
     fullname: "",
     phone: "",
@@ -84,8 +121,66 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
     id: guestId 
   });
   
+  const { data: homeContractsData, isLoading: isLoadingHomeContracts } = useGetHomeContractsByGuest({
+    guestId: guestId
+  });
+  
+  const { data: serviceContractsData, isLoading: isLoadingServiceContracts } = useGetServiceContractsByGuest({
+    guestId: guestId
+  });
+  
   const { mutate: updateGuestMutation, isPending: isUpdating } = useUpdateGuest();
   const { mutate: deleteGuestMutation, isPending: isDeleting } = useDeleteGuest();
+
+  // Combine contracts for unified table
+  const combinedContracts: CombinedContract[] = [
+    ...(homeContractsData?.data?.contracts || []).map((contract: IHomeContract): CombinedContract => ({
+      _id: contract._id,
+      type: 'home',
+      contractCode: contract.contractCode,
+      homeName: typeof contract.homeId === 'object' ? 
+        `${(contract.homeId as any).building} - ${(contract.homeId as any).apartmentNv || ''}` : 
+        `Căn hộ #${contract.homeId}`,
+      homeAddress: typeof contract.homeId === 'object' ? 
+        `${(contract.homeId as any).address}, ${(contract.homeId as any).ward}, ${(contract.homeId as any).district}` : 
+        '',
+      startDate: (contract as any).dateStar || contract.dateStar,
+      duration: contract.duration,
+      price: (contract as any).renta || contract.price,
+      deposit: (contract as any).deposit || contract.deposit,
+      payCycle: contract.payCycle,
+      status: contract.status,
+      createdAt: contract.createdAt,
+    })),
+    ...(serviceContractsData?.data?.contracts || []).map((contract: IServiceContract): CombinedContract => ({
+      _id: contract._id,
+      type: 'service',
+      serviceName: typeof (contract as any).serviceId === 'object' ? 
+        (contract as any).serviceId.name : 
+        `Dịch vụ #${contract.serviceId}`,
+      homeName: typeof (contract as any).homeId === 'object' ? 
+        `${(contract as any).homeId.building} - ${(contract as any).homeId.apartmentNv || ''}` : 
+        `Căn hộ #${contract.homeId}`,
+      startDate: contract.dateStar,
+      duration: contract.duration,
+      price: contract.price,
+      payCycle: contract.payCycle,
+      status: contract.status,
+      createdAt: contract.createdAt,
+    }))
+  ];
+
+  // Sort contracts by creation date (newest first)
+  const sortedContracts = combinedContracts.sort((a, b) => 
+    new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+  );
+
+  // Pagination logic
+  const totalContracts = sortedContracts.length;
+  const totalPages = Math.ceil(totalContracts / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedContracts = sortedContracts.slice(startIndex, endIndex);
 
   // Fetch provinces on component mount
   useEffect(() => {
@@ -340,10 +435,57 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
     onClose();
   };
 
+  const handleViewContract = (contractId: string, contractType: 'home' | 'service') => {
+    setSelectedContractId(contractId);
+    setSelectedContractType(contractType);
+    
+    if (contractType === 'home') {
+      setIsHomeContractDialogOpen(true);
+    } else {
+      setIsServiceContractDialogOpen(true);
+    }
+  };
+
+  const getStatusBadge = (status: number) => {
+    switch (status) {
+      case 0:
+        return <Badge variant="destructive">Đã hủy</Badge>;
+      case 1:
+        return <Badge className="bg-green-500 hover:bg-green-600 text-white border-2 border-green-100 text-nowrap">Hoạt động</Badge>;
+      case 2:
+        return <Badge variant="outline">Hết hạn</Badge>;
+      default:
+        return <Badge variant="secondary">Không xác định</Badge>;
+    }
+  };
+
+  const getContractTypeBadge = (type: 'home' | 'service') => {
+    return type === 'home' ? (
+      <Badge className="bg-blue-500 hover:bg-blue-600 text-white">Thuê nhà</Badge>
+    ) : (
+      <Badge className="bg-purple-500 hover:bg-purple-600 text-white">Dịch vụ</Badge>
+    );
+  };
+
+  const getPayCycleText = (payCycle: number) => {
+    switch (payCycle) {
+      case 1:
+        return "Hàng tháng";
+      case 3:
+        return "Hàng quý";
+      case 6:
+        return "6 tháng";
+      case 12:
+        return "Hàng năm";
+      default:
+        return `${payCycle} tháng`;
+    }
+  };
+
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto">
+        <DialogContent size="large" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-medium text-mainTextV1">
               Chi tiết khách hàng
@@ -377,7 +519,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="large" className="max-h-[90vh] overflow-y-auto">
+        <DialogContent size="large" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle className="text-xl font-medium text-mainTextV1">
               {isEditing ? "Chỉnh sửa thông tin khách hàng" : "Chi tiết khách hàng"}
@@ -389,7 +531,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-6">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div className="flex w-full items-center justify-end gap-4">
                   {!isEditing ? (
@@ -436,7 +578,8 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                 </div>
               </div>
 
-              <Card className="shadow-sm border border-lightBorderV1">
+              {/* Guest Information Card */}
+              <Card className="border border-lightBorderV1">
                 {isEditing ? (
                   <form onSubmit={handleUpdate} className="p-6 space-y-6">
                     {/* Avatar Upload */}
@@ -444,7 +587,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                       <Label className="text-secondaryTextV1">Ảnh đại diện</Label>
                       <div className="flex items-center gap-4">
                         {formData.avatarUrl && (
-                          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white shadow-lg">
+                          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white ">
                             <img 
                               src={formData.avatarUrl} 
                               alt="Avatar"
@@ -708,11 +851,132 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                     </div>
                   </form>
                 ) : (
-                  guestData?.data &&<div className="p-4">
+                  guestData?.data &&<div className="p-4 bg-[#F9F9FC]">
                     <GuestDetailInfo guest={guestData.data} />
                   </div>
                 )}
               </Card>
+
+              {/* Contracts Table */}
+              {!isEditing && (
+                <Card className="border border-lightBorderV1">
+                  <div className="p-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-lg font-semibold text-mainTextV1">
+                        Danh sách hợp đồng ({totalContracts})
+                      </h3>
+                    </div>
+
+                    {isLoadingHomeContracts || isLoadingServiceContracts ? (
+                      <div className="space-y-4">
+                        {[...Array(3)].map((_, index) => (
+                          <Skeleton key={index} className="h-16 w-full" />
+                        ))}
+                      </div>
+                    ) : totalContracts === 0 ? (
+                      <div className="text-center py-8 text-secondaryTextV1">
+                        Khách hàng chưa có hợp đồng nào
+                      </div>
+                    ) : (
+                      <>
+                        <div className="w-full overflow-x-auto">
+                          <Table className="text-mainTextV1">
+                            <TableHeader>
+                              <TableRow className="bg-gray-50 hover:bg-gray-50">
+                                <TableHead className="font-medium text-mainTextV1">Loại</TableHead>
+                                <TableHead className="font-medium text-mainTextV1">Mã hợp đồng</TableHead>
+                                <TableHead className="font-medium text-mainTextV1">Thông tin</TableHead>
+                                <TableHead className="font-medium text-mainTextV1">Ngày bắt đầu</TableHead>
+                                <TableHead className="font-medium text-mainTextV1">Thời hạn</TableHead>
+                                <TableHead className="font-medium text-mainTextV1">Giá</TableHead>
+                                <TableHead className="font-medium text-mainTextV1">Trạng thái</TableHead>
+                                <TableHead className="font-medium text-mainTextV1">Thao tác</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {paginatedContracts.map((contract) => (
+                                <TableRow
+                                  key={`${contract.type}-${contract._id}`}
+                                  className="hover:bg-gray-50 transition-colors"
+                                >
+                                  <TableCell>
+                                    {getContractTypeBadge(contract.type)}
+                                  </TableCell>
+                                  <TableCell className="font-medium text-mainTextV1">
+                                    <div className="flex flex-col">
+                                      <span className="text-sm">
+                                        {contract.contractCode || `${contract._id.substring(0, 8)}...`}
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex flex-col">
+                                      <span className="font-medium text-sm">
+                                        {contract.type === 'home' ? contract.homeName : contract.serviceName}
+                                      </span>
+                                      {contract.type === 'home' && contract.homeAddress && (
+                                        <span className="text-xs text-secondaryTextV1">
+                                          {contract.homeAddress}
+                                        </span>
+                                      )}
+                                      {contract.type === 'service' && contract.homeName && (
+                                        <span className="text-xs text-secondaryTextV1">
+                                          Tại: {contract.homeName}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <span className="text-sm font-medium">
+                                      {formatDate(contract.startDate)}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className="text-sm font-medium">
+                                    {contract.duration} tháng
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    <div className="flex flex-col">
+                                      <span>{formatCurrency(contract.price)}</span>
+                                      <span className="text-xs text-secondaryTextV1">
+                                        {getPayCycleText(contract.payCycle)}
+                                      </span>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {getStatusBadge(contract.status)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <Button
+                                      variant="outline"
+                                      size="icon"
+                                      onClick={() => handleViewContract(contract._id, contract.type)}
+                                      className="text-mainTextV1 hover:text-mainTextHoverV1 hover:bg-transparent"
+                                    >
+                                      <IconEye className="h-4 w-4" />
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                          <div className="mt-6 flex justify-center">
+                            <Pagination
+                              page={currentPage}
+                              pageSize={itemsPerPage}
+                              total={totalContracts}
+                              onPageChange={setCurrentPage}
+                            />
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </Card>
+              )}
             </div>
           </motion.div>
         </DialogContent>
@@ -765,6 +1029,38 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Home Contract Details Dialog */}
+      {selectedContractId && selectedContractType === 'home' && (
+        <HomeContractDetailsDialog
+          isOpen={isHomeContractDialogOpen}
+          onClose={() => {
+            setIsHomeContractDialogOpen(false);
+            setSelectedContractId(null);
+            setSelectedContractType(null);
+          }}
+          contractId={selectedContractId}
+          onSuccess={() => {
+            // Optionally refetch contracts data
+          }}
+        />
+      )}
+
+      {/* Service Contract Details Dialog */}
+      {selectedContractId && selectedContractType === 'service' && (
+        <ServiceContractDetailsDialog
+          isOpen={isServiceContractDialogOpen}
+          onClose={() => {
+            setIsServiceContractDialogOpen(false);
+            setSelectedContractId(null);
+            setSelectedContractType(null);
+          }}
+          contractId={selectedContractId}
+          onSuccess={() => {
+            // Optionally refetch contracts data
+          }}
+        />
+      )}
     </>
   );
 }; 

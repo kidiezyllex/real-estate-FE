@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useGetServiceContracts, useDeleteServiceContract } from "@/hooks/useServiceContract";
+import { useGetServiceContracts, useDeleteServiceContract, useSearchServiceContracts } from "@/hooks/useServiceContract";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -21,6 +21,8 @@ import { IconSearch, IconPlus, IconFilter, IconSortAscending, IconSortDescending
 import Link from "next/link";
 import { ServiceContractTable } from "./ServiceContractTable";
 import { ServiceContractDeleteDialog } from "./ServiceContractDeleteDialog";
+import { ServiceContractCreateDialog } from "./ServiceContractCreateDialog";
+import { ServiceContractDetailsDialog } from "./ServiceContractDetailsDialog";
 import { 
   Select, 
   SelectContent, 
@@ -33,14 +35,31 @@ export default function ServiceContractsPage() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [selectedContractId, setSelectedContractId] = useState<string | null>(null);
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("newest");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
   const { data: contractsData, isLoading, refetch } = useGetServiceContracts();
+  const { data: searchResults, isLoading: isSearching } = useSearchServiceContracts({
+    q: debouncedSearchQuery
+  });
   const { mutate: deleteContractMutation, isPending: isDeleting } = useDeleteServiceContract();
+
+  // Debounce search query
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 500);
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchQuery]);
 
   const toggleFilters = () => {
     setIsFiltersVisible(!isFiltersVisible);
@@ -53,11 +72,13 @@ export default function ServiceContractsPage() {
   };
 
   const handleViewDetail = (id: string) => {
-    router.push(`/admin/contracts/service-contracts/${id}`);
+    setSelectedContractId(id);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleEdit = (id: string) => {
-    router.push(`/admin/contracts/service-contracts/${id}/edit`);
+    setSelectedContractId(id);
+    setIsDetailsDialogOpen(true);
   };
 
   const handleDelete = (id: string) => {
@@ -90,9 +111,14 @@ export default function ServiceContractsPage() {
 
   // Lọc và sắp xếp danh sách hợp đồng
   const filteredAndSortedContracts = () => {
-    if (!contractsData?.data?.contracts) return [];
+    // Lấy dữ liệu từ kết quả tìm kiếm hoặc dữ liệu gốc
+    const contracts = debouncedSearchQuery && searchResults?.data 
+      ? searchResults.data.contracts 
+      : contractsData?.data?.contracts;
     
-    let result = [...contractsData.data.contracts];
+    if (!contracts) return [];
+    
+    let result = [...contracts];
     
     // Lọc theo trạng thái
     if (statusFilter !== "all") {
@@ -103,19 +129,32 @@ export default function ServiceContractsPage() {
     // Sắp xếp
     result.sort((a, b) => {
       if (sortBy === "newest") {
-        const dateA = new Date(a.createdAt || '').getTime();
-        const dateB = new Date(b.createdAt || '').getTime();
+        const dateA = new Date((a as any).createdAt || '').getTime();
+        const dateB = new Date((b as any).createdAt || '').getTime();
         return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
       } else if (sortBy === "price") {
-        return sortDirection === 'asc' ? a.price - b.price : b.price - a.price;
+        return sortDirection === 'asc' ? (a as any).price - (b as any).price : (b as any).price - (a as any).price;
       } else if (sortBy === "duration") {
-        return sortDirection === 'asc' ? a.duration - b.duration : b.duration - a.duration;
+        const durationA = calculateDuration(a.startDate, a.endDate);
+        const durationB = calculateDuration(b.startDate, b.endDate);
+        return sortDirection === 'asc' ? durationA - durationB : durationB - durationA;
       }
       return 0;
     });
     
     return result;
   };
+
+  // Calculate duration between two dates in days
+  const calculateDuration = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return 0;
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const isLoadingData = isLoading || isSearching;
 
   return (
     <div className="space-y-8 bg-mainBackgroundV1 p-6 rounded-lg border border-lightBorderV1">
@@ -160,14 +199,13 @@ export default function ServiceContractsPage() {
                 Bộ lọc
               </Button>
             </div>
-            <Link href="/admin/contracts/service-contracts/create">
-              <Button
-                className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-              >
-                <IconPlus className="mr-2 h-4 w-4" />
-                Thêm hợp đồng
-              </Button>
-            </Link>
+            <Button
+              className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+              onClick={() => setIsCreateDialogOpen(true)}
+            >
+              <IconPlus className="mr-2 h-4 w-4" />
+              Thêm hợp đồng
+            </Button>
           </div>
 
           <motion.div
@@ -237,11 +275,12 @@ export default function ServiceContractsPage() {
                   </Button>
                 </div>
                 
-                <div className="md:col-span-3 flex justify-end mt-4">
+                <div className="md:col-span-3 flex justify-end">
                   <Button
                     variant="outline"
-                    className="flex items-center"
+                    size="sm"
                     onClick={resetFilters}
+                    className="text-sm"
                   >
                     <IconX className="h-4 w-4 mr-2" />
                     Đặt lại bộ lọc
@@ -251,8 +290,8 @@ export default function ServiceContractsPage() {
             )}
           </motion.div>
 
-          <Card className="p-0 overflow-hidden shadow-sm border border-lightBorderV1">
-            {isLoading ? (
+          <Card className="p-0 overflow-hidden   border border-lightBorderV1">
+            {isLoadingData ? (
               <div className="p-6">
                 <div className="flex flex-col gap-4">
                   {[...Array(5)].map((_, index) => (
@@ -277,12 +316,31 @@ export default function ServiceContractsPage() {
           </Card>
         </div>
       </motion.div>
+
       <ServiceContractDeleteDialog
         isOpen={isDeleteDialogOpen}
         isDeleting={isDeleting}
         onClose={() => setIsDeleteDialogOpen(false)}
         onConfirm={confirmDelete}
       />
+      
+      <ServiceContractCreateDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={() => refetch()}
+      />
+      
+      {selectedContractId && (
+        <ServiceContractDetailsDialog
+          isOpen={isDetailsDialogOpen}
+          onClose={() => {
+            setIsDetailsDialogOpen(false);
+            setSelectedContractId(null);
+          }}
+          contractId={selectedContractId}
+          onSuccess={() => refetch()}
+        />
+      )}
     </div>
   );
 } 

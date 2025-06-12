@@ -2,7 +2,6 @@
 
 import { motion } from 'framer-motion';
 import { IconHome, IconInfoCircle } from '@tabler/icons-react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { 
   Card, 
@@ -17,7 +16,8 @@ import { Badge } from '@/components/ui/badge';
 import { formatCurrency } from '@/utils/format';
 import { IHome, IHomeSearchResult } from '@/interface/response/home';
 import { Pagination } from '@/components/ui/pagination';
-import React from 'react';
+import React, { useState } from 'react';
+import HomeDetailsDialog from './HomeDetailsDialog';
 
 interface StatusInfo {
   label: string;
@@ -42,6 +42,9 @@ interface HomeListProps {
 }
 
 const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize = 10, total = 0, onPageChange }: HomeListProps) => {
+  const [selectedHome, setSelectedHome] = useState<IHome | IHomeSearchResult | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const container = {
     hidden: { opacity: 0 },
     show: {
@@ -55,6 +58,11 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
   const item = {
     hidden: { opacity: 0, y: 20 },
     show: { opacity: 1, y: 0 }
+  };
+
+  const handleHomeClick = (home: IHome | IHomeSearchResult) => {
+    setSelectedHome(home);
+    setIsDialogOpen(true);
   };
 
   if (isLoading) {
@@ -95,7 +103,7 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
     return (
       <div className="flex justify-center items-center p-8 bg-mainCardV1 rounded-lg border border-lightBorderV1 text-mainTextV1">
         <IconInfoCircle className="h-5 w-5 mr-2 text-mainInfoV1" />
-        <p>Không có căn hộ nào để hiển thị.</p>
+        <p>Chưa có căn hộ nào để hiển thị.</p>
       </div>
     );
   }
@@ -115,7 +123,7 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
       >
         {pagedHomes.map((home: IHome | IHomeSearchResult, index: number) => (
           <motion.div key={home._id} variants={item}>
-            <Card className="overflow-hidden border border-lightBorderV1 h-full flex flex-col hover:shadow-md transition-shadow duration-200">
+            <Card className="overflow-hidden border border-lightBorderV1 h-full flex flex-col  transition-shadow duration-200">
               <div className="relative h-48 w-full bg-gray-100">
                 <Image 
                   draggable={false}
@@ -170,11 +178,12 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
                 </div>
               </CardContent>
               <CardFooter>
-                <Link href={`/admin/homes/${home._id}`} className="w-full">
-                  <Button className="w-full bg-mainTextHoverV1 hover:bg-mainTextHoverV1/90">
-                    Xem chi tiết
-                  </Button>
-                </Link>
+                <Button 
+                  className="w-full bg-mainTextHoverV1 hover:bg-mainTextHoverV1/90"
+                  onClick={() => handleHomeClick(home)}
+                >
+                  Xem chi tiết
+                </Button>
               </CardFooter>
             </Card>
           </motion.div>
@@ -190,6 +199,12 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
           />
         </div>
       )}
+
+      <HomeDetailsDialog
+        home={selectedHome}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+      />
     </React.Fragment>
   );
 };

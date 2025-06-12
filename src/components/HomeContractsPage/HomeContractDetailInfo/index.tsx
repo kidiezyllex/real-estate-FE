@@ -1,175 +1,250 @@
 "use client";
 
-import { IHomeContractDetail } from "@/interface/response/homeContract";
-import { formatDate } from "@/utils/dateFormat";
-import { formatCurrency } from "@/utils/format";
+import { formatDateOnly } from "@/utils/dateFormat";
 import { 
-  IconCoins, 
-  IconCalendar, 
   IconHome, 
   IconUser, 
-  IconClock,
-  IconReceipt,
+  IconCalendar, 
+  IconCash, 
   IconStatusChange,
-  IconFile
+  IconNotes,
+  IconReceipt,
+  IconClock,
+  IconPhone,
+  IconMail,
+  IconMapPin,
+  IconBuilding,
+  IconId
 } from "@tabler/icons-react";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardHeader } from "@/components/ui/card";
+
+// Helper function for currency formatting
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('vi-VN', { 
+    style: 'currency', 
+    currency: 'VND',
+    maximumFractionDigits: 0 
+  }).format(value);
+};
 
 interface HomeContractDetailInfoProps {
-  contract: IHomeContractDetail;
+  contract: any; // Using any for now to handle the nested structure from API
 }
 
 export const HomeContractDetailInfo = ({ contract }: HomeContractDetailInfoProps) => {
   const getStatusText = (status: number) => {
     switch (status) {
-      case 0:
-        return { text: "Đã hủy", color: "text-red-500", badge: <Badge variant="destructive">Đã hủy</Badge> };
-      case 1:
-        return { text: "Đang hoạt động", color: "text-green-600", badge: <Badge className="bg-green-500 hover:bg-green-600">Đang hoạt động</Badge> };
-      case 2:
-        return { text: "Đã hết hạn", color: "text-gray-500", badge: <Badge variant="outline">Đã hết hạn</Badge> };
-      default:
-        return { text: "Không xác định", color: "text-gray-500", badge: <Badge variant="secondary">Không xác định</Badge> };
+      case 0: return "Đã hủy";
+      case 1: return "Đang hoạt động";
+      case 2: return "Đã hết hạn";
+      default: return "Không xác định";
     }
   };
 
+  const getStatusColor = (status: number) => {
+    switch (status) {
+      case 0: return "text-red-600";
+      case 1: return "text-green-600";
+      case 2: return "text-gray-600";
+      default: return "text-gray-600";
+    }
+  };
+  
   const getPayCycleText = (payCycle: number) => {
     switch (payCycle) {
-      case 1:
-        return "Hàng tháng";
-      case 3:
-        return "Hàng quý";
-      case 6:
-        return "6 tháng";
-      case 12:
-        return "Hàng năm";
-      default:
-        return `${payCycle} tháng`;
+      case 1: return "Hàng tháng";
+      case 3: return "Hàng quý";
+      case 6: return "6 tháng";
+      case 12: return "Hàng năm";
+      default: return `${payCycle} tháng`;
     }
   };
 
-  const statusInfo = getStatusText(contract.status);
+  // Extract guest information
+  const guest = contract.guestId;
+  const home = contract.homeId;
+  const homeOwner = home?.homeOwnerId;
+
+  const contractInfo = [
+    {
+      icon: <IconCalendar className="h-4 w-4 text-green-600" />,
+      label: "Ngày bắt đầu",
+      value: formatDateOnly(contract.dateStar),
+    },
+    {
+      icon: <IconClock className="h-4 w-4 text-slate-600" />,
+      label: "Thời hạn",
+      value: `${contract.duration} tháng`,
+    },
+    {
+      icon: <IconCash className="h-4 w-4 text-amber-600" />,
+      label: "Giá thuê",
+      value: formatCurrency(contract.renta),
+    },
+    {
+      icon: <IconCash className="h-4 w-4 text-blue-600" />,
+      label: "Tiền đặt cọc",
+      value: formatCurrency(contract.deposit),
+    },
+    {
+      icon: <IconClock className="h-4 w-4 text-purple-600" />,
+      label: "Chu kỳ thanh toán",
+      value: getPayCycleText(contract.payCycle),
+    },
+    {
+      icon: <IconStatusChange className={`h-4 w-4 ${getStatusColor(contract.status)}`} />,
+      label: "Trạng thái",
+      value: getStatusText(contract.status),
+    }
+  ];
+
+  const guestInfo = [
+    {
+      icon: <IconUser className="h-4 w-4 text-slate-600" />,
+      label: "Họ tên",
+      value: guest?.fullname,
+    },
+    {
+      icon: <IconPhone className="h-4 w-4 text-green-600" />,
+      label: "Số điện thoại",
+      value: guest?.phone,
+    },
+    {
+      icon: <IconMail className="h-4 w-4 text-blue-600" />,
+      label: "Email",
+      value: guest?.email,
+    },
+    {
+      icon: <IconId className="h-4 w-4 text-red-600" />,
+      label: "Số CMND/CCCD",
+      value: guest?.citizenId,
+    },
+    {
+      icon: <IconCalendar className="h-4 w-4 text-slate-600" />,
+      label: "Ngày sinh",
+      value: guest?.birthday ? formatDateOnly(guest.birthday) : "",
+    },
+    {
+      icon: <IconMapPin className="h-4 w-4 text-slate-600" />,
+      label: "Quê quán",
+      value: guest?.hometown,
+    }
+  ];
+
+  const homeInfo = [
+    {
+      icon: <IconHome className="h-4 w-4 text-blue-600" />,
+      label: "Địa chỉ",
+      value: home?.address,
+    },
+    {
+      icon: <IconMapPin className="h-4 w-4 text-slate-600" />,
+      label: "Quận/Huyện",
+      value: home?.district,
+    },
+    {
+      icon: <IconMapPin className="h-4 w-4 text-slate-600" />,
+      label: "Phường/Xã",
+      value: home?.ward,
+    },
+    {
+      icon: <IconBuilding className="h-4 w-4 text-slate-600" />,
+      label: "Tòa nhà",
+      value: home?.building,
+    },
+    {
+      icon: <IconHome className="h-4 w-4 text-slate-600" />,
+      label: "Số căn hộ",
+      value: home?.apartmentNv,
+    }
+  ];
+
+  const homeOwnerInfo = [
+    {
+      icon: <IconUser className="h-4 w-4 text-slate-600" />,
+      label: "Họ tên chủ nhà",
+      value: homeOwner?.fullname,
+    },
+    {
+      icon: <IconPhone className="h-4 w-4 text-green-600" />,
+      label: "Số điện thoại",
+      value: homeOwner?.phone,
+    },
+    {
+      icon: <IconMail className="h-4 w-4 text-blue-600" />,
+      label: "Email",
+      value: homeOwner?.email,
+    },
+    {
+      icon: <IconId className="h-4 w-4 text-red-600" />,
+      label: "Số CMND/CCCD",
+      value: homeOwner?.citizenId,
+    },
+    {
+      icon: <IconCash className="h-4 w-4 text-green-600" />,
+      label: "Ngân hàng",
+      value: homeOwner?.bank,
+    },
+    {
+      icon: <IconReceipt className="h-4 w-4 text-slate-600" />,
+      label: "Số tài khoản",
+      value: homeOwner?.bankNumber,
+    }
+  ];
+
+  const InfoRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) => (
+    <div className="flex items-center gap-3 py-2">
+      <div className="flex-shrink-0">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+          {label}
+        </span>
+        <p className="text-sm text-slate-900 mt-0.5 truncate">
+          {value || <span className="text-slate-400 italic">Chưa cập nhật</span>}
+        </p>
+      </div>
+    </div>
+  );
+
+  const InfoSection = ({ title, items, className = "" }: { title: string, items: any[], className?: string }) => (
+    <Card className={`border border-slate-200 bg-white overflow-hidden ${className}`}>
+      <CardHeader>
+        {title}
+      </CardHeader>
   
+      <div className="px-4 py-3 space-y-1">
+        {items.map((item, index) => (
+          <InfoRow key={index} {...item} />
+        ))}
+      </div>
+    </Card>
+  );
+
   return (
-    <div className="p-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconReceipt className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Mã hợp đồng</p>
-            <p className="text-base text-mainTextV1">{contract._id}</p>
-          </div>
-        </div>
+    <div className="space-y-4 bg-[#F9F9FC]">
+      {/* Information Grid - 4 Cards in 2x2 layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 bg-[#F9F9FC]">
+        <InfoSection 
+          title="Thông tin hợp đồng" 
+          items={contractInfo}
+        />
         
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconFile className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Số hợp đồng</p>
-            <p className="text-base text-mainTextV1">
-              {contract.contractCode || 'Không có'}
-            </p>
-          </div>
-        </div>
+        <InfoSection 
+          title="Thông tin khách thuê" 
+          items={guestInfo}
+        />
         
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconHome className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Căn hộ</p>
-            <p className="text-base text-mainTextV1">
-              {contract.homeId && typeof contract.homeId === 'object' ? contract.homeId.name : 'Không xác định'}
-            </p>
-          </div>
-        </div>
+        <InfoSection 
+          title="Thông tin nhà cho thuê" 
+          items={homeInfo}
+        />
         
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconUser className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Khách hàng</p>
-            <p className="text-base text-mainTextV1">
-              {contract.guestId && typeof contract.guestId === 'object' ? contract.guestId.fullname : 'Không xác định'}
-            </p>
-          </div>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconCoins className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Giá thuê</p>
-            <p className="text-base text-mainTextV1 font-semibold">{formatCurrency(contract.price)}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconClock className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Chu kỳ thanh toán</p>
-            <p className="text-base text-mainTextV1">{getPayCycleText(contract.payCycle)}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconCalendar className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Ngày bắt đầu</p>
-            <p className="text-base text-mainTextV1">{formatDate(contract.dateStar)}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconCalendar className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Thời hạn</p>
-            <p className="text-base text-mainTextV1">{contract.duration} tháng</p>
-          </div>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconStatusChange className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Trạng thái</p>
-            <div className="flex items-center">
-              {statusInfo.badge}
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconClock className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Ngày tạo</p>
-            <p className="text-base text-mainTextV1">{formatDate((contract as any).createdAt)}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-start gap-3">
-          <div className="flex-shrink-0 mt-1">
-            <IconClock className="h-5 w-5 text-mainTextV1" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-gray-500 mb-1">Cập nhật gần nhất</p>
-            <p className="text-base text-mainTextV1">{formatDate((contract as any).updatedAt)}</p>
-          </div>
-        </div>
+        <InfoSection 
+          title="Thông tin chủ nhà" 
+          items={homeOwnerInfo}
+        />
       </div>
     </div>
   );
