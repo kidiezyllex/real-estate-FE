@@ -2,7 +2,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import {
   getHomes,
   getAvailableHomes,
+  getAvailableHomesForRent,
   searchHomes,
+  searchHomesByAmenities,
   getHomesByOwner,
   getHomeDetail,
   createHome,
@@ -22,6 +24,7 @@ import {
 import {
   IGetHomeDetailParams,
   ISearchHomeParams,
+  ISearchHomeByAmenitiesParams,
   IGetHomeByOwnerParams,
   ICreateHomeBody,
   IUpdateHomeParams,
@@ -43,11 +46,26 @@ export const useGetAvailableHomes = () => {
   });
 };
 
+export const useGetAvailableHomesForRent = () => {
+  return useQuery<IHomeAvailableListResponse, Error>({
+    queryKey: ['homes', 'available-for-rent'],
+    queryFn: getAvailableHomesForRent,
+  });
+};
+
 export const useSearchHomes = (params: ISearchHomeParams) => {
   return useQuery<IHomeSearchResponse, Error>({
     queryKey: ['homes', 'search', params.q],
     queryFn: () => searchHomes(params),
     enabled: !!params.q,
+  });
+};
+
+export const useSearchHomesByAmenities = (params: ISearchHomeByAmenitiesParams) => {
+  return useQuery<IHomeSearchResponse, Error>({
+    queryKey: ['homes', 'search-amenities', params.amenities],
+    queryFn: () => searchHomesByAmenities(params),
+    enabled: !!params.amenities,
   });
 };
 

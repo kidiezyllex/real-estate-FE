@@ -7,14 +7,12 @@ export interface IHomeOwner {
   citizen_date: string;
   citizen_place: string;
   birthday: string;
-  bank: string;
+  address: string;
   bankAccount: string;
-  bankNumber: string;
-  active: boolean;
-  note: string;
+  bankName: string;
   createdAt: string;
   updatedAt: string;
-  __v: number;
+  __v?: number;
 }
 
 export interface IHomeOwnerSearchResult {

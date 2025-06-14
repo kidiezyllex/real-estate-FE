@@ -63,6 +63,10 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     note: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [priceSuggestions, setPriceSuggestions] = useState<number[]>([]);
+  const [depositSuggestions, setDepositSuggestions] = useState<number[]>([]);
+  const [showPriceSuggestions, setShowPriceSuggestions] = useState(false);
+  const [showDepositSuggestions, setShowDepositSuggestions] = useState(false);
 
   // Hooks for data fetching
   const { data: homeOwnersData, isLoading: isLoadingHomeOwners, error: homeOwnersError } = useGetHomeOwners();
@@ -125,6 +129,10 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     setSelectedGuestId("");
     setErrors({});
     setSelectionMode("owner-first");
+    setPriceSuggestions([]);
+    setDepositSuggestions([]);
+    setShowPriceSuggestions(false);
+    setShowDepositSuggestions(false);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -337,6 +345,128 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     return "";
   };
 
+  const generatePriceSuggestions = (inputValue: string): number[] => {
+    if (!inputValue || inputValue === '0') return [];
+    
+    const numValue = parseFloat(inputValue);
+    if (isNaN(numValue) || numValue <= 0) return [];
+    
+    const suggestions: number[] = [];
+    
+    // Nếu nhập số nhỏ (1-999), tạo gợi ý với đơn vị triệu và chục triệu
+    if (numValue < 1000) {
+      // Với số có 3 chữ số (100-999), thêm gợi ý nghìn và chục nghìn
+      if (numValue >= 100) {
+        suggestions.push(numValue * 1000); // nghìn (VD: 345 -> 345,000)
+        suggestions.push(numValue * 10000); // chục nghìn (VD: 345 -> 3,450,000)
+      }
+      
+      suggestions.push(numValue * 1000000); // triệu
+      if (numValue >= 10) {
+        suggestions.push(numValue * 100000); // trăm nghìn
+      }
+      if (numValue <= 99) {
+        suggestions.push(numValue * 10000000); // chục triệu
+      }
+    }
+    // Nếu nhập số lớn hơn, chỉ thêm các số 0
+    else if (numValue < 1000000) {
+      suggestions.push(numValue * 1000); // nghìn
+      suggestions.push(numValue * 10000); // chục nghìn
+    }
+    
+    // Sử dụng Array.from thay vì spread operator để tránh lỗi downlevelIteration
+    return Array.from(new Set(suggestions)).sort((a: number, b: number) => a - b).slice(0, 3);
+  };
+
+  const generateDepositSuggestions = (inputValue: string): number[] => {
+    if (!inputValue || inputValue === '0') return [];
+    
+    const numValue = parseFloat(inputValue);
+    if (isNaN(numValue) || numValue <= 0) return [];
+    
+    const suggestions: number[] = [];
+    
+    // Gợi ý cho tiền đặt cọc: tối thiểu 6 chữ số (100,000), tối đa 8 chữ số (99,999,999)
+    if (numValue < 1000) {
+      // Với số có 3 chữ số (100-999), thêm gợi ý nghìn và chục nghìn
+      if (numValue >= 100) {
+        suggestions.push(numValue * 1000); // nghìn (VD: 345 -> 345,000)
+        suggestions.push(numValue * 10000); // chục nghìn (VD: 345 -> 3,450,000)
+      }
+      
+      // Với số nhỏ, tạo gợi ý hàng trăm nghìn và triệu
+      suggestions.push(numValue * 100000); // trăm nghìn (6 chữ số)
+      suggestions.push(numValue * 1000000); // triệu (7 chữ số)
+      if (numValue <= 99) {
+        suggestions.push(numValue * 10000000); // chục triệu (8 chữ số)
+      }
+    }
+    else if (numValue < 100000) {
+      // Với số trung bình, tạo gợi ý nghìn và chục nghìn
+      const thousand = numValue * 1000;
+      const tenThousand = numValue * 10000;
+      
+      if (thousand >= 100000) suggestions.push(thousand); // tối thiểu 6 chữ số
+      if (tenThousand >= 100000 && tenThousand <= 99999999) suggestions.push(tenThousand);
+    }
+    
+    // Lọc chỉ giữ các giá trị từ 6-8 chữ số
+    const filteredSuggestions = suggestions.filter(val => val >= 100000 && val <= 99999999);
+    
+    return Array.from(new Set(filteredSuggestions)).sort((a: number, b: number) => a - b).slice(0, 3);
+  };
+
+  const handlePriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    
+    // Gọi hàm handleChange gốc
+    handleChange(e);
+    
+    // Tạo gợi ý
+    const suggestions = generatePriceSuggestions(value);
+    setPriceSuggestions(suggestions);
+    setShowPriceSuggestions(suggestions.length > 0 && value !== '');
+  };
+
+  const handleDepositInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    
+    // Gọi hàm handleChange gốc
+    handleChange(e);
+    
+    // Tạo gợi ý cho tiền đặt cọc
+    const suggestions = generateDepositSuggestions(value);
+    setDepositSuggestions(suggestions);
+    setShowDepositSuggestions(suggestions.length > 0 && value !== '');
+  };
+
+  const handlePriceSuggestionClick = (suggestedPrice: number) => {
+    setFormData(prev => ({ ...prev, price: suggestedPrice }));
+    setShowPriceSuggestions(false);
+    setPriceSuggestions([]);
+    
+    // Xóa lỗi nếu có
+    if (errors.price) {
+      setErrors(prev => ({ ...prev, price: "" }));
+    }
+  };
+
+  const handleDepositSuggestionClick = (suggestedDeposit: number) => {
+    setFormData(prev => ({ ...prev, deposit: suggestedDeposit }));
+    setShowDepositSuggestions(false);
+    setDepositSuggestions([]);
+    
+    // Xóa lỗi nếu có
+    if (errors.deposit) {
+      setErrors(prev => ({ ...prev, deposit: "" }));
+    }
+  };
+
+  const formatCurrency = (amount: number): string => {
+    return amount.toLocaleString('vi-VN');
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-white">
@@ -507,7 +637,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="font-medium text-gray-900 truncate">
-                                      {home.name || home.address || 'Nhà không có tên'}
+                                      {home.building || 'Nhà không có tên'}
                                     </div>
                                     <div className="flex items-center justify-between text-sm text-mainTextV1">
                                       <div className="flex items-center">
@@ -672,16 +802,49 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                     <Label htmlFor="price" className="text-secondaryTextV1">
                       Giá thuê (VNĐ) <span className="text-mainDangerV1">*</span>
                     </Label>
-                    <Input
-                      id="price"
-                      name="price"
-                      type="number"
-                      min="0"
-                      value={formData.price}
-                      onChange={handleChange}
-                      placeholder="Nhập giá thuê"
-                      className={`border-lightBorderV1 ${errors.price ? "border-mainDangerV1" : ""}`}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="price"
+                        name="price"
+                        type="number"
+                        min="0"
+                        value={formData.price}
+                        onChange={handlePriceInputChange}
+                        onFocus={() => {
+                          if (formData.price > 0) {
+                            const suggestions = generatePriceSuggestions(formData.price.toString());
+                            setPriceSuggestions(suggestions);
+                            setShowPriceSuggestions(suggestions.length > 0);
+                          }
+                        }}
+                        onBlur={() => {
+                          // Delay để cho phép click vào suggestion
+                          setTimeout(() => setShowPriceSuggestions(false), 200);
+                        }}
+                        placeholder="Nhập giá thuê"
+                        className={`border-lightBorderV1 ${errors.price ? "border-mainDangerV1" : ""}`}
+                      />
+                      {showPriceSuggestions && priceSuggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border border-lightBorderV1 rounded-md shadow-lg">
+                          <div className="p-2 space-y-1">
+                            <div className="text-xs text-secondaryTextV1 mb-2">Gợi ý giá thuê:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {priceSuggestions.map((suggestion, index) => (
+                                <Button
+                                  key={index}
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handlePriceSuggestionClick(suggestion)}
+                                >
+                                  {formatCurrency(suggestion)} VNĐ
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                     {errors.price && (
                       <p className="text-sm text-mainDangerV1">{errors.price}</p>
                     )}
@@ -691,16 +854,53 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                     <Label htmlFor="deposit" className="text-secondaryTextV1">
                       Tiền đặt cọc (VNĐ)
                     </Label>
-                    <Input
-                      id="deposit"
-                      name="deposit"
-                      type="number"
-                      min="0"
-                      value={formData.deposit}
-                      onChange={handleChange}
-                      placeholder="Nhập tiền đặt cọc"
-                      className="border-lightBorderV1"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="deposit"
+                        name="deposit"
+                        type="number"
+                        min="0"
+                        value={formData.deposit}
+                        onChange={handleDepositInputChange}
+                        onFocus={() => {
+                          if (formData.deposit > 0) {
+                            const suggestions = generateDepositSuggestions(formData.deposit.toString());
+                            setDepositSuggestions(suggestions);
+                            setShowDepositSuggestions(suggestions.length > 0);
+                          }
+                        }}
+                        onBlur={() => {
+                          // Delay để cho phép click vào suggestion
+                          setTimeout(() => setShowDepositSuggestions(false), 200);
+                        }}
+                        placeholder="Nhập tiền đặt cọc"
+                        className="border-lightBorderV1"
+                      />
+                      {showDepositSuggestions && depositSuggestions.length > 0 && (
+                        <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border border-lightBorderV1 rounded-md shadow-lg">
+                          <div className="p-2 space-y-1">
+                            <div className="text-xs text-secondaryTextV1 mb-2">Gợi ý tiền đặt cọc:</div>
+                            <div className="flex flex-wrap gap-1">
+                              {depositSuggestions.map((suggestion, index) => (
+                                <Button
+                                  key={index}
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => handleDepositSuggestionClick(suggestion)}
+                                  className="text-xs h-7 px-2"
+                                >
+                                  {formatCurrency(suggestion)} VNĐ
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    {errors.deposit && (
+                      <p className="text-sm text-mainDangerV1">{errors.deposit}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">

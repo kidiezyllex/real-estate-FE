@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from 'framer-motion';
-import { IconHome, IconInfoCircle } from '@tabler/icons-react';
+import { IconHome, IconInfoCircle, IconBuilding, IconMapPin } from '@tabler/icons-react';
 import Image from 'next/image';
 import { 
   Card, 
@@ -17,7 +17,7 @@ import { formatCurrency } from '@/utils/format';
 import { IHome, IHomeSearchResult } from '@/interface/response/home';
 import { Pagination } from '@/components/ui/pagination';
 import React, { useState } from 'react';
-import HomeDetailsDialog from './HomeDetailsDialog';
+import { HomeDetailsDialog } from '@/components/HomesPage/HomeDetailsDialog';
 
 interface StatusInfo {
   label: string;
@@ -39,9 +39,10 @@ interface HomeListProps {
   pageSize?: number;
   total?: number;
   onPageChange?: (page: number) => void;
+  onRefresh?: () => void;
 }
 
-const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize = 10, total = 0, onPageChange }: HomeListProps) => {
+const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize = 10, total = 0, onPageChange, onRefresh }: HomeListProps) => {
   const [selectedHome, setSelectedHome] = useState<IHome | IHomeSearchResult | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -63,6 +64,22 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
   const handleHomeClick = (home: IHome | IHomeSearchResult) => {
     setSelectedHome(home);
     setIsDialogOpen(true);
+  };
+
+  // Function to determine rental status badge
+  const getRentalStatusBadge = (home: IHome | IHomeSearchResult) => {
+    if (home.homeContract && home.homeContract.status === 1) {
+      return (
+        <Badge className="bg-violet-500 hover:bg-violet-600 text-white border-2 border-violet-400 text-nowrap">
+          Đã cho thuê
+        </Badge>
+      );
+    }
+    return (
+      <Badge className="bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap">
+        Chưa cho thuê
+      </Badge>
+    );
   };
 
   if (isLoading) {
@@ -123,7 +140,7 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
       >
         {pagedHomes.map((home: IHome | IHomeSearchResult, index: number) => (
           <motion.div key={home._id} variants={item}>
-            <Card className="overflow-hidden border border-lightBorderV1 h-full flex flex-col  transition-shadow duration-200">
+            <Card className="overflow-hidden border border-lightBorderV1 h-full flex flex-col transition-shadow duration-200">
               <div className="relative h-48 w-full bg-gray-100">
                 <Image 
                   draggable={false}
@@ -132,24 +149,28 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
                   fill
                   className="object-cover"
                 />
-                <Badge 
-                  className={`absolute top-4 right-4 ${HomeStatus[(home as any).status]?.color || 'bg-gray-500'} text-white`}
-                >
-                  {HomeStatus[(home as any).status]?.label || 'Chưa cho thuê'}
-                </Badge>
+                <div className="absolute top-4 right-4 flex flex-col gap-2">
+                  {getRentalStatusBadge(home)}
+                </div>
               </div>
-              <CardHeader className="flex flex-col items-start gap-1 border-b-0 pb-0">
-                <CardTitle className="text-lg font-semibold text-mainTextV1 line-clamp-1">
-                  {home.building} - {home.apartmentNv}
-                </CardTitle>
-                <p className="text-mainTextV1 font-semibold text-lg">
-                  {formatCurrency((home as any).price)}
-                </p>
-                <p className="text-mainTextV1 text-sm">
-                  {home.address}, {home.ward}, {home.district}
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 pt-2">
+              
+              {/* Updated Card Header with better styling */}
+              <div className="bg-[#F9F9FC] border-b border-b-lightBorderV1 overflow-hidden  px-4 py-[10px] text-base font-semibold text-primary flex flex-col items-start gap-1">
+                <div className="flex items-center gap-1 w-full">
+                  <IconBuilding className="h-4 w-4 text-mainTextHoverV1 flex-shrink-0" />
+                  <h3 className="tracking-tight text-lg font-semibold text-mainTextV1 line-clamp-1 flex-1">
+                    {home.building} - {home.apartmentNv}
+                  </h3>
+                </div>
+                <div className="flex items-center gap-1 text-mainTextV1 text-sm">
+                  <IconMapPin className="h-4 w-4 text-mainTextHoverV1 flex-shrink-0" />
+                  <p className="line-clamp-1">
+                    {home.address}, {home.ward}, {home.district}
+                  </p>
+                </div>
+              </div>
+              
+              <CardContent className="flex-1 pt-2 flex flex-col gap-2">
                 <div className="space-y-2 text-secondaryTextV1">
                   <div className="grid grid-cols-3 gap-2 text-sm mb-2">
                     <div className="text-center p-2 bg-mainBackgroundV1 rounded-sm">
@@ -176,15 +197,15 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
                     </div>
                   )}
                 </div>
-              </CardContent>
-              <CardFooter>
-                <Button 
+              <div className='flex-1 flex flex-col items-end justify-end'>
+              <Button 
                   className="w-full bg-mainTextHoverV1 hover:bg-mainTextHoverV1/90"
                   onClick={() => handleHomeClick(home)}
                 >
                   Xem chi tiết
                 </Button>
-              </CardFooter>
+              </div>
+              </CardContent>
             </Card>
           </motion.div>
         ))}
@@ -200,11 +221,18 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
         </div>
       )}
 
-      <HomeDetailsDialog
-        home={selectedHome}
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-      />
+      {selectedHome && (
+        <HomeDetailsDialog
+          homeId={selectedHome._id}
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          onSuccess={() => {
+            setIsDialogOpen(false);
+            setSelectedHome(null);
+            onRefresh?.();
+          }}
+        />
+      )}
     </React.Fragment>
   );
 };

@@ -21,7 +21,6 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select';
-import Link from 'next/link';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -31,6 +30,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
 import HomeList from './HomeList';
+import { HomeCreateDialog } from './HomeCreateDialog';
 
 const HomesPage = () => {
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
@@ -41,12 +41,13 @@ const HomesPage = () => {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [page, setPage] = useState(1);
   const pageSize = 10;
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const toggleFilters = () => {
     setIsFiltersVisible(!isFiltersVisible);
   };
-  const { data: homeSearchResults, isLoading, error } = useSearchHomes({ q: debouncedQuery });
-  const { data: allHomes, isLoading: isLoadingAllHomes, error: errorAllHomes } = useGetHomes();
+  const { data: homeSearchResults, isLoading, error, refetch: refetchSearchResults } = useSearchHomes({ q: debouncedQuery });
+  const { data: allHomes, isLoading: isLoadingAllHomes, error: errorAllHomes, refetch: refetchAllHomes } = useGetHomes();
   
   const resetFilters = () => {
     setPriceRange('all');
@@ -62,6 +63,13 @@ const HomesPage = () => {
   const clearSearch = () => {
     setSearchQuery('');
     setDebouncedQuery('');
+  };
+
+  const handleCreateSuccess = () => {
+    refetchAllHomes?.();
+    if (debouncedQuery) {
+      refetchSearchResults?.();
+    }
   };
 
   const homes = debouncedQuery
@@ -109,12 +117,10 @@ const HomesPage = () => {
                 Bộ lọc
               </Button>
               
-              <Link href="/admin/homes/create">
-                <Button>
-                  <IconPlus className="h-4 w-4 mr-2" />
-                  Thêm căn hộ
-                </Button>
-              </Link>
+              <Button onClick={() => setIsCreateDialogOpen(true)}>
+                <IconPlus className="h-4 w-4 mr-2" />
+                Thêm căn hộ
+              </Button>
             </div>
           </div>
           
@@ -240,9 +246,21 @@ const HomesPage = () => {
             pageSize={pageSize}
             total={total}
             onPageChange={setPage}
+            onRefresh={() => {
+              refetchAllHomes?.();
+              if (debouncedQuery) {
+                refetchSearchResults?.();
+              }
+            }}
           />
         </div>
       </motion.div>
+
+      <HomeCreateDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={handleCreateSuccess}
+      />
     </div>
   );
 };

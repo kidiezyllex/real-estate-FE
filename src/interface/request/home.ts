@@ -6,6 +6,10 @@ export interface ISearchHomeParams {
   q: string;
 }
 
+export interface ISearchHomeByAmenitiesParams {
+  amenities: string;
+}
+
 export interface IGetHomeByOwnerParams {
   homeOwnerId: string;
 }
@@ -28,13 +32,32 @@ export interface IHomeOwner {
 
 export interface ICreateHomeBody {
   address: string;
-  homeOwnerId: IHomeOwner;
+  homeOwnerId: string;
   district: string;
+  province: string;
+  images: string[];
   ward: string;
   building: string;
   apartmentNv: string;
   active: boolean;
   note: string;
+  // Amenities
+  hasBathroom?: boolean;
+  hasBedroom?: boolean;
+  hasBalcony?: boolean;
+  hasKitchen?: boolean;
+  hasWifi?: boolean;
+  hasSoundproof?: boolean;
+  hasAirConditioner?: boolean;
+  hasWashingMachine?: boolean;
+  hasRefrigerator?: boolean;
+  hasElevator?: boolean;
+  hasParking?: boolean;
+  hasSecurity?: boolean;
+  hasGym?: boolean;
+  hasSwimmingPool?: boolean;
+  hasGarden?: boolean;
+  hasPetAllowed?: boolean;
 }
 
 export interface IUpdateHomeParams {
@@ -43,13 +66,32 @@ export interface IUpdateHomeParams {
 
 export interface IUpdateHomeBody {
   address?: string;
-  homeOwnerId?: IHomeOwner;
+  homeOwnerId?: string;
   district?: string;
+  province?: string;
+  images?: string[];
   ward?: string;
   building?: string;
   apartmentNv?: string;
   active?: boolean;
   note?: string;
+  // Amenities
+  hasBathroom?: boolean;
+  hasBedroom?: boolean;
+  hasBalcony?: boolean;
+  hasKitchen?: boolean;
+  hasWifi?: boolean;
+  hasSoundproof?: boolean;
+  hasAirConditioner?: boolean;
+  hasWashingMachine?: boolean;
+  hasRefrigerator?: boolean;
+  hasElevator?: boolean;
+  hasParking?: boolean;
+  hasSecurity?: boolean;
+  hasGym?: boolean;
+  hasSwimmingPool?: boolean;
+  hasGarden?: boolean;
+  hasPetAllowed?: boolean;
 }
 
 export interface IDeleteHomeParams {

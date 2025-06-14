@@ -12,6 +12,7 @@ import {
 import {
   IGetHomeDetailParams,
   ISearchHomeParams,
+  ISearchHomeByAmenitiesParams,
   IGetHomeByOwnerParams,
   ICreateHomeBody,
   IUpdateHomeParams,
@@ -29,8 +30,18 @@ export const getAvailableHomes = async (): Promise<IHomeAvailableListResponse> =
   return res;
 };
 
+export const getAvailableHomesForRent = async (): Promise<IHomeAvailableListResponse> => {
+  const res = await sendGet(`/homes/available-for-rent`);
+  return res;
+};
+
 export const searchHomes = async (params: ISearchHomeParams): Promise<IHomeSearchResponse> => {
   const res = await sendGet(`/homes/search?q=${params.q}`);
+  return res;
+};
+
+export const searchHomesByAmenities = async (params: ISearchHomeByAmenitiesParams): Promise<IHomeSearchResponse> => {
+  const res = await sendGet(`/homes/search-by-amenities?amenities=${params.amenities}`);
   return res;
 };
 

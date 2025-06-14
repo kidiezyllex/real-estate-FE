@@ -25,11 +25,33 @@ export interface IHome {
   building: string;
   apartmentNv: string;
   homeOwnerId: IHomeOwner;
+  homeContract?: {
+    _id: string;
+    guestId: string;
+    status: number;
+  } | null;
   active: boolean;
   note: string;
+  // Amenities
+  hasBathroom?: boolean;
+  hasBedroom?: boolean;
+  hasBalcony?: boolean;
+  hasKitchen?: boolean;
+  hasWifi?: boolean;
+  hasSoundproof?: boolean;
+  hasAirConditioner?: boolean;
+  hasWashingMachine?: boolean;
+  hasRefrigerator?: boolean;
+  hasElevator?: boolean;
+  hasParking?: boolean;
+  hasSecurity?: boolean;
+  hasGym?: boolean;
+  hasSwimmingPool?: boolean;
+  hasGarden?: boolean;
+  hasPetAllowed?: boolean;
   createdAt: string; // ISO date string
   updatedAt: string; // ISO date string
-  __v: number;
+  __v?: number;
 }
 
 export interface IHomeAvailable {
@@ -53,11 +75,33 @@ export interface IHomeSearchResult {
   building: string;
   apartmentNv: string;
   homeOwnerId: IHomeOwner;
+  homeContract?: {
+    _id: string;
+    guestId: string;
+    status: number;
+  } | null;
   active: boolean;
   note: string;
+  // Amenities
+  hasBathroom?: boolean;
+  hasBedroom?: boolean;
+  hasBalcony?: boolean;
+  hasKitchen?: boolean;
+  hasWifi?: boolean;
+  hasSoundproof?: boolean;
+  hasAirConditioner?: boolean;
+  hasWashingMachine?: boolean;
+  hasRefrigerator?: boolean;
+  hasElevator?: boolean;
+  hasParking?: boolean;
+  hasSecurity?: boolean;
+  hasGym?: boolean;
+  hasSwimmingPool?: boolean;
+  hasGarden?: boolean;
+  hasPetAllowed?: boolean;
   createdAt: string;
   updatedAt: string;
-  __v: number;
+  __v?: number;
 }
 
 export interface IHomeDetail {

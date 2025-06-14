@@ -28,17 +28,16 @@ export interface IUpdateHomeOwnerParams {
 }
 
 export interface IUpdateHomeOwnerBody {
-  fullname: string;
-  phone: string;
-  email: string;
-  citizenId: string;
-  citizen_date: string;
-  citizen_place: string;
-  birthday: string;
-  bank: string;
-  bankAccount: string;
-  bankNumber: string;
-  note: string;
+  fullname?: string;
+  phone?: string;
+  email?: string;
+  citizenId?: string;
+  citizen_date?: string;
+  citizen_place?: string;
+  birthday?: string;
+  address?: string;
+  bankAccount?: string;
+  bankName?: string;
 }
 
 export interface IDeleteHomeOwnerParams {
