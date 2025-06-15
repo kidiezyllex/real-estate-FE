@@ -4,14 +4,17 @@ import { useEffect, useState } from "react";
 import { useGetHomeDetail, useUpdateHome, useDeleteHome } from "@/hooks/useHome";
 import { useGetHomeContractsByHome } from "@/hooks/useHomeContract";
 import { useGetServiceContractsByHome } from "@/hooks/useServiceContract";
+import { useGetHomeOwners } from "@/hooks/useHomeOwner";
+import { useUploadFile } from "@/hooks/useUpload";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectSeparator } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Pagination } from "@/components/ui/pagination";
@@ -21,11 +24,12 @@ import { ServiceContractDetailsDialog } from "@/components/ServiceContractsPage/
 import { IUpdateHomeBody } from "@/interface/request/home";
 import { IHomeContract } from "@/interface/response/homeContract";
 import { IServiceContract } from "@/interface/response/serviceContract";
+import { IUploadResponse } from "@/interface/response/upload";
 import { formatDate } from "@/utils/dateFormat";
 import { formatCurrency } from "@/utils/format";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
-import { IconPencil, IconTrash, IconLoader2, IconCheck, IconX, IconAlertTriangle, IconEye } from "@tabler/icons-react";
+import { IconPencil, IconTrash, IconLoader2, IconCheck, IconX, IconAlertTriangle, IconEye, IconUpload, IconPhone } from "@tabler/icons-react";
 import {
   Dialog,
   DialogContent,
@@ -35,6 +39,8 @@ import {
   DialogFooter,
   DialogClose,
 } from "@/components/ui/dialog";
+import Icon from "@mdi/react";
+import { mdiAccountTie } from "@mdi/js";
 
 interface HomeDetailsDialogProps {
   isOpen: boolean;
@@ -91,12 +97,15 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
 
   const [formData, setFormData] = useState<IUpdateHomeBody>({
     address: "",
+    homeOwnerId: "",
     district: "",
+    province: "",
     ward: "",
     building: "",
     apartmentNv: "",
     active: true,
     note: "",
+    images: [],
     // Amenities
     hasBathroom: false,
     hasBedroom: false,
@@ -129,10 +138,13 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
 
+  // Image upload states
+  const [uploadingImages, setUploadingImages] = useState<boolean[]>([]);
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+
   const { data: homeData, isLoading, error, refetch } = useGetHomeDetail({
     id: homeId
   });
-
   const { data: homeContractsData, isLoading: isLoadingHomeContracts } = useGetHomeContractsByHome({
     homeId: homeId
   });
@@ -143,6 +155,28 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
 
   const { mutate: updateHomeMutation, isPending: isUpdating } = useUpdateHome();
   const { mutate: deleteHomeMutation, isPending: isDeleting } = useDeleteHome();
+  const { data: homeOwnersData, isLoading: isLoadingHomeOwners, error: homeOwnersError } = useGetHomeOwners();
+  const { mutate: uploadFileMutation } = useUploadFile();
+
+  // Amenities list for checkboxes
+  const amenitiesList = [
+    { key: 'hasBathroom', label: 'Phòng tắm riêng' },
+    { key: 'hasBedroom', label: 'Phòng ngủ riêng' },
+    { key: 'hasBalcony', label: 'Ban công' },
+    { key: 'hasKitchen', label: 'Bếp' },
+    { key: 'hasWifi', label: 'Wifi' },
+    { key: 'hasSoundproof', label: 'Cách âm' },
+    { key: 'hasAirConditioner', label: 'Điều hòa' },
+    { key: 'hasWashingMachine', label: 'Máy giặt' },
+    { key: 'hasRefrigerator', label: 'Tủ lạnh' },
+    { key: 'hasElevator', label: 'Thang máy' },
+    { key: 'hasParking', label: 'Chỗ đậu xe' },
+    { key: 'hasSecurity', label: 'Bảo vệ' },
+    { key: 'hasGym', label: 'Phòng gym' },
+    { key: 'hasSwimmingPool', label: 'Hồ bơi' },
+    { key: 'hasGarden', label: 'Vườn' },
+    { key: 'hasPetAllowed', label: 'Cho phép nuôi thú cưng' },
+  ];
 
   // Combine contracts for unified table
   const homeContracts = Array.isArray(homeContractsData?.data)
@@ -190,7 +224,22 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
       createdAt: contract.createdAt,
     }))
   ];
-
+  const getContractStatusBadge = () => {
+    const contract = homeData?.data?.home?.homeContract;
+    if (contract) {
+      switch (contract.status) {
+        case 0:
+          return <Badge variant="destructive">Hợp đồng đã hủy</Badge>;
+        case 1:
+          return <Badge className="bg-green-500 hover:bg-green-600 text-white">Đang cho thuê</Badge>;
+        case 2:
+          return <Badge variant="outline">Hợp đồng hết hạn</Badge>;
+        default:
+          return <Badge variant="secondary">Không xác định</Badge>;
+      }
+    }
+    return <Badge className="bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap">Chưa cho thuê</Badge>;
+  };
   // Sort contracts by creation date (newest first)
   const sortedContracts = combinedContracts.sort((a, b) =>
     new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
@@ -295,16 +344,19 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   }, [error, onClose]);
 
   useEffect(() => {
-    if (homeData?.data?.home) {
-      const home = homeData.data.home;
+    if (homeData?.data) {
+      const home = homeData.data as any;
       setFormData({
-        address: home.address,
-        district: home.district,
-        ward: home.ward,
-        building: home.building,
-        apartmentNv: home.apartmentNv,
-        active: home.active,
-        note: home.note,
+        address: home.address || "",
+        homeOwnerId: home.homeOwnerId?._id || home.homeOwnerId || "",
+        district: home.district || "",
+        province: home.province || "",
+        ward: home.ward || "",
+        building: home.building || "",
+        apartmentNv: home.apartmentNv || "",
+        active: home.active ?? true,
+        note: home.note || "",
+        images: home.images || [],
         // Amenities
         hasBathroom: home.hasBathroom || false,
         hasBedroom: home.hasBedroom || false,
@@ -323,6 +375,21 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
         hasGarden: home.hasGarden || false,
         hasPetAllowed: home.hasPetAllowed || false,
       });
+
+      // Initialize address selection states for editing
+      if (home.province && home.district && home.ward) {
+        // Extract specific address from full address
+        const fullAddress = home.address || "";
+        const provinceName = home.province;
+        const districtName = home.district;
+        const wardName = home.ward;
+        
+        // Try to extract specific address by removing province, district, ward
+        const addressParts = fullAddress.split(', ');
+        if (addressParts.length >= 4) {
+          setSpecificAddress(addressParts[0]);
+        }
+      }
     }
   }, [homeData]);
 
@@ -346,8 +413,112 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     setFormData((prev) => ({ ...prev, [name]: checked }));
   };
 
+  const handleAmenityChange = (amenityKey: string, checked: boolean) => {
+    setFormData((prev) => ({ ...prev, [amenityKey]: checked }));
+  };
+
+  const handleHomeOwnerSelect = (homeOwnerId: string) => {
+    setFormData((prev) => ({ ...prev, homeOwnerId }));
+    if (errors.homeOwnerId) {
+      setErrors((prev) => ({ ...prev, homeOwnerId: "" }));
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      
+      if (!isValidType) {
+        toast.error(`File ${file.name} không phải là hình ảnh hợp lệ`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`File ${file.name} quá lớn (tối đa 10MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    // Update file states
+    const newFiles = [...imageFiles, ...validFiles];
+    setImageFiles(newFiles);
+    
+    // Initialize uploading states for new files
+    const newUploadingStates = [...uploadingImages];
+    validFiles.forEach(() => {
+      newUploadingStates.push(true);
+    });
+    setUploadingImages(newUploadingStates);
+
+    // Upload each valid file
+    validFiles.forEach((file, i) => {
+      const uploadIndex = imageFiles.length + i;
+      uploadFileMutation({ file }, {
+        onSuccess: (response: IUploadResponse) => {
+          if (response?.statusCode === 200 || response?.statusCode === 201) {
+            // Check if response has the expected structure
+            const imageUrl = response?.data?.url;
+            
+            if (imageUrl) {
+              setFormData(prev => ({
+                ...prev,
+                images: [...(prev.images || []), imageUrl]
+              }));
+              toast.success(`Upload ảnh "${file.name}" thành công!`);
+            } else {
+              console.error('No URL in response:', response);
+              toast.error(`Lỗi: Không nhận được URL ảnh từ server cho file "${file.name}"`);
+            }
+          } else {
+            console.error('Upload failed with status:', response?.statusCode, response?.message);
+            toast.error(`Lỗi upload ảnh "${file.name}": ${response?.message || 'Lỗi không xác định'}`);
+          }
+          
+          // Update uploading state
+          setUploadingImages(prev => {
+            const newStates = [...prev];
+            newStates[uploadIndex] = false;
+            return newStates;
+          });
+        },
+        onError: (error: any) => {
+          console.error('Upload error for file:', file.name, error);
+          const errorMessage = error?.response?.data?.message || error?.message || 'Không thể upload ảnh';
+          toast.error(`Lỗi upload ảnh "${file.name}": ${errorMessage}`);
+          
+          // Update uploading state
+          setUploadingImages(prev => {
+            const newStates = [...prev];
+            newStates[uploadIndex] = false;
+            return newStates;
+          });
+        }
+      });
+    });
+
+    // Clear the input value to allow re-uploading the same file
+    e.target.value = '';
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images?.filter((_, i) => i !== index) || []
+    }));
+    setImageFiles(prev => prev.filter((_, i) => i !== index));
+    setUploadingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+    if (!formData.homeOwnerId?.trim()) newErrors.homeOwnerId = "Vui lòng chọn chủ nhà";
     if (!formData.building?.trim()) newErrors.building = "Tên tòa nhà không được để trống";
     if (!formData.apartmentNv?.trim()) newErrors.apartmentNv = "Số căn hộ không được để trống";
     if (!formData.address?.trim()) newErrors.address = "Địa chỉ không được để trống";
@@ -355,7 +526,14 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     if (!formData.ward?.trim()) newErrors.ward = "Phường/xã không được để trống";
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    
+    if (Object.keys(newErrors).length > 0) {
+      const errorCount = Object.keys(newErrors).length;
+      toast.warning(`Vui lòng điền đầy đủ thông tin! Còn ${errorCount} trường bắt buộc chưa điền.`);
+      return false;
+    }
+    
+    return true;
   };
 
   const handleEdit = () => {
@@ -365,17 +543,27 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   const handleCancelEdit = () => {
     setIsEditing(false);
     setErrors({});
+    setSelectedProvince("");
+    setSelectedDistrict("");
+    setSelectedWard("");
+    setSpecificAddress("");
+    setImageFiles([]);
+    setUploadingImages([]);
+    
     // Reset form data to original values
-    if (homeData?.data?.home) {
-      const home = homeData.data.home;
+    if (homeData?.data) {
+      const home = homeData.data as any;
       setFormData({
-        address: home.address,
-        district: home.district,
-        ward: home.ward,
-        building: home.building,
-        apartmentNv: home.apartmentNv,
-        active: home.active,
-        note: home.note,
+        address: home.address || "",
+        homeOwnerId: home.homeOwnerId?._id || home.homeOwnerId || "",
+        district: home.district || "",
+        province: home.province || "",
+        ward: home.ward || "",
+        building: home.building || "",
+        apartmentNv: home.apartmentNv || "",
+        active: home.active ?? true,
+        note: home.note || "",
+        images: home.images || [],
         // Amenities
         hasBathroom: home.hasBathroom || false,
         hasBedroom: home.hasBedroom || false,
@@ -456,6 +644,17 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     onClose();
   };
 
+  // Get available owners data
+  const getAvailableOwners = () => {
+    if (homeOwnersData?.data && Array.isArray(homeOwnersData.data)) {
+      return homeOwnersData.data;
+    }
+    if (homeOwnersData?.data?.owners && Array.isArray(homeOwnersData.data.owners)) {
+      return homeOwnersData.data.owners;
+    }
+    return [];
+  };
+
   const handleViewContract = (contractId: string, contractType: 'home' | 'service') => {
     setSelectedContractId(contractId);
     setSelectedContractType(contractType);
@@ -527,9 +726,10 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle  >
               Chi tiết căn hộ
             </DialogTitle>
+           
           </DialogHeader>
 
           <div className="space-y-4">
@@ -561,7 +761,8 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle className="text-xl font-medium text-mainTextV1 flex items-center gap-2">
+              {getContractStatusBadge()}
               {isEditing ? "Chỉnh sửa thông tin căn hộ" : "Chi tiết căn hộ"}
             </DialogTitle>
             <div className="flex flex-row items-center justify-between gap-4">
@@ -572,14 +773,14 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
                       variant="outline"
                       onClick={handleDelete}
                     >
-                      <IconTrash className="h-4 w-4 mr-2" />
+                      <IconTrash className="h-4 w-4" />
                       Xóa
                     </Button>
                     <Button
                       variant="default"
                       onClick={handleEdit}
                     >
-                      <IconPencil className="h-4 w-4 mr-2" />
+                      <IconPencil className="h-4 w-4" />
                       Chỉnh sửa
                     </Button>
                   </>
@@ -590,7 +791,7 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
                       onClick={handleCancelEdit}
                       disabled={isUpdating}
                     >
-                      <IconX className="h-4 w-4 mr-2" />
+                      <IconX className="h-4 w-4" />
                       Hủy
                     </Button>
                     <Button
@@ -601,7 +802,7 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
                       {isUpdating ? (
                         <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
-                        <IconCheck className="h-4 w-4 mr-2" />
+                        <IconCheck className="h-4 w-4" />
                       )}
                       Cập nhật
                     </Button>
@@ -621,7 +822,175 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
               <Card className="border border-lightBorderV1 bg-[#F9F9FC]">
                 {isEditing ? (
                   <form onSubmit={handleUpdate} className="p-6 space-y-6">
-                    {/* Basic Information */}
+                    {/* Home Owner Selection */}
+                    <div className="space-y-2">
+                      <Label className="text-secondaryTextV1">
+                        Chủ nhà <span className="text-mainDangerV1">*</span>
+                      </Label>
+                      <Select value={formData.homeOwnerId} onValueChange={handleHomeOwnerSelect}>
+                        <SelectTrigger className={`border-lightBorderV1 ${errors.homeOwnerId ? "border-mainDangerV1" : ""}`}>
+                          <SelectValue placeholder="Chọn chủ nhà">
+                            {formData.homeOwnerId && getAvailableOwners().length > 0 && (() => {
+                              const selectedOwner = getAvailableOwners().find(owner => owner._id === formData.homeOwnerId);
+                              return selectedOwner ? `${selectedOwner.fullname} (${selectedOwner.phone})` : "Chọn chủ nhà";
+                            })()}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {isLoadingHomeOwners ? (
+                            <SelectItem value="loading" disabled>
+                              <div className="flex items-center space-x-2">
+                                <IconLoader2 className="w-4 h-4 animate-spin" />
+                                <span>Đang tải...</span>
+                              </div>
+                            </SelectItem>
+                          ) : homeOwnersError ? (
+                            <SelectItem value="error" disabled>
+                              <div className="flex items-center space-x-2 text-red-500">
+                                <span>Lỗi tải dữ liệu</span>
+                              </div>
+                            </SelectItem>
+                          ) : getAvailableOwners().length > 0 ? (
+                            getAvailableOwners().map((owner, index) => (
+                              <>
+                                <SelectItem key={owner._id} value={owner._id}>
+                                  <div className="flex items-center space-x-3 py-1">
+                                    <div className="flex-shrink-0">
+                                      <div className="w-8 h-8 border rounded-full bg-slate-100 flex items-center justify-center">
+                                        <Icon
+                                          path={mdiAccountTie}
+                                          size={0.8}
+                                          className="text-slate-400"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium text-gray-900 truncate">
+                                        {owner.fullname}
+                                      </div>
+                                      <div className="flex items-center text-sm text-mainTextV1">
+                                        <IconPhone className="w-3 h-3 mr-1" />
+                                        {owner.phone}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </SelectItem>
+                                {index < getAvailableOwners().length - 1 && <SelectSeparator />}
+                              </>
+                            ))
+                          ) : (
+                            <SelectItem value="no-data" disabled>
+                              <span className="text-mainTextV1">Không có dữ liệu chủ nhà</span>
+                            </SelectItem>
+                          )}
+                        </SelectContent>
+                      </Select>
+                      {errors.homeOwnerId && (
+                        <p className="text-sm text-mainDangerV1">{errors.homeOwnerId}</p>
+                      )}
+                    </div>
+
+                    {/* Address Selection */}
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-secondaryTextV1">Tỉnh/Thành phố</Label>
+                          <Select
+                            value={selectedProvince}
+                            onValueChange={setSelectedProvince}
+                            disabled={loadingProvinces}
+                          >
+                            <SelectTrigger className="border-lightBorderV1">
+                              <SelectValue placeholder={loadingProvinces ? "Đang tải..." : "Chọn tỉnh/thành phố"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {provinces.map((province) => (
+                                <SelectItem key={province.code} value={province.code.toString()}>
+                                  {province.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-secondaryTextV1">Quận/Huyện</Label>
+                          <Select
+                            value={selectedDistrict}
+                            onValueChange={setSelectedDistrict}
+                            disabled={!selectedProvince || loadingDistricts}
+                          >
+                            <SelectTrigger className="border-lightBorderV1">
+                              <SelectValue placeholder={
+                                !selectedProvince
+                                  ? "Vui lòng chọn tỉnh/thành phố trước"
+                                  : loadingDistricts
+                                    ? "Đang tải..."
+                                    : "Chọn quận/huyện"
+                              } />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {districts.map((district) => (
+                                <SelectItem key={district.code} value={district.code.toString()}>
+                                  {district.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-secondaryTextV1">Phường/Xã</Label>
+                          <Select
+                            value={selectedWard}
+                            onValueChange={setSelectedWard}
+                            disabled={!selectedDistrict || loadingWards}
+                          >
+                            <SelectTrigger className="border-lightBorderV1">
+                              <SelectValue placeholder={
+                                !selectedDistrict
+                                  ? "Vui lòng chọn quận/huyện trước"
+                                  : loadingWards
+                                    ? "Đang tải..."
+                                    : "Chọn phường/xã"
+                              } />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {wards.map((ward) => (
+                                <SelectItem key={ward.code} value={ward.code.toString()}>
+                                  {ward.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label className="text-secondaryTextV1">Địa chỉ cụ thể</Label>
+                          <Input
+                            value={specificAddress}
+                            onChange={(e) => setSpecificAddress(e.target.value)}
+                            placeholder="Số nhà, tên đường..."
+                            className="border-lightBorderV1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-secondaryTextV1">Địa chỉ đầy đủ</Label>
+                        <Input
+                          value={formData.address}
+                          readOnly
+                          className="border-lightBorderV1 bg-gray-50"
+                          placeholder="Địa chỉ sẽ được tự động tạo từ các trường trên"
+                        />
+                        {errors.address && (
+                          <p className="text-sm text-mainDangerV1">{errors.address}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Building Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="building" className="text-secondaryTextV1">
@@ -656,88 +1025,115 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
                           <p className="text-sm text-mainDangerV1">{errors.apartmentNv}</p>
                         )}
                       </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="district" className="text-secondaryTextV1">
-                          Quận/Huyện <span className="text-mainDangerV1">*</span>
-                        </Label>
-                        <Input
-                          id="district"
-                          name="district"
-                          value={formData.district}
-                          onChange={handleChange}
-                          placeholder="Nhập quận/huyện"
-                          className={`border-lightBorderV1 ${errors.district ? "border-mainDangerV1" : ""}`}
-                        />
-                        {errors.district && (
-                          <p className="text-sm text-mainDangerV1">{errors.district}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="ward" className="text-secondaryTextV1">
-                          Phường/Xã <span className="text-mainDangerV1">*</span>
-                        </Label>
-                        <Input
-                          id="ward"
-                          name="ward"
-                          value={formData.ward}
-                          onChange={handleChange}
-                          placeholder="Nhập phường/xã"
-                          className={`border-lightBorderV1 ${errors.ward ? "border-mainDangerV1" : ""}`}
-                        />
-                        {errors.ward && (
-                          <p className="text-sm text-mainDangerV1">{errors.ward}</p>
-                        )}
-                      </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="address" className="text-secondaryTextV1">
-                        Địa chỉ <span className="text-mainDangerV1">*</span>
-                      </Label>
-                      <Input
-                        id="address"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                        placeholder="Nhập địa chỉ"
-                        className={`border-lightBorderV1 ${errors.address ? "border-mainDangerV1" : ""}`}
-                      />
-                      {errors.address && (
-                        <p className="text-sm text-mainDangerV1">{errors.address}</p>
-                      )}
-                    </div>
-
+                    {/* Active Status */}
                     <div className="space-y-2">
                       <Label className="text-secondaryTextV1">Trạng thái hoạt động</Label>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-3">
                         <Switch
                           checked={formData.active}
                           onCheckedChange={(checked) => handleSwitchChange("active", checked)}
                         />
-                        <Label className="text-sm">
-                          {formData.active ? "Hoạt động" : "Không hoạt động"}
-                        </Label>
+                        <span className="text-sm text-mainTextV1">
+                          {formData.active ? "Đang hoạt động" : "Không hoạt động"}
+                        </span>
                       </div>
                     </div>
 
                     {/* Amenities */}
                     <div className="space-y-4">
-                      <Label className="text-secondaryTextV1 text-lg font-semibold">Tiện nghi</Label>
+                      <Label className="text-secondaryTextV1">Tiện nghi</Label>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {Object.entries(amenityLabels).map(([key, label]) => (
-                          <div key={key} className="flex items-center space-x-2">
-                            <Switch
-                              checked={!!(formData as any)[key]}
-                              onCheckedChange={(checked) => handleSwitchChange(key, checked)}
+                        {amenitiesList.map((amenity) => (
+                          <div key={amenity.key} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={amenity.key}
+                              checked={formData[amenity.key as keyof typeof formData] as boolean}
+                              onCheckedChange={(checked) => handleAmenityChange(amenity.key, checked as boolean)}
                             />
-                            <Label className="text-sm">{label}</Label>
+                            <Label htmlFor={amenity.key} className="text-sm text-mainTextV1 cursor-pointer">
+                              {amenity.label}
+                            </Label>
                           </div>
                         ))}
                       </div>
                     </div>
 
+                    {/* Image Upload */}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-secondaryTextV1">Hình ảnh căn hộ</Label>
+                        {uploadingImages.some(uploading => uploading) && (
+                          <div className="flex items-center gap-2 text-sm text-blue-600">
+                            <IconLoader2 className="h-4 w-4 animate-spin" />
+                            <span>Đang tải ảnh...</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="space-y-4">
+                        <div>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            id="image-upload"
+                            disabled={uploadingImages.some(uploading => uploading)}
+                          />
+                          <Label htmlFor="image-upload" className={`cursor-pointer ${uploadingImages.some(uploading => uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                            <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-lightBorderV1 rounded-lg hover:border-mainTextHoverV1 hover:bg-blue-50/50 transition-all duration-200 group">
+                              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors duration-200">
+                                <IconUpload className="h-5 w-5 text-blue-600" />
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm font-medium text-mainTextV1 group-hover:text-mainTextHoverV1">
+                                  Tải ảnh lên
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Chọn nhiều ảnh cùng lúc (tối đa 10MB/ảnh)
+                                </div>
+                              </div>
+                            </div>
+                          </Label>
+                        </div>
+
+                        {/* Image Preview */}
+                        {(formData.images && formData.images.length > 0) && (
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            {formData.images.map((imageUrl, index) => (
+                              <div key={index} className="relative group">
+                                <div className="w-full h-32 border border-lightBorderV1 rounded-lg overflow-hidden">
+                                  {uploadingImages[index] ? (
+                                    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                      <IconLoader2 className="h-6 w-6 animate-spin text-gray-400" />
+                                    </div>
+                                  ) : (
+                                    <img
+                                      src={imageUrl}
+                                      alt={`Ảnh căn hộ ${index + 1}`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                  )}
+                                </div>
+                                {!uploadingImages[index] && (
+                                  <button
+                                    type="button"
+                                    onClick={() => removeImage(index)}
+                                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <IconX className="h-3 w-3" />
+                                  </button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Note */}
                     <div className="space-y-2">
                       <Label htmlFor="note" className="text-secondaryTextV1">
                         Ghi chú
@@ -747,14 +1143,14 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
                         name="note"
                         value={formData.note}
                         onChange={handleChange}
-                        placeholder="Nhập ghi chú"
-                        className="border-lightBorderV1 min-h-[120px]"
+                        placeholder="Nhập ghi chú về căn hộ"
+                        className="border-lightBorderV1 min-h-[80px]"
                       />
                     </div>
                   </form>
                 ) : (
-                  homeData?.data?.home && <div className="p-4 bg-[#F9F9FC]">
-                    <HomeDetailInfo home={homeData.data.home} />
+                  homeData?.data && <div className="p-4 bg-[#F9F9FC]">
+                    <HomeDetailInfo home={homeData.data as any} />
                   </div>
                 )}
               </Card>

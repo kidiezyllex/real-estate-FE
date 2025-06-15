@@ -73,21 +73,9 @@ export const getDashboardMenuItems = (): MenuItem[] => [
 		],
 	},
 	{
-		id: "payment-management",
-		name: "Quản lý Thanh toán",
-		path: "/admin/invoice-payments",
-		icon: mdiCashMultiple,
-	},
-	{
 		id: "service-management",
 		name: "Quản lý Dịch vụ",
 		path: "/admin/services",
 		icon: mdiRoomServiceOutline,
-	},
-	{
-		id: "system",
-		name: "Hệ thống",
-		path: "/admin/system",
-		icon: mdiCog,
 	},
 ];

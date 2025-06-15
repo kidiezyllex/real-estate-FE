@@ -179,7 +179,7 @@ const ServiceContractCreateForm = () => {
               >
                 <IconArrowLeft className="h-5 w-5 mr-1" />
               </Button>
-              <h1 className="text-xl font-medium text-mainTextV1">
+              <h1  >
                 Tạo hợp đồng dịch vụ mới
               </h1>
             </div>

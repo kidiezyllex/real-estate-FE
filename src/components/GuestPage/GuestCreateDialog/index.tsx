@@ -284,7 +284,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-xl font-medium text-mainTextV1">
+          <DialogTitle>
             Tạo khách hàng mới
           </DialogTitle>
           <div className="flex items-center justify-between gap-4">

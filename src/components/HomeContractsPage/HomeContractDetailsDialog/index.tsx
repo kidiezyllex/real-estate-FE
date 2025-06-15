@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { IconPencil, IconTrash, IconLoader2, IconAlertTriangle, IconCheck, IconX } from "@tabler/icons-react";
-import { HomeContractDeleteDialog } from "@/components/HomeContractsPage/HomeContractDeleteDialog";
 import { HomeContractDetailInfo } from "@/components/HomeContractsPage/HomeContractDetailInfo";
 import { IUpdateHomeContractBody } from "@/interface/request/homeContract";
 import {
@@ -65,6 +64,8 @@ export const HomeContractDetailsDialog = ({
   useEffect(() => {
     if (contractData?.data) {
       const contract = contractData.data;
+      console.log("contract", contract);
+      console.log("contractData", contractData);
       setFormData({
         duration: (contract as any).duration,
         price: (contract as any).renta,
@@ -194,39 +195,12 @@ export const HomeContractDetailsDialog = ({
     onClose();
   };
 
-  const getStatusText = (status: number) => {
-    switch (status) {
-      case 0: return "Đã hủy";
-      case 1: return "Đang hoạt động";
-      case 2: return "Đã hết hạn";
-      default: return "Không xác định";
-    }
-  };
-
-  const getPayCycleText = (payCycle: number) => {
-    switch (payCycle) {
-      case 1: return "Hàng tháng";
-      case 3: return "Hàng quý";
-      case 6: return "6 tháng";
-      case 12: return "Hàng năm";
-      default: return `${payCycle} tháng`;
-    }
-  };
-
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('vi-VN', { 
-      style: 'currency', 
-      currency: 'VND',
-      maximumFractionDigits: 0 
-    }).format(value);
-  };
-
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle>
               Chi tiết hợp đồng thuê nhà
             </DialogTitle>
           </DialogHeader>
@@ -262,7 +236,7 @@ export const HomeContractDetailsDialog = ({
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle>
               {isEditing ? "Chỉnh sửa hợp đồng thuê nhà" : "Chi tiết hợp đồng thuê nhà"}
             </DialogTitle>
           </DialogHeader>
@@ -281,13 +255,13 @@ export const HomeContractDetailsDialog = ({
                         variant="outline"
                         onClick={handleDelete}
                       >
-                        <IconTrash className="h-4 w-4 mr-2" />
+                        <IconTrash className="h-4 w-4" />
                         Xóa
                       </Button>
                       <Button
                         onClick={handleEdit}
                       >
-                        <IconPencil className="h-4 w-4 mr-2" />
+                        <IconPencil className="h-4 w-4" />
                         Chỉnh sửa
                       </Button>
                     </>
@@ -298,7 +272,7 @@ export const HomeContractDetailsDialog = ({
                         onClick={handleCancelEdit}
                         disabled={isUpdating}
                       >
-                        <IconX className="h-4 w-4 mr-2" />
+                        <IconX className="h-4 w-4" />
                         Hủy
                       </Button>
                       <Button
@@ -309,7 +283,7 @@ export const HomeContractDetailsDialog = ({
                         {isUpdating ? (
                           <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : (
-                          <IconCheck className="h-4 w-4 mr-2" />
+                          <IconCheck className="h-4 w-4" />
                         )}
                         Cập nhật
                       </Button>
@@ -415,7 +389,7 @@ export const HomeContractDetailsDialog = ({
                 ) : (
                   contract && (
                     <div className="p-4 bg-[#F9F9FC]">
-                      <HomeContractDetailInfo contract={contract} />
+                      <HomeContractDetailInfo contractData={contract} isLoading={isLoading} onRefresh={refetch} />
                     </div>
                   )
                 )}

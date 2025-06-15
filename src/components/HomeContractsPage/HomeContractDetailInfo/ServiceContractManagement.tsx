@@ -277,20 +277,15 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
       transition={{ duration: 0.3 }}
     >
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <IconSettings className="h-5 w-5" />
-              Hợp đồng dịch vụ
-            </CardTitle>
+        <CardHeader className="flex items-center justify-between">
+        Hợp đồng dịch vụ
             <Button onClick={() => {
               resetForm();
               setIsCreateDialogOpen(true);
             }}>
-              <IconPlus className="h-4 w-4 mr-2" />
+              <IconPlus className="h-4 w-4" />
               Thêm hợp đồng dịch vụ
             </Button>
-          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {serviceContracts.length === 0 ? (
@@ -302,7 +297,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
                 resetForm();
                 setIsCreateDialogOpen(true);
               }}>
-                <IconPlus className="h-4 w-4 mr-2" />
+                <IconPlus className="h-4 w-4" />
                 Thêm hợp đồng dịch vụ
               </Button>
             </div>

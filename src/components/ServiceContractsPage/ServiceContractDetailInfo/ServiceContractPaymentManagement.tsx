@@ -255,7 +255,7 @@ const ServiceContractPaymentManagement = ({ serviceContractId, contractData, onR
               resetForm();
               setIsCreateDialogOpen(true);
             }}>
-              <IconPlus className="h-4 w-4 mr-2" />
+              <IconPlus className="h-4 w-4" />
               Thêm đợt thanh toán
             </Button>
           </div>
@@ -270,7 +270,7 @@ const ServiceContractPaymentManagement = ({ serviceContractId, contractData, onR
                 resetForm();
                 setIsCreateDialogOpen(true);
               }}>
-                <IconPlus className="h-4 w-4 mr-2" />
+                <IconPlus className="h-4 w-4" />
                 Thêm đợt thanh toán
               </Button>
             </div>

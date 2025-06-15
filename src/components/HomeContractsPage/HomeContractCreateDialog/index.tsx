@@ -471,7 +471,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-medium text-mainTextV1">
+          <DialogTitle>
             Tạo hợp đồng thuê nhà mới
           </DialogTitle>
         </DialogHeader>

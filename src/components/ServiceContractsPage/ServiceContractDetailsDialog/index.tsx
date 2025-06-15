@@ -206,7 +206,7 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle  >
               Chi tiết hợp đồng dịch vụ
             </DialogTitle>
           </DialogHeader>
@@ -240,7 +240,7 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle  >
               {isEditing ? "Chỉnh sửa thông tin hợp đồng dịch vụ" : "Chi tiết hợp đồng dịch vụ"}
             </DialogTitle>
           </DialogHeader>
@@ -259,14 +259,14 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
                         variant="outline"
                         onClick={handleDelete}
                       >
-                        <IconTrash className="h-4 w-4 mr-2" />
+                        <IconTrash className="h-4 w-4" />
                         Xóa
                       </Button>
                       <Button
                         variant="default"
                         onClick={handleEdit}
                       >
-                        <IconPencil className="h-4 w-4 mr-2" />
+                        <IconPencil className="h-4 w-4" />
                         Chỉnh sửa
                       </Button>
                     </>
@@ -277,7 +277,7 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
                         onClick={handleCancelEdit}
                         disabled={isUpdating}
                       >
-                        <IconX className="h-4 w-4 mr-2" />
+                        <IconX className="h-4 w-4" />
                         Hủy
                       </Button>
                       <Button
@@ -288,7 +288,7 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
                         {isUpdating ? (
                           <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : (
-                          <IconCheck className="h-4 w-4 mr-2" />
+                          <IconCheck className="h-4 w-4" />
                         )}
                         Cập nhật
                       </Button>

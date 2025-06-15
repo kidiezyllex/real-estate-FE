@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getServices,
   searchServices,
@@ -48,19 +48,62 @@ export const useGetServiceDetail = (params: IGetServiceDetailParams) => {
 };
 
 export const useCreateService = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IServiceCreateResponse, Error, ICreateServiceBody>({
     mutationFn: createService,
+    onSuccess: () => {
+      // Invalidate and refetch service list
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      
+      // Invalidate search results if any
+      queryClient.invalidateQueries({ 
+        queryKey: ['services', 'search'] 
+      });
+    },
   });
 };
 
 export const useUpdateService = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IServiceUpdateResponse, Error, { params: IUpdateServiceParams, body: IUpdateServiceBody }>({
     mutationFn: ({ params, body }) => updateService(params, body),
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch service list
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      
+      // Invalidate and refetch service detail for the updated service
+      queryClient.invalidateQueries({ 
+        queryKey: ['services', 'detail', variables.params.id] 
+      });
+      
+      // Invalidate search results if any
+      queryClient.invalidateQueries({ 
+        queryKey: ['services', 'search'] 
+      });
+    },
   });
 };
 
 export const useDeleteService = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IServiceDeleteResponse, Error, IDeleteServiceParams>({
     mutationFn: deleteService,
+    onSuccess: (data, variables) => {
+      // Invalidate and refetch service list
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      
+      // Invalidate and refetch service detail for the deleted service
+      queryClient.invalidateQueries({ 
+        queryKey: ['services', 'detail', variables.id] 
+      });
+      
+      // Invalidate search results if any
+      queryClient.invalidateQueries({ 
+        queryKey: ['services', 'search'] 
+      });
+    },
   });
 }; 

@@ -180,12 +180,12 @@ const ServicesPage = () => {
                 className="flex items-center"
                 onClick={toggleFilters}
               >
-                <IconFilter className="h-4 w-4 mr-2" />
+                <IconFilter className="h-4 w-4" />
                 Bộ lọc
               </Button>
               
               <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <IconPlus className="h-4 w-4 mr-2" />
+                <IconPlus className="h-4 w-4" />
                 Thêm dịch vụ
               </Button>
             </div>
@@ -258,9 +258,9 @@ const ServicesPage = () => {
                     className="w-full justify-start"
                   >
                     {sortDirection === 'asc' ? (
-                      <IconSortAscending className="h-4 w-4 mr-2" />
+                      <IconSortAscending className="h-4 w-4" />
                     ) : (
-                      <IconSortDescending className="h-4 w-4 mr-2" />
+                      <IconSortDescending className="h-4 w-4" />
                     )}
                     {sortDirection === 'asc' ? 'Tăng dần' : 'Giảm dần'}
                   </Button>

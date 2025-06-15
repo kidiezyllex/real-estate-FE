@@ -31,16 +31,16 @@ import {
 } from '@/components/ui/breadcrumb';
 import HomeList from './HomeList';
 import { HomeCreateDialog } from './HomeCreateDialog';
+import { IHome, IHomeSearchResult } from '@/interface/response/home';
 
 const HomesPage = () => {
   const [isFiltersVisible, setIsFiltersVisible] = useState(false);
-  const [priceRange, setPriceRange] = useState<string>('all');
-  const [sortBy, setSortBy] = useState<string>('newest');
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [rentalStatus, setRentalStatus] = useState<string>('all');
+  const [sortDirection, setSortDirection] = useState<'newest' | 'oldest'>('newest');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const pageSize = 9;
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const toggleFilters = () => {
@@ -50,9 +50,8 @@ const HomesPage = () => {
   const { data: allHomes, isLoading: isLoadingAllHomes, error: errorAllHomes, refetch: refetchAllHomes } = useGetHomes();
   
   const resetFilters = () => {
-    setPriceRange('all');
-    setSortBy('newest');
-    setSortDirection('desc');
+    setRentalStatus('all');
+    setSortDirection('newest');
   };
 
   const handleSearch = (e: React.FormEvent) => {
@@ -72,14 +71,39 @@ const HomesPage = () => {
     }
   };
 
-  const homes = debouncedQuery
+  // Filter and sort homes
+  const filterAndSortHomes = (homesData: (IHome | IHomeSearchResult)[]) => {
+    let filteredHomes = [...homesData];
+
+    // Filter by rental status
+    if (rentalStatus !== 'all') {
+      filteredHomes = filteredHomes.filter(home => {
+        const isRented = home.homeContract && home.homeContract.status === 1;
+        return rentalStatus === 'rented' ? isRented : !isRented;
+      });
+    }
+
+    // Sort by creation date
+    filteredHomes.sort((a, b) => {
+      const dateA = new Date(a.createdAt || 0).getTime();
+      const dateB = new Date(b.createdAt || 0).getTime();
+      
+      return sortDirection === 'newest' ? dateB - dateA : dateA - dateB;
+    });
+
+    return filteredHomes;
+  };
+
+  const rawHomes = debouncedQuery
     ? (Array.isArray(homeSearchResults?.data) ? homeSearchResults.data : undefined)
     : (Array.isArray(allHomes?.data) ? allHomes.data : undefined);
+  
+  const homes = rawHomes ? filterAndSortHomes(rawHomes) : undefined;
   const total = homes ? homes.length : 0;
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedQuery, allHomes, homeSearchResults]);
+  }, [debouncedQuery, allHomes, homeSearchResults, rentalStatus, sortDirection]);
 
   return (
     <div className="space-y-8 bg-mainCardV1 p-6 rounded-lg border border-lightBorderV1">
@@ -113,12 +137,12 @@ const HomesPage = () => {
                 className="flex items-center"
                 onClick={toggleFilters}
               >
-                <IconFilter className="h-4 w-4 mr-2" />
+                <IconFilter className="h-4 w-4" />
                 Bộ lọc
               </Button>
               
               <Button onClick={() => setIsCreateDialogOpen(true)}>
-                <IconPlus className="h-4 w-4 mr-2" />
+                <IconPlus className="h-4 w-4" />
                 Thêm căn hộ
               </Button>
             </div>
@@ -166,71 +190,52 @@ const HomesPage = () => {
             className="overflow-hidden"
           >
             {isFiltersVisible && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-mainBackgroundV1 rounded-lg mb-6 border border-lightBorderV1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-mainBackgroundV1 rounded-lg mb-6 border border-lightBorderV1">
                 <div>
-                  <label className="text-sm text-mainTextV1 mb-2 block">Khoảng giá</label>
+                  <label className="text-sm text-mainTextV1 mb-2 block">Trạng thái thuê</label>
                   <Select 
-                    value={priceRange} 
-                    onValueChange={setPriceRange}
+                    value={rentalStatus} 
+                    onValueChange={setRentalStatus}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Chọn khoảng giá" />
+                      <SelectValue placeholder="Chọn trạng thái" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả</SelectItem>
-                      <SelectItem value="1000000-5000000">1 - 5 triệu VNĐ</SelectItem>
-                      <SelectItem value="5000000-10000000">5 - 10 triệu VNĐ</SelectItem>
-                      <SelectItem value="10000000-20000000">10 - 20 triệu VNĐ</SelectItem>
-                      <SelectItem value="20000000+">Trên 20 triệu VNĐ</SelectItem>
+                      <SelectItem value="rented">Đã cho thuê</SelectItem>
+                      <SelectItem value="available">Chưa cho thuê</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 
                 <div>
-                  <label className="text-sm text-mainTextV1 mb-2 block">Sắp xếp theo</label>
-                  <Select 
-                    value={sortBy} 
-                    onValueChange={setSortBy}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sắp xếp theo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">Mới nhất</SelectItem>
-                      <SelectItem value="price">Giá thuê</SelectItem>
-                      <SelectItem value="area">Diện tích</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm text-mainTextV1 mb-2 block">Thứ tự</label>
+                  <label className="text-sm text-mainTextV1 mb-2 block">Được thêm vào</label>
                   <Button
                     variant="outline"
                     className="w-full flex justify-between items-center"
-                    onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                    onClick={() => setSortDirection(sortDirection === 'newest' ? 'oldest' : 'newest')}
                   >
-                    {sortDirection === 'asc' ? (
+                    {sortDirection === 'newest' ? (
                       <>
-                        <span>Tăng dần</span>
-                        <IconSortAscending className="h-4 w-4" />
+                        <span>Mới nhất</span>
+                        <IconSortDescending className="h-4 w-4" />
                       </>
                     ) : (
                       <>
-                        <span>Giảm dần</span>
-                        <IconSortDescending className="h-4 w-4" />
+                        <span>Cũ nhất</span>
+                        <IconSortAscending className="h-4 w-4" />
                       </>
                     )}
                   </Button>
                 </div>
                 
-                <div className="md:col-span-3 flex justify-end mt-4">
+                <div className="md:col-span-2 flex justify-end mt-4">
                   <Button
                     variant="outline"
                     className="flex items-center"
                     onClick={resetFilters}
                   >
-                    <IconX className="h-4 w-4 mr-2" />
+                    <IconX className="h-4 w-4" />
                     Đặt lại bộ lọc
                   </Button>
                 </div>

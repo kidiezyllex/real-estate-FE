@@ -4,22 +4,23 @@ export interface IHomeOwner {
   phone: string;
   email: string;
   citizenId: string;
-  citizen_date: string; // ISO date string
+  citizen_date: string;
   citizen_place: string;
-  birthday: string; // ISO date string
+  birthday: string;
   bank: string;
   bankAccount: string;
   bankNumber: string;
   active: boolean;
   note: string;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+  createdAt: string;
+  updatedAt: string;
   __v: number;
 }
 
 export interface IHome {
   _id: string;
   address: string;
+  province: string;
   district: string;
   ward: string;
   building: string;
@@ -32,6 +33,8 @@ export interface IHome {
   } | null;
   active: boolean;
   note: string;
+  images: string[];
+
   // Amenities
   hasBathroom?: boolean;
   hasBedroom?: boolean;
@@ -49,8 +52,8 @@ export interface IHome {
   hasSwimmingPool?: boolean;
   hasGarden?: boolean;
   hasPetAllowed?: boolean;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
+  createdAt: string;
+  updatedAt: string;
   __v?: number;
 }
 
@@ -70,10 +73,12 @@ export interface IHomeAvailable {
 export interface IHomeSearchResult {
   _id: string;
   address: string;
+  province: string;
   district: string;
   ward: string;
   building: string;
   apartmentNv: string;
+  images: string[];
   homeOwnerId: IHomeOwner;
   homeContract?: {
     _id: string;

@@ -246,20 +246,15 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
       transition={{ duration: 0.3 }}
     >
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <IconCreditCard className="h-5 w-5" />
-              Quản lý thanh toán
-            </CardTitle>
-            <Button onClick={() => {
+        <CardHeader className="flex items-center justify-between">
+        Quản lý thanh toán
+        <Button onClick={() => {
               resetForm();
               setIsCreateDialogOpen(true);
             }}>
-              <IconPlus className="h-4 w-4 mr-2" />
+              <IconPlus className="h-4 w-4" />
               Thêm đợt thanh toán
             </Button>
-          </div>
         </CardHeader>
         <CardContent className="space-y-4">
           {payments.length === 0 ? (
@@ -271,7 +266,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
                 resetForm();
                 setIsCreateDialogOpen(true);
               }}>
-                <IconPlus className="h-4 w-4 mr-2" />
+                <IconPlus className="h-4 w-4" />
                 Thêm đợt thanh toán
               </Button>
             </div>

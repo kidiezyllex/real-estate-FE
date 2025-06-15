@@ -195,7 +195,7 @@ export default function ServiceContractsPage() {
                 className="flex items-center"
                 onClick={toggleFilters}
               >
-                <IconFilter className="h-4 w-4 mr-2" />
+                <IconFilter className="h-4 w-4" />
                 Bộ lọc
               </Button>
             </div>
@@ -282,7 +282,7 @@ export default function ServiceContractsPage() {
                     onClick={resetFilters}
                     className="text-sm"
                   >
-                    <IconX className="h-4 w-4 mr-2" />
+                    <IconX className="h-4 w-4" />
                     Đặt lại bộ lọc
                   </Button>
                 </div>

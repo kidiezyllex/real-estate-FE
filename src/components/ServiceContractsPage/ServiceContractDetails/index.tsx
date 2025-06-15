@@ -57,7 +57,7 @@ export const ServiceContractDetails = ({ contractId }: ServiceContractDetailsPro
           onClick={handleDelete}
           className="text-mainTextV1 hover:text-mainDangerV1"
         >
-          <IconTrash className="h-4 w-4 mr-2" />
+          <IconTrash className="h-4 w-4" />
           Xóa
         </Button>
         <Button
@@ -65,7 +65,7 @@ export const ServiceContractDetails = ({ contractId }: ServiceContractDetailsPro
           onClick={handleEdit}
           className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
         >
-          <IconPencil className="h-4 w-4 mr-2" />
+          <IconPencil className="h-4 w-4" />
           Chỉnh sửa
         </Button>
       </div>

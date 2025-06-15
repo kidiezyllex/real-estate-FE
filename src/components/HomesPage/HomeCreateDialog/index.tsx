@@ -12,6 +12,7 @@ import { useCreateHome } from "@/hooks/useHome";
 import { useGetHomeOwners } from "@/hooks/useHomeOwner";
 import { useUploadFile } from "@/hooks/useUpload";
 import { ICreateHomeBody } from "@/interface/request/home";
+import { IUploadResponse } from "@/interface/response/upload";
 import { toast } from "react-toastify";
 import { IconLoader2, IconUpload, IconX, IconMapPin, IconPhone } from "@tabler/icons-react";
 import { motion } from 'framer-motion';
@@ -48,15 +49,12 @@ interface Ward {
   district_code: number;
 }
 
-interface ExtendedCreateHomeBody extends ICreateHomeBody {
-  images?: string[];
-}
-
 export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialogProps) => {
-  const [formData, setFormData] = useState<ExtendedCreateHomeBody>({
+  const [formData, setFormData] = useState<ICreateHomeBody>({
     address: "",
     homeOwnerId: "",
     district: "",
+    province: "",
     ward: "",
     building: "",
     apartmentNv: "",
@@ -202,7 +200,7 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
       const wardName = wards.find(w => w.code.toString() === selectedWard)?.name || "";
 
       const fullAddress = `${specificAddress}, ${wardName}, ${districtName}, ${provinceName}`;
-      setFormData(prev => ({ ...prev, address: fullAddress }));
+      setFormData(prev => ({ ...prev, address: fullAddress, province: provinceName }));
     }
   }, [selectedProvince, selectedDistrict, selectedWard, specificAddress, provinces, districts, wards]);
 
@@ -248,44 +246,72 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    const newFiles = [...imageFiles, ...files];
+    // Validate file types and sizes
+    const validFiles = files.filter(file => {
+      const isValidType = file.type.startsWith('image/');
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      
+      if (!isValidType) {
+        toast.error(`File ${file.name} không phải là hình ảnh hợp lệ`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`File ${file.name} quá lớn (tối đa 10MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    if (validFiles.length === 0) return;
+
+    // Update file states
+    const newFiles = [...imageFiles, ...validFiles];
     setImageFiles(newFiles);
     
-    // Initialize uploading states
+    // Initialize uploading states for new files
     const newUploadingStates = [...uploadingImages];
-    files.forEach((_, index) => {
+    validFiles.forEach(() => {
       newUploadingStates.push(true);
     });
     setUploadingImages(newUploadingStates);
 
-    // Upload each file
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+        // Upload each valid file
+    validFiles.forEach((file, i) => {
       const uploadIndex = imageFiles.length + i;
-      
       uploadFileMutation({ file }, {
-        onSuccess: (response) => {
-          if (response.statusCode === 200 || response.statusCode === 201) {
-            setFormData(prev => ({
-              ...prev,
-              images: [...(prev.images || []), response.data.url]
-            }));
-            setUploadingImages(prev => {
-              const newStates = [...prev];
-              newStates[uploadIndex] = false;
-              return newStates;
-            });
+        onSuccess: (response: IUploadResponse) => {
+          if (response?.statusCode === 200 || response?.statusCode === 201) {
+            // Check if response has the expected structure
+            const imageUrl = response?.data?.url;
+            
+            if (imageUrl) {
+              setFormData(prev => ({
+                ...prev,
+                images: [...(prev.images || []), imageUrl]
+              }));
+              toast.success(`Upload ảnh "${file.name}" thành công!`);
+            } else {
+              console.error('No URL in response:', response);
+              toast.error(`Lỗi: Không nhận được URL ảnh từ server cho file "${file.name}"`);
+            }
           } else {
-            toast.error(`Lỗi upload ảnh: ${response.message}`);
-            setUploadingImages(prev => {
-              const newStates = [...prev];
-              newStates[uploadIndex] = false;
-              return newStates;
-            });
+            console.error('Upload failed with status:', response?.statusCode, response?.message);
+            toast.error(`Lỗi upload ảnh "${file.name}": ${response?.message || 'Lỗi không xác định'}`);
           }
+          
+          // Update uploading state
+          setUploadingImages(prev => {
+            const newStates = [...prev];
+            newStates[uploadIndex] = false;
+            return newStates;
+          });
         },
         onError: (error: any) => {
-          toast.error(`Lỗi upload ảnh: ${error.message || 'Không thể upload ảnh'}`);
+          console.error('Upload error for file:', file.name, error); // Debug log
+          const errorMessage = error?.response?.data?.message || error?.message || 'Không thể upload ảnh';
+          toast.error(`Lỗi upload ảnh "${file.name}": ${errorMessage}`);
+          
+          // Update uploading state
           setUploadingImages(prev => {
             const newStates = [...prev];
             newStates[uploadIndex] = false;
@@ -293,7 +319,10 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
           });
         }
       });
-    }
+    });
+
+    // Clear the input value to allow re-uploading the same file
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
@@ -342,9 +371,10 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
     e.preventDefault();
     if (!validateForm()) return;
 
-    const { images, ...homeData } = formData;
+    // Include images in the submission data
+    const homeData = { ...formData };
     
-    createHomeMutation(homeData, {
+    createHomeMutation(homeData as ICreateHomeBody, {
       onSuccess: (response: any) => {
         if (response.statusCode === 500) {
           toast.error(response.message || "Lỗi hệ thống, vui lòng thử lại sau");
@@ -372,6 +402,7 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
       address: "",
       homeOwnerId: "",
       district: "",
+      province: "",
       ward: "",
       building: "",
       apartmentNv: "",
@@ -425,7 +456,7 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="flex flex-row items-center justify-between">
-          <DialogTitle className="text-xl font-medium text-mainTextV1">
+          <DialogTitle  >
             Tạo căn hộ mới
           </DialogTitle>
           <div className="flex items-center justify-between gap-4">
@@ -688,7 +719,7 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
                       <div key={amenity.key} className="flex items-center space-x-2">
                         <Checkbox
                           id={amenity.key}
-                          checked={formData[amenity.key as keyof ExtendedCreateHomeBody] as boolean}
+                          checked={formData[amenity.key as keyof ICreateHomeBody] as boolean}
                           onCheckedChange={(checked) => handleAmenityChange(amenity.key, checked as boolean)}
                         />
                         <Label htmlFor={amenity.key} className="text-sm text-mainTextV1 cursor-pointer">
@@ -701,7 +732,15 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
 
                 {/* Image Upload */}
                 <div className="space-y-4">
-                  <Label className="text-secondaryTextV1">Hình ảnh căn hộ</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-secondaryTextV1">Hình ảnh căn hộ</Label>
+                    {uploadingImages.some(uploading => uploading) && (
+                      <div className="flex items-center gap-2 text-sm text-blue-600">
+                        <IconLoader2 className="h-4 w-4 animate-spin" />
+                        <span>Đang tải ảnh...</span>
+                      </div>
+                    )}
+                  </div>
                   <div className="space-y-4">
                     <div>
                       <input
@@ -711,11 +750,21 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
                         onChange={handleImageUpload}
                         className="hidden"
                         id="image-upload"
+                        disabled={uploadingImages.some(uploading => uploading)}
                       />
-                      <Label htmlFor="image-upload" className="cursor-pointer">
-                        <div className="flex items-center gap-2 px-4 py-2 border border-lightBorderV1 rounded-sm hover:bg-gray-50">
-                          <IconUpload className="h-4 w-4" />
-                          Tải ảnh lên
+                      <Label htmlFor="image-upload" className={`cursor-pointer ${uploadingImages.some(uploading => uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                        <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-lightBorderV1 rounded-lg hover:border-mainTextHoverV1 hover:bg-blue-50/50 transition-all duration-200 group">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors duration-200">
+                            <IconUpload className="h-5 w-5 text-blue-600" />
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-medium text-mainTextV1 group-hover:text-mainTextHoverV1">
+                              Tải ảnh lên
+                            </div>
+                            <div className="text-xs text-gray-500 mt-1">
+                              Chọn nhiều ảnh cùng lúc (tối đa 10MB/ảnh)
+                            </div>
+                          </div>
                         </div>
                       </Label>
                     </div>

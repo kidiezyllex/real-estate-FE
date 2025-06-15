@@ -495,7 +495,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle>
               Chi tiết khách hàng
             </DialogTitle>
           </DialogHeader>
@@ -529,7 +529,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle className="text-xl font-medium text-mainTextV1">
+            <DialogTitle  >
               {isEditing ? "Chỉnh sửa thông tin khách hàng" : "Chi tiết khách hàng"}
             </DialogTitle>
             <div className="flex flex-row items-center justify-between gap-4">
@@ -540,14 +540,14 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                       variant="outline"
                       onClick={handleDelete}
                     >
-                      <IconTrash className="h-4 w-4 mr-2" />
+                      <IconTrash className="h-4 w-4" />
                       Xóa
                     </Button>
                     <Button
                       variant="default"
                       onClick={handleEdit}
                     >
-                      <IconPencil className="h-4 w-4 mr-2" />
+                      <IconPencil className="h-4 w-4" />
                       Chỉnh sửa
                     </Button>
                   </>
@@ -558,7 +558,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                       onClick={handleCancelEdit}
                       disabled={isUpdating}
                     >
-                      <IconX className="h-4 w-4 mr-2" />
+                      <IconX className="h-4 w-4" />
                       Hủy
                     </Button>
                     <Button
@@ -569,7 +569,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                       {isUpdating ? (
                         <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
-                        <IconCheck className="h-4 w-4 mr-2" />
+                        <IconCheck className="h-4 w-4" />
                       )}
                       Cập nhật
                     </Button>

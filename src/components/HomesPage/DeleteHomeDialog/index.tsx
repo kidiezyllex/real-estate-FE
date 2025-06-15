@@ -59,7 +59,7 @@ const DeleteHomeDialog = ({ homeId, homeName, onSuccess, trigger }: DeleteHomeDi
             variant="outline" 
             className="bg-mainDangerV1 text-white hover:bg-mainDangerHoverV1 border-none"
           >
-            <IconTrash className="h-4 w-4 mr-2" />
+            <IconTrash className="h-4 w-4" />
             Xóa căn hộ
           </Button>
         )}

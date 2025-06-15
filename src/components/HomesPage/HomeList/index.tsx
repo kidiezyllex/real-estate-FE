@@ -8,28 +8,14 @@ import {
   CardContent, 
   CardFooter, 
   CardHeader, 
-  CardTitle 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { formatCurrency } from '@/utils/format';
 import { IHome, IHomeSearchResult } from '@/interface/response/home';
 import { Pagination } from '@/components/ui/pagination';
 import React, { useState } from 'react';
 import { HomeDetailsDialog } from '@/components/HomesPage/HomeDetailsDialog';
-
-interface StatusInfo {
-  label: string;
-  color: string;
-}
-
-const HomeStatus: Record<number, StatusInfo> = {
-  0: { label: 'Không khả dụng', color: 'bg-mainDangerV1' },
-  1: { label: 'Khả dụng', color: 'bg-mainSuccessV1' },
-  2: { label: 'Đang cho thuê', color: 'bg-mainWarningV1' },
-  3: { label: 'Đang bảo trì', color: 'bg-mainInfoV1' },
-};
 
 interface HomeListProps {
   homes?: (IHome | IHomeSearchResult)[];
@@ -144,7 +130,7 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
               <div className="relative h-48 w-full bg-gray-100">
                 <Image 
                   draggable={false}
-                  src={`/images/sample-img${index+1}.png`}
+                  src={home.images[0] || `/images/sample-img${index+1}.png`}
                   alt={home.building || home.address}
                   fill
                   className="object-cover"
@@ -172,20 +158,6 @@ const HomeList = ({ homes, isLoading = false, error = null, page = 1, pageSize =
               
               <CardContent className="flex-1 pt-2 flex flex-col gap-2">
                 <div className="space-y-2 text-secondaryTextV1">
-                  <div className="grid grid-cols-3 gap-2 text-sm mb-2">
-                    <div className="text-center p-2 bg-mainBackgroundV1 rounded-sm">
-                      <p className="font-medium">{(home as any).area ? `${(home as any).area} m²` : '--'}</p>
-                      <p className="text-xs">Diện tích</p>
-                    </div>
-                    <div className="text-center p-2 bg-mainBackgroundV1 rounded-sm">
-                      <p className="font-medium">{(home as any).bedroom ?? '--'}</p>
-                      <p className="text-xs">Phòng ngủ</p>
-                    </div>
-                    <div className="text-center p-2 bg-mainBackgroundV1 rounded-sm">
-                      <p className="font-medium">{(home as any).toilet ?? '--'}</p>
-                      <p className="text-xs">Phòng tắm</p>
-                    </div>
-                  </div>
                   <div>
                     <span className="font-semibold">Chủ nhà: </span>
                     {home.homeOwnerId?.fullname} ({home.homeOwnerId?.phone})

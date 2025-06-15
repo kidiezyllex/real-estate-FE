@@ -2,12 +2,32 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { IconFileText, IconCreditCard, IconSettings, IconCalendar, IconUser, IconHome } from '@tabler/icons-react';
+import { 
+  IconFileText, 
+  IconCreditCard, 
+  IconSettings, 
+  IconCalendar, 
+  IconUser, 
+  IconHome,
+  IconBuildingSkyscraper,
+  IconPhone,
+  IconMail,
+  IconMapPin,
+  IconId,
+  IconCake,
+  IconGenderMale,
+  IconGenderFemale,
+  IconNote,
+  IconCreditCardPay,
+  IconCheck,
+  IconX
+} from '@tabler/icons-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
 import PaymentManagement from './PaymentManagement';
 import ServiceContractManagement from './ServiceContractManagement';
 
@@ -25,6 +45,14 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
       style: 'currency',
       currency: 'VND'
     }).format(value);
+  };
+
+  const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('vi-VN');
+  };
+
+  const formatDateTime = (dateString: string): string => {
+    return new Date(dateString).toLocaleString('vi-VN');
   };
 
   const getStatusText = (status: number) => {
@@ -46,6 +74,21 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
     }
   };
 
+  const getGenderText = (gender: boolean) => {
+    return gender ? "Nam" : "Nữ";
+  };
+
+  const getGenderIcon = (gender: boolean) => {
+    return gender ? IconGenderMale : IconGenderFemale;
+  };
+
+  const calculateEndDate = (startDate: string, duration: number): string => {
+    const start = new Date(startDate);
+    const end = new Date(start);
+    end.setMonth(end.getMonth() + duration);
+    return end.toLocaleDateString('vi-VN');
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -55,7 +98,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[...Array(6)].map((_, i) => (
+              {[...Array(8)].map((_, i) => (
                 <div key={i} className="space-y-2">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-6 w-full" />
@@ -81,7 +124,31 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
   }
 
   const contract = contractData;
+  const guest = contract.guestId;
+  const home = contract.homeId;
+  const homeOwner = home?.homeOwnerId;
   const statusInfo = getStatusText(contract.status);
+  const GenderIcon = guest ? getGenderIcon(guest.gender) : IconUser;
+
+  // Home amenities mapping
+  const amenities = [
+    { key: 'hasBathroom', label: 'Phòng tắm riêng', icon: '🚿' },
+    { key: 'hasBedroom', label: 'Phòng ngủ riêng', icon: '🛏️' },
+    { key: 'hasBalcony', label: 'Ban công', icon: '🏠' },
+    { key: 'hasKitchen', label: 'Bếp', icon: '🍳' },
+    { key: 'hasWifi', label: 'Wifi', icon: '📶' },
+    { key: 'hasSoundproof', label: 'Cách âm', icon: '🔇' },
+    { key: 'hasAirConditioner', label: 'Điều hòa', icon: '❄️' },
+    { key: 'hasWashingMachine', label: 'Máy giặt', icon: '🧺' },
+    { key: 'hasRefrigerator', label: 'Tủ lạnh', icon: '🧊' },
+    { key: 'hasElevator', label: 'Thang máy', icon: '↕' },
+    { key: 'hasParking', label: 'Chỗ đậu xe', icon: '🚗' },
+    { key: 'hasSecurity', label: 'Bảo vệ', icon: '🛡️' },
+    { key: 'hasGym', label: 'Phòng gym', icon: '💪' },
+    { key: 'hasSwimmingPool', label: 'Hồ bơi', icon: '🏊' },
+    { key: 'hasGarden', label: 'Vườn', icon: '🌳' },
+    { key: 'hasPetAllowed', label: 'Cho phép thú cưng', icon: '🐕' }
+  ];
 
   return (
     <div className="space-y-6">
@@ -106,90 +173,323 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
+            className="space-y-6"
           >
+            {/* Contract Overview */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <IconFileText className="h-5 w-5" />
-                  Thông tin hợp đồng thuê nhà
-                </CardTitle>
+              Thông tin hợp đồng thuê nhà
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Trạng thái hợp đồng</h3>
-                  <Badge className={statusInfo.color}>
-                    {statusInfo.text}
-                  </Badge>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <IconId className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">Mã hợp đồng</span>
+                    </div>
+                    <p className="font-semibold text-blue-900">
+                      {contract.contractCode || contract._id}
+                    </p>
+                  </div>
+
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <IconCalendar className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Thời hạn</span>
+                    </div>
+                    <p className="font-semibold text-green-900">{contract.duration} tháng</p>
+                  </div>
+
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <IconCreditCard className="h-4 w-4 text-purple-600" />
+                      <span className="text-sm font-medium text-purple-800">Giá thuê</span>
+                    </div>
+                    <p className="font-semibold text-purple-900">{formatCurrency(contract.renta)}</p>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
-                      <IconHome className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <p className="text-sm text-gray-600">Căn hộ</p>
-                        <p className="font-medium">{contract.homeId?.name || 'N/A'}</p>
-                        <p className="text-sm text-gray-500">{contract.homeId?.address || 'N/A'}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-3">Thời gian hợp đồng</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Ngày bắt đầu:</span>
+                        <span className="font-medium">{formatDate(contract.dateStar)}</span>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                      <IconUser className="h-5 w-5 text-green-600" />
-                      <div>
-                        <p className="text-sm text-gray-600">Khách thuê</p>
-                        <p className="font-medium">{contract.guestId?.name || 'N/A'}</p>
-                        <p className="text-sm text-gray-500">{contract.guestId?.email || 'N/A'}</p>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Ngày kết thúc:</span>
+                        <span className="font-medium">{calculateEndDate(contract.dateStar, contract.duration)}</span>
                       </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
-                      <IconCalendar className="h-5 w-5 text-purple-600" />
-                      <div>
-                        <p className="text-sm text-gray-600">Thời gian thuê</p>
-                        <p className="font-medium">{contract.duration} tháng</p>
-                        <p className="text-sm text-gray-500">
-                          Từ {new Date(contract.dateStart).toLocaleDateString('vi-VN')}
-                        </p>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Chu kỳ thanh toán:</span>
+                        <span className="font-medium">{getPayCycleText(contract.payCycle)}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium text-gray-900 mb-3">Thông tin tài chính</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Giá thuê:</span>
-                          <span className="font-medium">{formatCurrency(contract.renta)}</span>
+                  <div className="p-4 border rounded-lg">
+                    <h4 className="font-medium text-gray-900 mb-3">Thông tin tài chính</h4>
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Giá thuê:</span>
+                        <span className="font-medium">{formatCurrency(contract.renta)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Tiền đặt cọc:</span>
+                        <span className="font-medium">{formatCurrency(contract.deposit)}</span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-semibold">
+                        <span className="text-gray-900">Tổng tiền ban đầu:</span>
+                        <span className="text-green-600">{formatCurrency(contract.renta + contract.deposit)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Guest Information */}
+            {guest && (
+              <Card>
+                <CardHeader>
+                Thông tin khách thuê
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <GenderIcon className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Họ và tên</p>
+                          <p className="font-medium">{guest.fullname}</p>
+                          <p className="text-sm text-gray-500">{getGenderText(guest.gender)}</p>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Tiền đặt cọc:</span>
-                          <span className="font-medium">{formatCurrency(contract.deposit)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <IconPhone className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Số điện thoại</p>
+                          <p className="font-medium">{guest.phone}</p>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Chu kỳ thanh toán:</span>
-                          <span className="font-medium">{getPayCycleText(contract.payCycle)}</span>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                        <IconMail className="h-5 w-5 text-purple-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Email</p>
+                          <p className="font-medium">{guest.email}</p>
                         </div>
                       </div>
                     </div>
 
-                    <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium text-gray-900 mb-3">Thông tin khác</h4>
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Ngày tạo:</span>
-                          <span className="font-medium">
-                            {new Date(contract.createdAt).toLocaleDateString('vi-VN')}
-                          </span>
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-3">Thông tin cá nhân</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">CCCD/CMND:</span>
+                            <span className="font-medium">{guest.citizenId}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Ngày cấp:</span>
+                            <span className="font-medium">{formatDate(guest.citizen_date)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Nơi cấp:</span>
+                            <span className="font-medium text-sm">{guest.citizen_place}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Ngày sinh:</span>
+                            <span className="font-medium">{formatDate(guest.birthday)}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Cập nhật:</span>
-                          <span className="font-medium">
-                            {new Date(contract.updatedAt).toLocaleDateString('vi-VN')}
-                          </span>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-3">Địa chỉ & Ghi chú</h4>
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-gray-600 text-sm">Quê quán:</span>
+                            <p className="font-medium text-sm">{guest.hometown}</p>
+                          </div>
+                          {guest.note && (
+                            <div>
+                              <span className="text-gray-600 text-sm">Ghi chú:</span>
+                              <p className="font-medium text-sm">{guest.note}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Home Information */}
+            {home && (
+              <Card>
+                <CardHeader>
+                Thông tin căn hộ
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <IconBuildingSkyscraper className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Tòa nhà</p>
+                          <p className="font-medium">{home.building}</p>
+                          <p className="text-sm text-gray-500">Căn hộ: {home.apartmentNv}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+                        <IconMapPin className="h-5 w-5 text-green-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Địa chỉ</p>
+                          <p className="font-medium">{home.address}</p>
+                          <p className="text-sm text-gray-500">{home.ward}, {home.district}</p>
+                        </div>
+                      </div>
+
+                      {home.note && (
+                        <div className="p-3 bg-yellow-50 rounded-lg">
+                          <div className="flex items-start gap-3">
+                            <IconNote className="h-5 w-5 text-yellow-600 mt-0.5" />
+                            <div>
+                              <p className="text-sm text-gray-600">Ghi chú</p>
+                              <p className="font-medium text-sm">{home.note}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-3">Tiện ích căn hộ</h4>
+                        <div className="grid grid-cols-2 gap-2">
+                          {amenities.map((amenity) => (
+                            <div key={amenity.key} className="flex items-center gap-2">
+                              {home[amenity.key] ? (
+                                <IconCheck className="h-4 w-4 text-green-500" />
+                              ) : (
+                                <IconX className="h-4 w-4 text-red-400" />
+                              )}
+                              <span className={`text-sm ${home[amenity.key] ? 'text-green-700' : 'text-gray-500'}`}>
+                                {amenity.icon} {amenity.label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Home Owner Information */}
+            {homeOwner && (
+              <Card>
+                <CardHeader>
+                Thông tin chủ nhà
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
+                        <IconUser className="h-5 w-5 text-orange-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Họ và tên</p>
+                          <p className="font-medium">{homeOwner.fullname}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                        <IconPhone className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Số điện thoại</p>
+                          <p className="font-medium">{homeOwner.phone}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
+                        <IconMail className="h-5 w-5 text-purple-600" />
+                        <div>
+                          <p className="text-sm text-gray-600">Email</p>
+                          <p className="font-medium">{homeOwner.email}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-3">Thông tin ngân hàng</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Ngân hàng:</span>
+                            <span className="font-medium text-sm">{homeOwner.bank}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Tên tài khoản:</span>
+                            <span className="font-medium">{homeOwner.bankAccount}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Số tài khoản:</span>
+                            <span className="font-medium">{homeOwner.bankNumber}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-3">Thông tin cá nhân</h4>
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">CCCD/CMND:</span>
+                            <span className="font-medium">{homeOwner.citizenId}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Ngày cấp:</span>
+                            <span className="font-medium">{formatDate(homeOwner.citizen_date)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Ngày sinh:</span>
+                            <span className="font-medium">{formatDate(homeOwner.birthday)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {homeOwner.note && (
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                          <h4 className="font-medium text-gray-900 mb-2">Ghi chú</h4>
+                          <p className="text-sm text-gray-600">{homeOwner.note}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Contract Metadata */}
+            <Card>
+              <CardHeader>
+                Thông tin thời gian
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">Ngày tạo hợp đồng</p>
+                    <p className="font-medium">{formatDateTime(contract.createdAt)}</p>
+                  </div>
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-1">Lần cập nhật cuối</p>
+                    <p className="font-medium">{formatDateTime(contract.updatedAt)}</p>
                   </div>
                 </div>
               </CardContent>

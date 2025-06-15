@@ -228,14 +228,14 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
                         variant="outline"
                         onClick={handleDelete}
                       >
-                        <IconTrash className="h-4 w-4 mr-2" />
+                        <IconTrash className="h-4 w-4" />
                         Xóa
                       </Button>
                       <Button
                         variant="default"
                         onClick={handleEdit}
                       >
-                        <IconPencil className="h-4 w-4 mr-2" />
+                        <IconPencil className="h-4 w-4" />
                         Chỉnh sửa
                       </Button>
                     </>
@@ -246,7 +246,7 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
                         onClick={handleCancelEdit}
                         disabled={isUpdating}
                       >
-                        <IconX className="h-4 w-4 mr-2" />
+                        <IconX className="h-4 w-4" />
                         Hủy
                       </Button>
                       <Button
@@ -257,7 +257,7 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
                         {isUpdating ? (
                           <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
                         ) : (
-                          <IconCheck className="h-4 w-4 mr-2" />
+                          <IconCheck className="h-4 w-4" />
                         )}
                         Cập nhật
                       </Button>

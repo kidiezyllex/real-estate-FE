@@ -157,7 +157,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
-          <DialogTitle className="text-xl font-medium text-mainTextV1">
+          <DialogTitle  >
             Tạo chủ nhà mới
           </DialogTitle>
         </DialogHeader>

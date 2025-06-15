@@ -150,7 +150,7 @@ export const ServiceContractCreateDialog = ({ isOpen, onClose, onSuccess }: Serv
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-medium text-mainTextV1">
+          <DialogTitle  >
             Tạo hợp đồng dịch vụ mới
           </DialogTitle>
         </DialogHeader>
