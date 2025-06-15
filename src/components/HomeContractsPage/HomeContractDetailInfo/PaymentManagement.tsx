@@ -422,7 +422,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
       {/* Edit Payment Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+        <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
           <DialogHeader>
             <DialogTitle>
               Cập nhật đợt thanh toán
