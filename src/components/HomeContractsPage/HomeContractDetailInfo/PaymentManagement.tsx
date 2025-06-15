@@ -62,10 +62,19 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
   const getStatusInfo = (status: number) => {
     switch (status) {
-      case 0: return { text: "Chưa thanh toán", color: "bg-yellow-100 text-yellow-800" };
-      case 1: return { text: "Đã thanh toán", color: "bg-green-100 text-green-800" };
-      case 2: return { text: "Quá hạn", color: "bg-red-100 text-red-800" };
-      default: return { text: "Không xác định", color: "bg-gray-100 text-gray-800" };
+      case 0: return { text: "Chưa thanh toán", color: "bg-amber-500 hover:bg-amber-600 text-white border-2 border-amber-400 text-nowrap" };
+      case 1: return { text: "Đã thanh toán", color: "bg-green-500 hover:bg-green-600 text-white border-2 border-green-400 text-nowrap" };
+      case 2: return { text: "Quá hạn", color: "bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 text-nowrap" };
+      default: return { text: "Không xác định", color: "bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap" };
+    }
+  };
+
+  const getPaymentTypeText = (type: number) => {
+    switch (type) {
+      case 1: return { text: "Tiền thuê", color: "bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-400 text-nowrap" };
+      case 2: return { text: "Tiền cọc", color: "bg-purple-500 hover:bg-purple-600 text-white border-2 border-purple-400 text-nowrap" };
+      case 3: return { text: "Phí dịch vụ", color: "bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-400 text-nowrap" };
+      default: return { text: "Khác", color: "bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap" };
     }
   };
 
@@ -129,9 +138,9 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
   const handleEditPayment = (payment: any) => {
     setSelectedPaymentId(payment._id);
     setFormData({
-      amount: payment.amount,
-      dueDate: payment.dueDate.split('T')[0],
-      status: payment.status,
+      amount: payment.totalReceive,
+      dueDate: payment.datePaymentExpec.split('T')[0],
+      status: payment.statusPaym,
       note: payment.note || ''
     });
     setIsEditDialogOpen(true);
@@ -272,7 +281,8 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
             </div>
           ) : (
             payments.map((payment: any, index: number) => {
-              const statusInfo = getStatusInfo(payment.status);
+              const statusInfo = getStatusInfo(payment.statusPaym);
+              const paymentTypeInfo = getPaymentTypeText(payment.type);
               return (
                 <motion.div
                   key={payment._id}
@@ -285,40 +295,59 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
                     <div className="flex items-center gap-3">
                       <IconCurrencyDollar className="h-5 w-5 text-green-600" />
                       <div>
-                        <h4 className="font-medium">{formatCurrency(payment.amount)}</h4>
-                        <p className="text-sm text-gray-500">
-                          Đến hạn: {new Date(payment.dueDate).toLocaleDateString('vi-VN')}
-                        </p>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium">{formatCurrency(payment.totalReceive)}</h4>
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge className={paymentTypeInfo.color}>
+                            {paymentTypeInfo.text}
+                          </Badge>
+                          <Badge className={statusInfo.color}>
+                            {statusInfo.text}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-gray-500 space-y-1">
+                          <p>Đến hạn: {new Date(payment.datePaymentExpec).toLocaleDateString('vi-VN')}</p>
+                          <p>Kỳ: {new Date(payment.dateStar).toLocaleDateString('vi-VN')} - {new Date(payment.dateEnd).toLocaleDateString('vi-VN')}</p>
+                          {payment.totalSend > 0 && (
+                            <p className="text-blue-600">Đã nhận: {formatCurrency(payment.totalSend)}</p>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={statusInfo.color}>
-                        {statusInfo.text}
-                      </Badge>
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleEditPayment(payment)}
-                        className="h-8 w-8 p-0"
                       >
                         <IconEdit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleDeletePayment(payment._id)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <IconTrash className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
                   {payment.note && (
-                    <p className="text-sm text-gray-600 mt-2">{payment.note}</p>
+                    <div className="mt-3 p-2 bg-gray-50 rounded text-sm border border-lightBorderV1">
+                      <span className="font-medium text-gray-700">Ghi chú: </span>
+                      <span className="text-gray-600">{payment.note}</span>
+                    </div>
                   )}
-                  <p className="text-xs text-gray-400 mt-2">
-                    Tạo: {new Date(payment.createdAt).toLocaleString('vi-VN')}
-                  </p>
+                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
+                    <p className="text-xs text-gray-400">
+                      Tạo: {new Date(payment.createdAt).toLocaleString('vi-VN')}
+                    </p>
+                    {payment.updatedAt !== payment.createdAt && (
+                      <p className="text-xs text-gray-400">
+                        Cập nhật: {new Date(payment.updatedAt).toLocaleString('vi-VN')}
+                      </p>
+                    )}
+                  </div>
                 </motion.div>
               );
             })
@@ -328,10 +357,9 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
       {/* Create Payment Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+        <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconPlus className="h-5 w-5" />
+            <DialogTitle>
               Thêm đợt thanh toán
             </DialogTitle>
           </DialogHeader>
@@ -396,8 +424,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconEdit className="h-5 w-5" />
+            <DialogTitle>
               Cập nhật đợt thanh toán
             </DialogTitle>
           </DialogHeader>

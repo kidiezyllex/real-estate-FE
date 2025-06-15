@@ -53,7 +53,7 @@ const ServiceContractUpdateForm = ({ contractId }: ServiceContractUpdateFormProp
       const contract = contractData.data.contract;
       setFormData({
         duration: contract.duration,
-        price: contract.price,
+        price: contract.unitCost || contract.price || 0,
         payCycle: contract.payCycle,
         status: contract.status
       });

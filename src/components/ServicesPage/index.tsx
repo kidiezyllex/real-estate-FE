@@ -41,6 +41,8 @@ const ServicesPage = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const pageSize = 9;
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -57,16 +59,23 @@ const ServicesPage = () => {
   const resetFilters = () => {
     setSortBy('newest');
     setSortDirection('desc');
+    setPage(1);
   };
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setDebouncedQuery(searchQuery);
+    setPage(1);
   };
 
   const clearSearch = () => {
     setSearchQuery('');
     setDebouncedQuery('');
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
 
   const handleViewDetail = (id: string) => {
@@ -99,6 +108,12 @@ const ServicesPage = () => {
             }
             setIsDeleteDialogOpen(false);
             setSelectedServiceId(null);
+            // Reset to page 1 if current page becomes empty after deletion
+            const totalAfterDelete = (services?.length || 1) - 1;
+            const maxPage = Math.ceil(totalAfterDelete / pageSize);
+            if (page > maxPage && maxPage > 0) {
+              setPage(maxPage);
+            }
           } else {
             toast.error("Xóa dịch vụ thất bại");
           }
@@ -141,6 +156,7 @@ const ServicesPage = () => {
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedQuery(searchQuery);
+      setPage(1);
     }, 500);
 
     return () => {
@@ -238,7 +254,10 @@ const ServicesPage = () => {
                   <label className="text-sm text-mainTextV1 mb-2 block">Sắp xếp theo</label>
                   <Select 
                     value={sortBy} 
-                    onValueChange={setSortBy}
+                    onValueChange={(value) => {
+                      setSortBy(value);
+                      setPage(1);
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Sắp xếp theo" />
@@ -254,7 +273,10 @@ const ServicesPage = () => {
                   <label className="text-sm text-mainTextV1 mb-2 block">Thứ tự</label>
                   <Button
                     variant="outline"
-                    onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                    onClick={() => {
+                      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+                      setPage(1);
+                    }}
                     className="w-full justify-start"
                   >
                     {sortDirection === 'asc' ? (
@@ -282,6 +304,10 @@ const ServicesPage = () => {
           <ServiceTable
             services={filteredAndSortedServices()}
             isLoading={isLoadingData}
+            page={page}
+            pageSize={pageSize}
+            total={total}
+            onPageChange={handlePageChange}
             onView={handleViewDetail}
             onEdit={handleEdit}
             onDelete={handleDelete}

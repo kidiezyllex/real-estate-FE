@@ -5,8 +5,11 @@ export interface IServiceContract {
   guestId: string;
   homeContractId: string;
   dateStar: string;
+  signDate?: string;
+  dateEnd?: string;
   duration: number;
   price: number;
+  unitCost?: number;
   payCycle: number;
   status: number;
   createdAt?: string;
@@ -30,8 +33,11 @@ export interface IServiceContractDetail {
   };
   homeContractId: string;
   dateStar: string;
+  signDate?: string;
+  dateEnd?: string;
   duration: number;
   price: number;
+  unitCost?: number;
   payCycle: number;
   status: number;
   createdAt: string;
@@ -69,8 +75,10 @@ export interface IServiceContractUpdateResponse {
     _id: string;
     duration?: number;
     price?: number;
+    unitCost?: number;
     payCycle?: number;
     status?: number;
+    dateEnd?: string;
     updatedAt: string;
   };
 }

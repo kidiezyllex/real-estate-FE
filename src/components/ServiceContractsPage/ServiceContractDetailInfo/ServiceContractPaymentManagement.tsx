@@ -332,11 +332,10 @@ const ServiceContractPaymentManagement = ({ serviceContractId, contractData, onR
 
       {/* Create Payment Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+        <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconPlus className="h-5 w-5" />
-              Thêm đợt thanh toán
+            <DialogTitle>
+            Thêm đợt thanh toán
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleCreatePayment} className="space-y-4">
@@ -399,8 +398,7 @@ const ServiceContractPaymentManagement = ({ serviceContractId, contractData, onR
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconEdit className="h-5 w-5" />
+            <DialogTitle>
               Cập nhật đợt thanh toán
             </DialogTitle>
           </DialogHeader>

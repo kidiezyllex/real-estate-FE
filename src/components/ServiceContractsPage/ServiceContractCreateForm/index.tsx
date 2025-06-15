@@ -266,37 +266,19 @@ const ServiceContractCreateForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="homeContractId" className="text-secondaryTextV1">
-                    Mã hợp đồng nhà <span className="text-mainDangerV1">*</span>
+                  <Label htmlFor="dateStar" className="text-secondaryTextV1">
+                    Ngày bắt đầu <span className="text-mainDangerV1">*</span>
                   </Label>
                   <Input
-                    id="homeContractId"
-                    name="homeContractId"
-                    value={formData.homeContractId}
+                    id="dateStar"
+                    name="dateStar"
+                    type="date"
+                    value={formData.dateStar}
                     onChange={handleChange}
-                    placeholder="Nhập mã hợp đồng nhà"
-                    className={`border-lightBorderV1 ${errors.homeContractId ? "border-mainDangerV1" : ""}`}
+                    className={`border-lightBorderV1 ${errors.dateStar ? "border-mainDangerV1" : ""}`}
                   />
-                  {errors.homeContractId && (
-                    <p className="text-sm text-mainDangerV1">{errors.homeContractId}</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="price" className="text-secondaryTextV1">
-                    Giá dịch vụ <span className="text-mainDangerV1">*</span>
-                  </Label>
-                  <Input
-                    id="price"
-                    name="price"
-                    type="number"
-                    value={formData.price === 0 ? "" : formData.price}
-                    onChange={(e) => handleNumberChange("price", e.target.value)}
-                    placeholder="Nhập giá dịch vụ"
-                    className={`border-lightBorderV1 ${errors.price ? "border-mainDangerV1" : ""}`}
-                  />
-                  {errors.price && (
-                    <p className="text-sm text-mainDangerV1">{errors.price}</p>
+                  {errors.dateStar && (
+                    <p className="text-sm text-mainDangerV1">{errors.dateStar}</p>
                   )}
                 </div>
 
@@ -339,19 +321,37 @@ const ServiceContractCreateForm = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="dateStar" className="text-secondaryTextV1">
-                    Ngày bắt đầu <span className="text-mainDangerV1">*</span>
+                  <Label htmlFor="price" className="text-secondaryTextV1">
+                    Giá dịch vụ <span className="text-mainDangerV1">*</span>
                   </Label>
                   <Input
-                    id="dateStar"
-                    name="dateStar"
-                    type="date"
-                    value={formData.dateStar}
-                    onChange={handleChange}
-                    className={`border-lightBorderV1 ${errors.dateStar ? "border-mainDangerV1" : ""}`}
+                    id="price"
+                    name="price"
+                    type="number"
+                    value={formData.price === 0 ? "" : formData.price}
+                    onChange={(e) => handleNumberChange("price", e.target.value)}
+                    placeholder="Nhập giá dịch vụ"
+                    className={`border-lightBorderV1 ${errors.price ? "border-mainDangerV1" : ""}`}
                   />
-                  {errors.dateStar && (
-                    <p className="text-sm text-mainDangerV1">{errors.dateStar}</p>
+                  {errors.price && (
+                    <p className="text-sm text-mainDangerV1">{errors.price}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="homeContractId" className="text-secondaryTextV1">
+                    Mã hợp đồng nhà <span className="text-mainDangerV1">*</span>
+                  </Label>
+                  <Input
+                    id="homeContractId"
+                    name="homeContractId"
+                    value={formData.homeContractId}
+                    onChange={handleChange}
+                    placeholder="Nhập mã hợp đồng nhà"
+                    className={`border-lightBorderV1 ${errors.homeContractId ? "border-mainDangerV1" : ""}`}
+                  />
+                  {errors.homeContractId && (
+                    <p className="text-sm text-mainDangerV1">{errors.homeContractId}</p>
                   )}
                 </div>
               </div>

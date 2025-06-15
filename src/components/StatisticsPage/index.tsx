@@ -8,7 +8,7 @@ import RevenueChart from "./RevenueChart";
 import HomeStats from "./HomeStats";
 import ContractStats from "./ContractStats";
 import PaymentStats from "./PaymentStats";
-import DuePayments from "./DuePayments";
+// import DuePayments from "./DuePayments";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -89,10 +89,6 @@ export default function StatisticsPage() {
 						<PaymentStats />
 					</motion.div>
 				</div>
-
-				<motion.div variants={item}>
-					<DuePayments />
-				</motion.div>
 			</motion.div>
 		</div>
 	);

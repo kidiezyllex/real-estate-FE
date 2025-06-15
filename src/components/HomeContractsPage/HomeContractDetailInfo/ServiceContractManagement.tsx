@@ -135,6 +135,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
         duration: formData.duration,
         price: formData.price,
         payCycle: formData.payCycle
+        
       },
       {
         onSuccess: (data) => {
@@ -159,9 +160,9 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
     setSelectedServiceContractId(serviceContract._id);
     setFormData({
       serviceId: serviceContract.serviceId,
-      dateStar: serviceContract.dateStar.split('T')[0],
+      dateStar: serviceContract.signDate ? serviceContract.signDate.split('T')[0] : (serviceContract.dateStar ? serviceContract.dateStar.split('T')[0] : ''),
       duration: serviceContract.duration,
-      price: serviceContract.price,
+      price: serviceContract.unitCost || serviceContract.price || 0,
       payCycle: serviceContract.payCycle
     });
     setIsEditDialogOpen(true);
@@ -305,6 +306,8 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
             serviceContracts.map((serviceContract: any, index: number) => {
               const statusInfo = getStatusInfo(serviceContract.status);
               const serviceName = services.find(s => s._id === serviceContract.serviceId)?.name || 'Dịch vụ không xác định';
+              const contractPrice = serviceContract.unitCost || serviceContract.price || 0;
+              const contractStartDate = serviceContract.signDate || serviceContract.dateStar;
               
               return (
                 <motion.div
@@ -320,7 +323,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
                       <div>
                         <h4 className="font-medium">{serviceName}</h4>
                         <p className="text-sm text-gray-500">
-                          {formatCurrency(serviceContract.price)} / {getPayCycleText(serviceContract.payCycle)}
+                          {formatCurrency(contractPrice)} / {getPayCycleText(serviceContract.payCycle)}
                         </p>
                         <p className="text-sm text-gray-500">
                           Thời hạn: {serviceContract.duration} tháng
@@ -358,7 +361,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
                     </div>
                   </div>
                   <p className="text-xs text-gray-400">
-                    Bắt đầu: {new Date(serviceContract.dateStar).toLocaleDateString('vi-VN')} • 
+                    Bắt đầu: {contractStartDate ? new Date(contractStartDate).toLocaleDateString('vi-VN') : 'N/A'} • 
                     Tạo: {new Date(serviceContract.createdAt).toLocaleDateString('vi-VN')}
                   </p>
                 </motion.div>
@@ -370,10 +373,9 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
 
       {/* Create Service Contract Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+        <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconPlus className="h-5 w-5" />
+            <DialogTitle>
               Thêm hợp đồng dịch vụ
             </DialogTitle>
           </DialogHeader>
@@ -539,7 +541,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
                 </div>
                 <div>
                   <Label className="text-sm text-gray-600">Giá dịch vụ</Label>
-                  <p className="font-medium">{formatCurrency(selectedServiceContract.price)}</p>
+                  <p className="font-medium">{formatCurrency(selectedServiceContract.unitCost || selectedServiceContract.price || 0)}</p>
                 </div>
                 <div>
                   <Label className="text-sm text-gray-600">Chu kỳ thanh toán</Label>
@@ -552,7 +554,8 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
                 <div>
                   <Label className="text-sm text-gray-600">Ngày bắt đầu</Label>
                   <p className="font-medium">
-                    {new Date(selectedServiceContract.dateStar).toLocaleDateString('vi-VN')}
+                    {(selectedServiceContract.signDate || selectedServiceContract.dateStar) ? 
+                      new Date(selectedServiceContract.signDate || selectedServiceContract.dateStar).toLocaleDateString('vi-VN') : 'N/A'}
                   </p>
                 </div>
               </div>

@@ -152,7 +152,7 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                         <p className="text-sm text-gray-600">Thời gian sử dụng</p>
                         <p className="font-medium">{contract.duration} tháng</p>
                         <p className="text-sm text-gray-500">
-                          Từ {new Date(contract.dateStar).toLocaleDateString('vi-VN')}
+                          Từ {new Date(contract.dateStar || contract.signDate).toLocaleDateString('vi-VN')}
                         </p>
                       </div>
                     </div>
@@ -164,7 +164,7 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-gray-600">Giá dịch vụ:</span>
-                          <span className="font-medium">{formatCurrency(contract.price)}</span>
+                          <span className="font-medium">{formatCurrency(contract.price || contract.unitCost)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Chu kỳ thanh toán:</span>
@@ -173,7 +173,7 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                         <div className="flex justify-between">
                           <span className="text-gray-600">Tổng giá trị:</span>
                           <span className="font-medium text-green-600">
-                            {formatCurrency(contract.price * Math.ceil(contract.duration / contract.payCycle))}
+                            {formatCurrency((contract.price || contract.unitCost) * Math.ceil(contract.duration / contract.payCycle))}
                           </span>
                         </div>
                       </div>
