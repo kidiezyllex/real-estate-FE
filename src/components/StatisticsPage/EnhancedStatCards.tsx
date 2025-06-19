@@ -140,7 +140,7 @@ export default function EnhancedStatCards() {
   const stats = [
     {
       title: "Tổng căn hộ",
-      value: data?.data.statistics.totalHomes || 0,
+      value: data?.data?.homesCount || 0,
       icon: IconHome,
       color: "#604AE3",
       trend: generateMockTrend(true),
@@ -148,7 +148,7 @@ export default function EnhancedStatCards() {
     },
     {
       title: "Khách thuê",
-      value: data?.data.statistics.totalGuests || 0,
+      value: data?.data?.guestsCount || 0,
       icon: IconUsers,
       color: "#45C5CD",
       trend: generateMockTrend(true),
@@ -156,7 +156,7 @@ export default function EnhancedStatCards() {
     },
     {
       title: "Chủ nhà",
-      value: data?.data.statistics.totalHomeOwners || 0,
+      value: data?.data?.homeOwnersCount || 0,
       icon: IconBuilding,
       color: "#5CC184",
       trend: generateMockTrend(),
@@ -164,7 +164,7 @@ export default function EnhancedStatCards() {
     },
     {
       title: "Dịch vụ",
-      value: data?.data.statistics.totalServices || 0,
+      value: data?.data?.servicesCount || 0,
       icon: IconSettings,
       color: "#F0934E",
       trend: generateMockTrend(true),

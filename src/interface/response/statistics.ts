@@ -1,16 +1,14 @@
 export interface IGeneralStatistics {
-  totalHomes: number;
-  totalGuests: number;
-  totalHomeOwners: number;
-  totalServices: number;
+  homesCount: number;
+  guestsCount: number;
+  homeOwnersCount: number;
+  servicesCount: number;
 }
 
 export interface IGeneralStatisticsResponse {
   statusCode: number;
   message: string;
-  data: {
-    statistics: IGeneralStatistics;
-  };
+  data: IGeneralStatistics;
 }
 
 export interface IRevenueByMonth {
@@ -99,5 +97,113 @@ export interface IDuePaymentsStatisticsResponse {
   message: string;
   data: {
     statistics: IDuePaymentsStatistics;
+  };
+}
+
+// Bar Charts Interfaces
+export interface IBarChartData {
+  month: string;
+  [key: string]: string | number;
+}
+
+export interface IChartConfig {
+  [key: string]: {
+    label: string;
+    color: string;
+  };
+}
+
+export interface IBarChartResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    year: number;
+    chartData: IBarChartData[];
+    config: IChartConfig;
+  };
+}
+
+// Line Charts Interfaces
+export interface ILineChartData {
+  month: string;
+  [key: string]: string | number;
+}
+
+export interface ILineChartResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    year: number;
+    chartData: ILineChartData[];
+    config: IChartConfig;
+  };
+}
+
+// Pie Charts Interfaces
+export interface IPieChartData {
+  [key: string]: string | number;
+  fill: string;
+}
+
+export interface IPieChartResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    year?: number;
+    chartData: IPieChartData[];
+    config: {
+      [key: string]: { label: string };
+    };
+  };
+}
+
+// Dashboard Overview Interface
+export interface IDashboardOverviewResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    year: number;
+    overview: {
+      general: {
+        homesCount: number;
+        guestsCount: number;
+        homeOwnersCount: number;
+        servicesCount: number;
+      };
+      homes: {
+        totalHomes: number;
+        rentedHomes: number;
+        availableHomes: number;
+        rentedPercentage: number;
+        availablePercentage: number;
+      };
+      contracts: {
+        totalContracts: number;
+        homeContracts: number;
+        serviceContracts: number;
+        activeHomeContracts: number;
+        activeServiceContracts: number;
+      };
+      payments: {
+        totalPayments: number;
+        onTimePayments: number;
+        latePayments: number;
+        onTimePercentage: number;
+        latePercentage: number;
+      };
+    };
+    charts: {
+      revenueChart: {
+        year: number;
+        chartData: IBarChartData[];
+        config: IChartConfig;
+      };
+      homesStatusPie: {
+        chartData: IPieChartData[];
+        config: {
+          [key: string]: { label: string };
+        };
+      };
+    };
   };
 } 

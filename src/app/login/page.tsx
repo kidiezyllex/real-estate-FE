@@ -52,8 +52,16 @@ export default function LoginPage() {
             toast.error(response.message || "Đăng nhập thất bại!")
           }
         },
-        onError: (error) => {
-          toast.error(error.message || "Đăng nhập thất bại, vui lòng thử lại!")
+        onError: (error: any) => {
+          let errorMessage = "Đăng nhập thất bại, vui lòng thử lại!"
+          if (error?.message) {
+            errorMessage = error.message
+          } else if (error?.response?.data?.message) {
+            errorMessage = error.response.data.message
+          } else if (typeof error === 'string') {
+            errorMessage = error
+          }
+          toast.error(errorMessage)
         },
       },
     )
@@ -87,7 +95,7 @@ export default function LoginPage() {
                     <FormLabel className="text-sm font-medium text-gray-700">Email</FormLabel>
                     <FormControl>
                       <div className="relative group">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                           placeholder="example@gmail.com"
                           className="pl-10 h-12 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 bg-white/50"
@@ -108,7 +116,7 @@ export default function LoginPage() {
                     <FormLabel className="text-sm font-medium text-gray-700">Mật khẩu</FormLabel>
                     <FormControl>
                       <div className="relative group">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
@@ -119,7 +127,7 @@ export default function LoginPage() {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100/50"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 text-gray-500 hover:text-gray-500 hover:bg-gray-100/50"
                           onClick={togglePasswordVisibility}
                         >
                           {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -166,7 +174,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-500">
               Chưa có tài khoản?{" "}
               <button className="text-blue-600 hover:text-blue-700 font-medium transition-colors">Đăng ký ngay</button>
             </p>

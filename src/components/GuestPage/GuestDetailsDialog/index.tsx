@@ -493,7 +493,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent size="medium" className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle>
               Chi tiết khách hàng
@@ -527,7 +527,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent size="medium" className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white">
           <DialogHeader className="flex flex-row items-center justify-between">
             <DialogTitle  >
               {isEditing ? "Chỉnh sửa thông tin khách hàng" : "Chi tiết khách hàng"}
@@ -990,7 +990,7 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => !open && setIsDeleteDialogOpen(false)}>
-        <DialogContent className="sm:max-w-md bg-white">
+        <DialogContent className="bg-white max-h-[90vh] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
               <IconAlertTriangle className="h-5 w-5 mr-2" />

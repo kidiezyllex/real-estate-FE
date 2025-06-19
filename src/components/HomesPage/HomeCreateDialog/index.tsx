@@ -535,7 +535,7 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
                                   </div>
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-gray-900 truncate">
+                                  <div className="font-medium text-gray-500 truncate">
                                     {owner.fullname}
                                   </div>
                                   <div className="flex items-center text-sm text-mainTextV1">
@@ -777,7 +777,7 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
                             <div className="w-full h-32 border border-lightBorderV1 rounded-lg overflow-hidden">
                               {uploadingImages[index] ? (
                                 <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                  <IconLoader2 className="h-6 w-6 animate-spin text-gray-400" />
+                                  <IconLoader2 className="h-6 w-6 animate-spin text-gray-500" />
                                 </div>
                               ) : (
                                 <img

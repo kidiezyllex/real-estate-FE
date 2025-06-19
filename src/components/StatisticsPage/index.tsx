@@ -8,7 +8,11 @@ import RevenueChart from "./RevenueChart";
 import HomeStats from "./HomeStats";
 import ContractStats from "./ContractStats";
 import PaymentStats from "./PaymentStats";
-// import DuePayments from "./DuePayments";
+import DuePayments from "./DuePayments";
+import EnhancedRevenueChart from "./EnhancedRevenueChart";
+import ContractsComparisonChart from "./ContractsComparisonChart";
+import PaymentMethodsPieChart from "./PaymentMethodsPieChart";
+import RevenueTrendChart from "./RevenueTrendChart";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -87,6 +91,30 @@ export default function StatisticsPage() {
 					</motion.div>
 					<motion.div variants={item}>
 						<PaymentStats />
+					</motion.div>
+				</div>
+
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+					<motion.div variants={item}>
+						<EnhancedRevenueChart />
+					</motion.div>
+					<motion.div variants={item}>
+						<ContractsComparisonChart />
+					</motion.div>
+				</div>
+
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+					<motion.div variants={item}>
+						<PaymentMethodsPieChart />
+					</motion.div>
+					<motion.div variants={item}>
+						<DuePayments />
+					</motion.div>
+				</div>
+
+				<div className="grid grid-cols-1 gap-8">
+					<motion.div variants={item}>
+						<RevenueTrendChart />
 					</motion.div>
 				</div>
 			</motion.div>

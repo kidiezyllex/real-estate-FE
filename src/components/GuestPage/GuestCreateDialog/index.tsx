@@ -282,7 +282,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent size="medium" className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white">
         <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle>
             Tạo khách hàng mới

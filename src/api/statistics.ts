@@ -5,9 +5,17 @@ import {
   IHomeStatisticsResponse,
   IContractStatisticsResponse,
   IPaymentStatisticsResponse,
-  IDuePaymentsStatisticsResponse
+  IDuePaymentsStatisticsResponse,
+  IBarChartResponse,
+  ILineChartResponse,
+  IPieChartResponse,
+  IDashboardOverviewResponse
 } from "@/interface/response/statistics";
-import { IGetRevenueStatisticsParams } from "@/interface/request/statistics";
+import { 
+  IGetRevenueStatisticsParams, 
+  IGetChartParams, 
+  IGetDashboardOverviewParams 
+} from "@/interface/request/statistics";
 
 export const getGeneralStatistics = async (): Promise<IGeneralStatisticsResponse> => {
   const res = await sendGet(`/statistics/general`);
@@ -36,5 +44,65 @@ export const getPaymentStatistics = async (): Promise<IPaymentStatisticsResponse
 
 export const getDuePaymentsStatistics = async (): Promise<IDuePaymentsStatisticsResponse> => {
   const res = await sendGet(`/statistics/due-payments`);
+  return res;
+};
+
+// Bar Charts APIs
+export const getRevenueMonthlyChart = async (params: IGetChartParams): Promise<IBarChartResponse> => {
+  const res = await sendGet(`/statistics/charts/bar/revenue-monthly?year=${params.year}`);
+  return res;
+};
+
+export const getContractsComparisonChart = async (params: IGetChartParams): Promise<IBarChartResponse> => {
+  const res = await sendGet(`/statistics/charts/bar/contracts-comparison?year=${params.year}`);
+  return res;
+};
+
+export const getPaymentStatusChart = async (params: IGetChartParams): Promise<IBarChartResponse> => {
+  const res = await sendGet(`/statistics/charts/bar/payment-status?year=${params.year}`);
+  return res;
+};
+
+// Line Charts APIs
+export const getRevenueTrendChart = async (params: IGetChartParams): Promise<ILineChartResponse> => {
+  const res = await sendGet(`/statistics/charts/line/revenue-trend?year=${params.year}`);
+  return res;
+};
+
+export const getHomesOccupancyChart = async (params: IGetChartParams): Promise<ILineChartResponse> => {
+  const res = await sendGet(`/statistics/charts/line/homes-occupancy?year=${params.year}`);
+  return res;
+};
+
+export const getContractsGrowthChart = async (params: IGetChartParams): Promise<ILineChartResponse> => {
+  const res = await sendGet(`/statistics/charts/line/contracts-growth?year=${params.year}`);
+  return res;
+};
+
+// Pie Charts APIs
+export const getHomesStatusPieChart = async (): Promise<IPieChartResponse> => {
+  const res = await sendGet(`/statistics/charts/pie/homes-status`);
+  return res;
+};
+
+export const getContractsDistributionPieChart = async (): Promise<IPieChartResponse> => {
+  const res = await sendGet(`/statistics/charts/pie/contracts-distribution`);
+  return res;
+};
+
+export const getPaymentMethodsPieChart = async (): Promise<IPieChartResponse> => {
+  const res = await sendGet(`/statistics/charts/pie/payment-methods`);
+  return res;
+};
+
+export const getRevenueSourcesPieChart = async (params: IGetChartParams): Promise<IPieChartResponse> => {
+  const res = await sendGet(`/statistics/charts/pie/revenue-sources?year=${params.year}`);
+  return res;
+};
+
+// Dashboard Overview API
+export const getDashboardOverview = async (params: IGetDashboardOverviewParams): Promise<IDashboardOverviewResponse> => {
+  const year = params.year || new Date().getFullYear();
+  const res = await sendGet(`/statistics/dashboard/overview?year=${year}`);
   return res;
 }; 

@@ -69,7 +69,16 @@ export const sendPost = (url: string, params?: any, queryParams?: any) => {
 		};
 	}
 
-	return instance.post(url, params, config).then((res) => res?.data);
+	return instance.post(url, params, config)
+		.then((res) => res?.data)
+		.catch((error) => {
+			// If the error has a response, throw the response data
+			if (error.response?.data) {
+				throw error.response.data;
+			}
+			// Otherwise throw the original error
+			throw error;
+		});
 };
 
 export const sendPut = (url: string, params?: any) => instance.put(url, params).then((res) => res?.data);

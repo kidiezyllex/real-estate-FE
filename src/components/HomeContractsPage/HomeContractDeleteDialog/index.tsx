@@ -27,7 +27,7 @@ export const HomeContractDeleteDialog = ({
 }: HomeContractDeleteDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="small" className="bg-white">
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
             <IconAlertTriangle className="h-5 w-5 mr-2" />

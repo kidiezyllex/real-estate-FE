@@ -10,7 +10,8 @@ import {
   IconCheck, 
   IconX,
   IconCalendar,
-  IconCurrencyDollar
+  IconCurrencyDollar,
+  IconAlertTriangle
 } from '@tabler/icons-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<any>(null);
   const [formData, setFormData] = useState<PaymentFormData>({
     amount: 0,
     dueDate: '',
@@ -94,6 +96,47 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
     });
   };
 
+  // Business logic validation
+  const validatePaymentUpdate = (payment: any, newStatus: number): { isValid: boolean; message?: string } => {
+    const payments = paymentsData?.data || [];
+    const currentDate = new Date();
+    const dueDate = new Date(payment.datePaymentExpec);
+    
+    // Rule 1: Cannot update status if payment is not due yet
+    if (newStatus === 1 && dueDate > currentDate) {
+      return {
+        isValid: false,
+        message: 'Không thể cập nhật trạng thái "Đã thanh toán" cho khoản thanh toán chưa đến hạn'
+      };
+    }
+
+    // Rule 2: Cannot mark as paid if there are unpaid previous payments
+    const sortedPayments = [...payments].sort((a, b) => new Date(a.datePaymentExpec).getTime() - new Date(b.datePaymentExpec).getTime());
+    const currentPaymentIndex = sortedPayments.findIndex(p => p._id === payment._id);
+    
+    if (newStatus === 1 && currentPaymentIndex > 0) {
+      const previousPayments = sortedPayments.slice(0, currentPaymentIndex);
+      const hasUnpaidPrevious = previousPayments.some(p => p.statusPaym === 0);
+      
+      if (hasUnpaidPrevious) {
+        return {
+          isValid: false,
+          message: 'Không thể thanh toán khi còn các khoản thanh toán trước đó chưa được thanh toán'
+        };
+      }
+    }
+
+    // Rule 3: Automatically mark as overdue if past due date and not paid
+    if (dueDate < currentDate && payment.statusPaym === 0 && newStatus !== 2) {
+      return {
+        isValid: true,
+        message: 'Khoản thanh toán này đã quá hạn và sẽ được đánh dấu là "Quá hạn"'
+      };
+    }
+
+    return { isValid: true };
+  };
+
   const handleCreatePayment = (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -104,6 +147,23 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
     
     if (!formData.dueDate) {
       toast.error('Vui lòng chọn ngày đến hạn');
+      return;
+    }
+
+    // Business validation: Check if due date is reasonable
+    const dueDate = new Date(formData.dueDate);
+    const contractStart = new Date(contractData.dateStar);
+    const contractEndMonths = contractData.duration || 12;
+    const contractEnd = new Date(contractStart);
+    contractEnd.setMonth(contractEnd.getMonth() + contractEndMonths);
+
+    if (dueDate < contractStart) {
+      toast.error('Ngày đến hạn không thể trước ngày bắt đầu hợp đồng');
+      return;
+    }
+
+    if (dueDate > contractEnd) {
+      toast.error('Ngày đến hạn không thể sau ngày kết thúc hợp đồng');
       return;
     }
 
@@ -137,6 +197,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
   const handleEditPayment = (payment: any) => {
     setSelectedPaymentId(payment._id);
+    setSelectedPayment(payment);
     setFormData({
       amount: payment.totalReceive,
       dueDate: payment.datePaymentExpec.split('T')[0],
@@ -149,7 +210,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
   const handleUpdatePayment = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!selectedPaymentId) return;
+    if (!selectedPaymentId || !selectedPayment) return;
     
     if (!formData.amount || formData.amount <= 0) {
       toast.error('Vui lòng nhập số tiền hợp lệ');
@@ -161,13 +222,32 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
       return;
     }
 
+    // Business validation
+    const validation = validatePaymentUpdate(selectedPayment, formData.status);
+    if (!validation.isValid) {
+      toast.error(validation.message);
+      return;
+    }
+
+    // Auto-correct status if overdue
+    let finalStatus = formData.status;
+    const dueDate = new Date(formData.dueDate);
+    const currentDate = new Date();
+    
+    if (dueDate < currentDate && formData.status === 0) {
+      finalStatus = 2; // Mark as overdue
+      if (validation.message) {
+        toast.warning(validation.message);
+      }
+    }
+
     updatePaymentMutation(
       {
         params: { id: selectedPaymentId },
         body: {
           totalReceive: formData.amount,
           datePaymentExpec: formData.dueDate,
-          statusPaym: formData.status,
+          statusPaym: finalStatus,
           note: formData.note
         }
       },
@@ -178,6 +258,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
             refetch();
             setIsEditDialogOpen(false);
             setSelectedPaymentId(null);
+            setSelectedPayment(null);
             resetForm();
             onRefresh?.();
           } else {
@@ -268,8 +349,8 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
         <CardContent className="space-y-4">
           {payments.length === 0 ? (
             <div className="text-center py-8">
-              <IconCreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có đợt thanh toán nào</h3>
+              <IconCreditCard className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-500 mb-2">Chưa có đợt thanh toán nào</h3>
               <p className="text-gray-500 mb-4">Hãy tạo đợt thanh toán đầu tiên cho hợp đồng này</p>
               <Button onClick={() => {
                 resetForm();
@@ -283,13 +364,17 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
             payments.map((payment: any, index: number) => {
               const statusInfo = getStatusInfo(payment.statusPaym);
               const paymentTypeInfo = getPaymentTypeText(payment.type);
+              const dueDate = new Date(payment.datePaymentExpec);
+              const currentDate = new Date();
+              const isOverdue = dueDate < currentDate && payment.statusPaym === 0;
+              
               return (
                 <motion.div
                   key={payment._id}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.1 }}
-                  className="p-4 border rounded-lg hover:shadow-md transition-shadow"
+                  className={`p-4 border rounded-lg hover:shadow-md transition-shadow ${isOverdue ? 'border-red-200 bg-red-50' : ''}`}
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
@@ -297,6 +382,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
                       <div>
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-medium">{formatCurrency(payment.totalReceive)}</h4>
+                          {isOverdue && <IconAlertTriangle className="h-4 w-4 text-red-500" />}
                         </div>
                         <div className="flex items-center gap-2 mb-2">
                           <Badge className={paymentTypeInfo.color}>
@@ -335,15 +421,15 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
                   {payment.note && (
                     <div className="mt-3 p-2 bg-gray-50 rounded text-sm border border-lightBorderV1">
                       <span className="font-medium text-gray-700">Ghi chú: </span>
-                      <span className="text-gray-600">{payment.note}</span>
+                      <span className="text-gray-500">{payment.note}</span>
                     </div>
                   )}
                   <div className="flex justify-between items-center mt-3 pt-2 border-t border-gray-100">
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-500">
                       Tạo: {new Date(payment.createdAt).toLocaleString('vi-VN')}
                     </p>
                     {payment.updatedAt !== payment.createdAt && (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-500">
                         Cập nhật: {new Date(payment.updatedAt).toLocaleString('vi-VN')}
                       </p>
                     )}
@@ -357,7 +443,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
       {/* Create Payment Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
+        <DialogContent size="medium" className="bg-white max-h-[90vh] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Thêm đợt thanh toán
@@ -495,7 +581,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-500">
               Bạn có chắc chắn muốn xóa đợt thanh toán này? Hành động này không thể hoàn tác.
             </p>
             <div className="flex justify-end gap-3">

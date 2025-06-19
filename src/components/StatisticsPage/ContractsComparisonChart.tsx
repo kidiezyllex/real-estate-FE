@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetRevenueStatistics } from "@/hooks/useStatistics";
+import { useGetContractsComparisonChart } from "@/hooks/useStatistics";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,41 +9,17 @@ import {
   BarChart,
   CartesianGrid,
   ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
+  Legend,
 } from "recharts";
 import { useState } from "react";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
-export default function RevenueChart() {
+export default function ContractsComparisonChart() {
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState<number>(currentYear);
-  const { data, isLoading, error } = useGetRevenueStatistics({ year });
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(value);
-  };
-
-  const chartData = data?.data?.statistics?.months?.map((item) => ({
-    month: format(new Date(year, item.month - 1, 1), 'MMM', { locale: vi }),
-    revenue: item.revenue,
-    monthFull: format(new Date(year, item.month - 1, 1), 'MMMM', { locale: vi }),
-  })) || [];
-
-  const chartConfig = {
-    revenue: {
-      label: "Doanh thu",
-      color: "#604AE3",
-    },
-  };
+  const { data, isLoading, error } = useGetContractsComparisonChart({ year });
 
   const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setYear(Number(e.target.value));
@@ -65,31 +41,31 @@ export default function RevenueChart() {
     return (
       <Card className="p-6">
         <div className="text-mainDangerV1 p-4 bg-red-50 rounded-md">
-          Lỗi khi tải dữ liệu doanh thu: {error.message}
+          Lỗi khi tải dữ liệu so sánh hợp đồng: {error.message}
         </div>
       </Card>
     );
   }
 
-  if (!data?.data?.statistics?.months) {
+  if (!data?.data?.chartData) {
     return (
       <Card className="p-6">
         <div className="text-mainDangerV1 p-4 bg-red-50 rounded-md">
-          Chưa có dữ liệu doanh thu cho năm này.
+          Chưa có dữ liệu so sánh hợp đồng cho năm này.
         </div>
       </Card>
     );
   }
 
-  const totalRevenue = data?.data.statistics.totalRevenue || 0;
+  const { chartData, config } = data.data;
 
   return (
     <Card className="p-6">
       <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
         <div>
-          <h3 className="text-xl font-semibold text-mainTextV1">Doanh thu theo tháng</h3>
+          <h3 className="text-xl font-semibold text-mainTextV1">So sánh hợp đồng nhà vs dịch vụ</h3>
           <p className="text-secondaryTextV1">
-            Tổng doanh thu: <span className="font-semibold text-primary">{formatCurrency(totalRevenue)}</span>
+            Thống kê theo tháng năm {year}
           </p>
         </div>
         <select
@@ -111,7 +87,7 @@ export default function RevenueChart() {
         transition={{ duration: 0.5 }}
         className="h-[300px] w-full mt-8"
       >
-        <ChartContainer config={chartConfig} className="h-full w-full">
+        <ChartContainer config={config} className="h-full w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />
@@ -127,25 +103,26 @@ export default function RevenueChart() {
                 tickLine={false}
                 tickMargin={10}
                 tick={{ fill: '#687D92' }}
-                tickFormatter={(value) => `${value.toLocaleString()}`}
               />
               <ChartTooltip 
                 content={
-                  <ChartTooltipContent 
-                    labelFormatter={(label, payload) => {
-                      if (payload && payload.length > 0) {
-                        return payload[0].payload.monthFull;
-                      }
-                      return label;
-                    }}
-                  />
+                  <ChartTooltipContent />
                 }
               />
+              <Legend />
               <Bar 
-                dataKey="revenue" 
-                fill="var(--color-revenue)" 
+                dataKey="homeContracts" 
+                fill={config.homeContracts?.color || "#604AE3"}
                 radius={[4, 4, 0, 0]} 
-                barSize={30}
+                barSize={20}
+                name={config.homeContracts?.label || "Hợp đồng nhà"}
+              />
+              <Bar 
+                dataKey="serviceContracts" 
+                fill={config.serviceContracts?.color || "#45C5CD"}
+                radius={[4, 4, 0, 0]} 
+                barSize={20}
+                name={config.serviceContracts?.label || "Hợp đồng dịch vụ"}
               />
             </BarChart>
           </ResponsiveContainer>

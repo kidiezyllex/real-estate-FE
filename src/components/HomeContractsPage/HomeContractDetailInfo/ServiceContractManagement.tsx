@@ -9,7 +9,9 @@ import {
   IconTrash, 
   IconEye,
   IconCalendar,
-  IconCurrencyDollar
+  IconCurrencyDollar,
+  IconBrandAppleArcade,
+  IconCreditCard
 } from '@tabler/icons-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useGetServiceContractsByHomeContract, useCreateServiceContract, useUpdateServiceContract, useDeleteServiceContract } from '@/hooks/useServiceContract';
 import { useGetServices } from '@/hooks/useService';
 import { toast } from 'react-toastify';
+import ServiceContractPaymentDialog from '../../ServiceContractPaymentDialog';
 
 interface ServiceContractManagementProps {
   homeContractId: string;
@@ -43,6 +46,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [selectedServiceContractId, setSelectedServiceContractId] = useState<string | null>(null);
   const [selectedServiceContract, setSelectedServiceContract] = useState<any>(null);
   const [formData, setFormData] = useState<ServiceContractFormData>({
@@ -52,13 +56,14 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
     price: 0,
     payCycle: 1
   });
+  const [priceSuggestions, setPriceSuggestions] = useState<number[]>([]);
+  const [showPriceSuggestions, setShowPriceSuggestions] = useState(false);
 
   const { data: serviceContractsData, isLoading, refetch } = useGetServiceContractsByHomeContract({ homeContractId });
   const { data: servicesData } = useGetServices();
   const { mutate: createServiceContractMutation, isPending: isCreating } = useCreateServiceContract();
-  const { mutate: updateServiceContractMutation, isPending: isUpdating } = useUpdateServiceContract();
+    const { mutate: updateServiceContractMutation, isPending: isUpdating } = useUpdateServiceContract();
   const { mutate: deleteServiceContractMutation, isPending: isDeleting } = useDeleteServiceContract();
-
   const formatCurrency = (value: number): string => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -68,10 +73,10 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
 
   const getStatusInfo = (status: number) => {
     switch (status) {
-      case 0: return { text: "Đã hủy", color: "bg-red-100 text-red-800" };
-      case 1: return { text: "Đang hoạt động", color: "bg-green-100 text-green-800" };
-      case 2: return { text: "Đã kết thúc", color: "bg-gray-100 text-gray-800" };
-      default: return { text: "Không xác định", color: "bg-gray-100 text-gray-800" };
+      case 0: return { text: "Đã hủy", color: "bg-red-500 hover:bg-red-600 text-white border-2 border-red-400 text-nowrap" };
+      case 1: return { text: "Đang hoạt động", color: "bg-green-500 hover:bg-green-600 text-white border-2 border-green-400 text-nowrap" };
+      case 2: return { text: "Đã kết thúc", color: "bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap" };
+      default: return { text: "Không xác định", color: "bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap" };
     }
   };
 
@@ -100,6 +105,68 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
       price: 0,
       payCycle: 1
     });
+    setPriceSuggestions([]);
+    setShowPriceSuggestions(false);
+  };
+
+  const generatePriceSuggestions = (inputValue: string): number[] => {
+    if (!inputValue || inputValue === '0') return [];
+    
+    const numValue = parseFloat(inputValue);
+    if (isNaN(numValue) || numValue <= 0) return [];
+    
+    const suggestions: number[] = [];
+    
+    // Gợi ý cho giá dịch vụ: tối thiểu 5 chữ số (10,000), tối đa 7 chữ số (9,999,999)
+    if (numValue < 1000) {
+      // Với số có 1-3 chữ số, tạo gợi ý để đạt 5-7 chữ số
+      if (numValue >= 10) {
+        suggestions.push(numValue * 1000); // nghìn (VD: 50 -> 50,000 - 5 chữ số)
+        suggestions.push(numValue * 10000); // chục nghìn (VD: 50 -> 500,000 - 6 chữ số)
+      }
+      if (numValue >= 1) {
+        suggestions.push(numValue * 10000); // chục nghìn (VD: 5 -> 50,000 - 5 chữ số)
+        suggestions.push(numValue * 100000); // trăm nghìn (VD: 5 -> 500,000 - 6 chữ số)
+        if (numValue <= 99) {
+          suggestions.push(numValue * 1000000); // triệu (VD: 5 -> 5,000,000 - 7 chữ số)
+        }
+      }
+    }
+    else if (numValue < 10000) {
+      // Với số có 4 chữ số (1000-9999), tạo gợi ý nghìn và chục nghìn
+      const thousand = numValue * 10; // (VD: 1000 -> 10,000 - 5 chữ số)
+      const tenThousand = numValue * 100; // (VD: 1000 -> 100,000 - 6 chữ số)
+      
+      if (thousand >= 10000) suggestions.push(thousand);
+      if (tenThousand >= 10000 && tenThousand <= 9999999) suggestions.push(tenThousand);
+    }
+    
+    // Lọc chỉ giữ các giá trị từ 5-7 chữ số (10,000 - 9,999,999)
+    const filteredSuggestions = suggestions.filter(val => val >= 10000 && val <= 9999999);
+    
+    return Array.from(new Set(filteredSuggestions)).sort((a: number, b: number) => a - b).slice(0, 3);
+  };
+
+  const handlePriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    
+    // Cập nhật giá trị
+    handleInputChange('price', Number(value));
+    
+    // Tạo gợi ý
+    const suggestions = generatePriceSuggestions(value);
+    setPriceSuggestions(suggestions);
+    setShowPriceSuggestions(suggestions.length > 0 && value !== '');
+  };
+
+  const handlePriceSuggestionClick = (suggestedPrice: number) => {
+    setFormData(prev => ({ ...prev, price: suggestedPrice }));
+    setShowPriceSuggestions(false);
+    setPriceSuggestions([]);
+  };
+
+  const formatCurrencyDisplay = (amount: number): string => {
+    return amount.toLocaleString('vi-VN');
   };
 
   const handleCreateServiceContract = (e: React.FormEvent) => {
@@ -140,17 +207,18 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
       {
         onSuccess: (data) => {
           if (data.statusCode === 201) {
-            toast.success('Tạo hợp đồng dịch vụ thành công');
+            toast.success(data.message || 'Tạo hợp đồng dịch vụ thành công');
             refetch();
             setIsCreateDialogOpen(false);
             resetForm();
             onRefresh?.();
           } else {
-            toast.error('Tạo hợp đồng dịch vụ thất bại');
+            toast.error(data.message || 'Tạo hợp đồng dịch vụ thất bại');
           }
         },
-        onError: (error) => {
-          toast.error(`Lỗi: ${error.message}`);
+        onError: (error: any) => {
+          const errorMessage = error?.response?.data?.message || error.message || 'Đã xảy ra lỗi khi tạo hợp đồng dịch vụ';
+          toast.error(errorMessage);
         }
       }
     );
@@ -195,18 +263,19 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
       {
         onSuccess: (data) => {
           if (data.statusCode === 200) {
-            toast.success('Cập nhật hợp đồng dịch vụ thành công');
+            toast.success(data.message || 'Cập nhật hợp đồng dịch vụ thành công');
             refetch();
             setIsEditDialogOpen(false);
             setSelectedServiceContractId(null);
             resetForm();
             onRefresh?.();
           } else {
-            toast.error('Cập nhật hợp đồng dịch vụ thất bại');
+            toast.error(data.message || 'Cập nhật hợp đồng dịch vụ thất bại');
           }
         },
-        onError: (error) => {
-          toast.error(`Lỗi: ${error.message}`);
+        onError: (error: any) => {
+          const errorMessage = error?.response?.data?.message || error.message || 'Đã xảy ra lỗi khi cập nhật hợp đồng dịch vụ';
+          toast.error(errorMessage);
         }
       }
     );
@@ -215,6 +284,11 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
   const handleViewDetails = (serviceContract: any) => {
     setSelectedServiceContract(serviceContract);
     setIsDetailsDialogOpen(true);
+  };
+
+  const handleViewPayments = (serviceContract: any) => {
+    setSelectedServiceContract(serviceContract);
+    setIsPaymentDialogOpen(true);
   };
 
   const handleDeleteServiceContract = (serviceContractId: string) => {
@@ -230,17 +304,18 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
       {
         onSuccess: (data) => {
           if (data.statusCode === 200) {
-            toast.success('Xóa hợp đồng dịch vụ thành công');
+            toast.success(data.message || 'Xóa hợp đồng dịch vụ thành công');
             refetch();
             setIsDeleteDialogOpen(false);
             setSelectedServiceContractId(null);
             onRefresh?.();
           } else {
-            toast.error('Xóa hợp đồng dịch vụ thất bại');
+            toast.error(data.message || 'Xóa hợp đồng dịch vụ thất bại');
           }
         },
-        onError: (error) => {
-          toast.error(`Lỗi: ${error.message}`);
+        onError: (error: any) => {
+          const errorMessage = error?.response?.data?.message || error.message || 'Đã xảy ra lỗi khi xóa hợp đồng dịch vụ';
+          toast.error(errorMessage);
         }
       }
     );
@@ -268,7 +343,10 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
     );
   }
 
-  const serviceContracts = serviceContractsData?.data?.contracts || [];
+  // Handle different data structures - the API returns data directly as an array
+  const serviceContracts: any[] = Array.isArray(serviceContractsData?.data) 
+    ? serviceContractsData.data 
+    : serviceContractsData?.data?.contracts || [];
   const services = servicesData?.data || [];
 
   return (
@@ -291,8 +369,8 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
         <CardContent className="space-y-4">
           {serviceContracts.length === 0 ? (
             <div className="text-center py-8">
-              <IconSettings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Chưa có hợp đồng dịch vụ nào</h3>
+              <IconBrandAppleArcade  className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-500 mb-2">Chưa có hợp đồng dịch vụ nào</h3>
               <p className="text-gray-500 mb-4">Hãy tạo hợp đồng dịch vụ đầu tiên cho hợp đồng thuê nhà này</p>
               <Button onClick={() => {
                 resetForm();
@@ -304,8 +382,8 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
             </div>
           ) : (
             serviceContracts.map((serviceContract: any, index: number) => {
-              const statusInfo = getStatusInfo(serviceContract.status);
-              const serviceName = services.find(s => s._id === serviceContract.serviceId)?.name || 'Dịch vụ không xác định';
+              const statusInfo = getStatusInfo(serviceContract.statusContrac);
+              const serviceName = serviceContract.serviceId?.name || services.find(s => s._id === serviceContract.serviceId)?.name || 'Dịch vụ không xác định';
               const contractPrice = serviceContract.unitCost || serviceContract.price || 0;
               const contractStartDate = serviceContract.signDate || serviceContract.dateStar;
               
@@ -319,50 +397,44 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
                 >
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
-                      <IconSettings className="h-5 w-5 text-blue-600" />
+                      <IconSettings className="h-5 w-5 text-mainTextHoverV1" />
                       <div>
+                      <Badge className={statusInfo.color}>
+                        {statusInfo.text}
+                      </Badge>
                         <h4 className="font-medium">{serviceName}</h4>
                         <p className="text-sm text-gray-500">
-                          {formatCurrency(contractPrice)} / {getPayCycleText(serviceContract.payCycle)}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Thời hạn: {serviceContract.duration} tháng
+                        Thời hạn: {serviceContract.duration}{" "}tháng{" "}({formatCurrency(contractPrice)} / {getPayCycleText(serviceContract.payCycle)})
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={statusInfo.color}>
-                        {statusInfo.text}
-                      </Badge>
                       <Button
                         variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(serviceContract)}
-                        className="h-8 w-8 p-0"
+                        size="icon"
+                        onClick={() => handleViewPayments(serviceContract)}
+                        title="Quản lý thanh toán"
                       >
-                        <IconEye className="h-4 w-4" />
+                        <IconCreditCard className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleEditServiceContract(serviceContract)}
-                        className="h-8 w-8 p-0"
                       >
                         <IconEdit className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="outline"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleDeleteServiceContract(serviceContract._id)}
-                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <IconTrash className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-400">
-                    Bắt đầu: {contractStartDate ? new Date(contractStartDate).toLocaleDateString('vi-VN') : 'N/A'} • 
-                    Tạo: {new Date(serviceContract.createdAt).toLocaleDateString('vi-VN')}
+                  <p className="text-sm text-gray-500">
+                    Bắt đầu: {contractStartDate ? new Date(contractStartDate).toLocaleDateString('vi-VN') : 'N/A'}
                   </p>
                 </motion.div>
               );
@@ -373,7 +445,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
 
       {/* Create Service Contract Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
+        <DialogContent size='medium' className="bg-white max-h-[90vh] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               Thêm hợp đồng dịch vụ
@@ -419,15 +491,49 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
             </div>
             <div className="space-y-2">
               <Label htmlFor="price">Giá dịch vụ <span className="text-red-500">*</span></Label>
-              <Input
-                id="price"
-                type="number"
-                min="0"
-                value={formData.price}
-                onChange={(e) => handleInputChange('price', Number(e.target.value))}
-                placeholder="Nhập giá dịch vụ..."
-                disabled={isCreating}
-              />
+              <div className="relative">
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  value={formData.price}
+                  onChange={handlePriceInputChange}
+                  onFocus={() => {
+                    if (formData.price > 0) {
+                      const suggestions = generatePriceSuggestions(formData.price.toString());
+                      setPriceSuggestions(suggestions);
+                      setShowPriceSuggestions(suggestions.length > 0);
+                    }
+                  }}
+                  onBlur={() => {
+                    // Delay để cho phép click vào suggestion
+                    setTimeout(() => setShowPriceSuggestions(false), 200);
+                  }}
+                  placeholder="Nhập giá dịch vụ..."
+                  disabled={isCreating}
+                />
+                {showPriceSuggestions && priceSuggestions.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 z-10 mt-1 bg-white border border-lightBorderV1 rounded-md shadow-lg">
+                    <div className="p-2 space-y-1">
+                      <div className="text-xs text-secondaryTextV1 mb-2">Gợi ý giá dịch vụ:</div>
+                      <div className="flex flex-wrap gap-1">
+                        {priceSuggestions.map((suggestion, index) => (
+                          <Button
+                            key={index}
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePriceSuggestionClick(suggestion)}
+                            className="text-xs h-7 px-2"
+                          >
+                            {formatCurrencyDisplay(suggestion)} VNĐ
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="payCycle">Chu kỳ thanh toán</Label>
@@ -528,31 +634,31 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm text-gray-600">Dịch vụ</Label>
+                  <Label className="text-sm text-gray-500">Dịch vụ</Label>
                   <p className="font-medium">
-                    {services.find(s => s._id === selectedServiceContract.serviceId)?.name || 'N/A'}
+                    {selectedServiceContract.serviceId?.name || services.find(s => s._id === selectedServiceContract.serviceId)?.name || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-600">Trạng thái</Label>
-                  <Badge className={getStatusInfo(selectedServiceContract.status).color}>
-                    {getStatusInfo(selectedServiceContract.status).text}
+                  <Label className="text-sm text-gray-500">Trạng thái</Label>
+                  <Badge className={getStatusInfo(selectedServiceContract.statusContrac || selectedServiceContract.status).color}>
+                    {getStatusInfo(selectedServiceContract.statusContrac || selectedServiceContract.status).text}
                   </Badge>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-600">Giá dịch vụ</Label>
+                  <Label className="text-sm text-gray-500">Giá dịch vụ</Label>
                   <p className="font-medium">{formatCurrency(selectedServiceContract.unitCost || selectedServiceContract.price || 0)}</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-600">Chu kỳ thanh toán</Label>
+                  <Label className="text-sm text-gray-500">Chu kỳ thanh toán</Label>
                   <p className="font-medium">{getPayCycleText(selectedServiceContract.payCycle)}</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-600">Thời hạn</Label>
+                  <Label className="text-sm text-gray-500">Thời hạn</Label>
                   <p className="font-medium">{selectedServiceContract.duration} tháng</p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-600">Ngày bắt đầu</Label>
+                  <Label className="text-sm text-gray-500">Ngày bắt đầu</Label>
                   <p className="font-medium">
                     {(selectedServiceContract.signDate || selectedServiceContract.dateStar) ? 
                       new Date(selectedServiceContract.signDate || selectedServiceContract.dateStar).toLocaleDateString('vi-VN') : 'N/A'}
@@ -591,7 +697,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-500">
               Bạn có chắc chắn muốn xóa hợp đồng dịch vụ này? Hành động này không thể hoàn tác.
             </p>
             <div className="flex justify-end gap-3">
@@ -603,10 +709,18 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
               </Button>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
-    </motion.div>
-  );
-};
+                  </DialogContent>
+        </Dialog>
+
+        {/* Service Contract Payment Dialog */}
+        <ServiceContractPaymentDialog
+          isOpen={isPaymentDialogOpen}
+          onClose={() => setIsPaymentDialogOpen(false)}
+          serviceContract={selectedServiceContract}
+          onRefresh={onRefresh}
+        />
+      </motion.div>
+    );
+  };
 
 export default ServiceContractManagement; 

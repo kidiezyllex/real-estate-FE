@@ -55,22 +55,8 @@ export const getDashboardMenuItems = (): MenuItem[] => [
 	{
 		id: "contract-management",
 		name: "Quản lý Hợp đồng",
-		path: "/admin/contracts",
-		icon: mdiFileDocument,
-		subMenu: [
-			{
-				id: "home-contracts",
-				name: "Hợp đồng căn hộ",
-				path: "/admin/contracts/home-contracts",
-				icon: mdiFileDocument,
-			},
-			{
-				id: "service-contracts",
-				name: "Hợp đồng dịch vụ",
-				path: "/admin/contracts/service-contracts",
-				icon: mdiFileDocumentEdit,
-			},
-		],
+		path: "/admin/contracts/home-contracts",
+		icon: mdiFileDocumentEdit,
 	},
 	{
 		id: "service-management",

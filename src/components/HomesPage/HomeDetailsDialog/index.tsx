@@ -66,7 +66,6 @@ interface Ward {
   district_code: number;
 }
 
-// Combined contract interface for unified table
 interface CombinedContract {
   _id: string;
   type: 'home' | 'service';
@@ -91,7 +90,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   const [isHomeContractDialogOpen, setIsHomeContractDialogOpen] = useState(false);
   const [isServiceContractDialogOpen, setIsServiceContractDialogOpen] = useState(false);
 
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -106,7 +104,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     active: true,
     note: "",
     images: [],
-    // Amenities
     hasBathroom: false,
     hasBedroom: false,
     hasBalcony: false,
@@ -126,7 +123,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Address selection states
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
   const [wards, setWards] = useState<Ward[]>([]);
@@ -138,7 +134,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
 
-  // Image upload states
   const [uploadingImages, setUploadingImages] = useState<boolean[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
 
@@ -158,7 +153,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   const { data: homeOwnersData, isLoading: isLoadingHomeOwners, error: homeOwnersError } = useGetHomeOwners();
   const { mutate: uploadFileMutation } = useUploadFile();
 
-  // Amenities list for checkboxes
   const amenitiesList = [
     { key: 'hasBathroom', label: 'Phòng tắm riêng' },
     { key: 'hasBedroom', label: 'Phòng ngủ riêng' },
@@ -178,7 +172,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     { key: 'hasPetAllowed', label: 'Cho phép nuôi thú cưng' },
   ];
 
-  // Combine contracts for unified table
   const homeContracts = Array.isArray(homeContractsData?.data)
     ? homeContractsData.data
     : homeContractsData?.data?.contracts || [];
@@ -240,19 +233,16 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     }
     return <Badge className="bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap">Chưa cho thuê</Badge>;
   };
-  // Sort contracts by creation date (newest first)
   const sortedContracts = combinedContracts.sort((a, b) =>
     new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
   );
 
-  // Pagination logic
   const totalContracts = sortedContracts.length;
   const totalPages = Math.ceil(totalContracts / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedContracts = sortedContracts.slice(startIndex, endIndex);
 
-  // Fetch provinces on component mount
   useEffect(() => {
     const fetchProvinces = async () => {
       try {
@@ -300,7 +290,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     }
   }, [selectedProvince]);
 
-  // Fetch wards when district changes
   useEffect(() => {
     if (selectedDistrict) {
       const fetchWards = async () => {
@@ -324,7 +313,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     }
   }, [selectedDistrict]);
 
-  // Update address when address components change
   useEffect(() => {
     if (selectedProvince && selectedDistrict && selectedWard && specificAddress) {
       const provinceName = provinces.find(p => p.code.toString() === selectedProvince)?.name || "";
@@ -357,7 +345,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
         active: home.active ?? true,
         note: home.note || "",
         images: home.images || [],
-        // Amenities
         hasBathroom: home.hasBathroom || false,
         hasBedroom: home.hasBedroom || false,
         hasBalcony: home.hasBalcony || false,
@@ -376,15 +363,12 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
         hasPetAllowed: home.hasPetAllowed || false,
       });
 
-      // Initialize address selection states for editing
       if (home.province && home.district && home.ward) {
-        // Extract specific address from full address
         const fullAddress = home.address || "";
         const provinceName = home.province;
         const districtName = home.district;
         const wardName = home.ward;
         
-        // Try to extract specific address by removing province, district, ward
         const addressParts = fullAddress.split(', ');
         if (addressParts.length >= 4) {
           setSpecificAddress(addressParts[0]);
@@ -428,10 +412,9 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     const files = Array.from(e.target.files || []);
     if (files.length === 0) return;
 
-    // Validate file types and sizes
     const validFiles = files.filter(file => {
       const isValidType = file.type.startsWith('image/');
-      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+      const isValidSize = file.size <= 10 * 1024 * 1024;
       
       if (!isValidType) {
         toast.error(`File ${file.name} không phải là hình ảnh hợp lệ`);
@@ -446,24 +429,20 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
 
     if (validFiles.length === 0) return;
 
-    // Update file states
     const newFiles = [...imageFiles, ...validFiles];
     setImageFiles(newFiles);
     
-    // Initialize uploading states for new files
     const newUploadingStates = [...uploadingImages];
     validFiles.forEach(() => {
       newUploadingStates.push(true);
     });
     setUploadingImages(newUploadingStates);
 
-    // Upload each valid file
     validFiles.forEach((file, i) => {
       const uploadIndex = imageFiles.length + i;
       uploadFileMutation({ file }, {
         onSuccess: (response: IUploadResponse) => {
           if (response?.statusCode === 200 || response?.statusCode === 201) {
-            // Check if response has the expected structure
             const imageUrl = response?.data?.url;
             
             if (imageUrl) {
@@ -481,7 +460,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
             toast.error(`Lỗi upload ảnh "${file.name}": ${response?.message || 'Lỗi không xác định'}`);
           }
           
-          // Update uploading state
           setUploadingImages(prev => {
             const newStates = [...prev];
             newStates[uploadIndex] = false;
@@ -493,7 +471,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
           const errorMessage = error?.response?.data?.message || error?.message || 'Không thể upload ảnh';
           toast.error(`Lỗi upload ảnh "${file.name}": ${errorMessage}`);
           
-          // Update uploading state
           setUploadingImages(prev => {
             const newStates = [...prev];
             newStates[uploadIndex] = false;
@@ -503,7 +480,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
       });
     });
 
-    // Clear the input value to allow re-uploading the same file
     e.target.value = '';
   };
 
@@ -550,7 +526,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     setImageFiles([]);
     setUploadingImages([]);
     
-    // Reset form data to original values
     if (homeData?.data) {
       const home = homeData.data as any;
       setFormData({
@@ -564,7 +539,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
         active: home.active ?? true,
         note: home.note || "",
         images: home.images || [],
-        // Amenities
         hasBathroom: home.hasBathroom || false,
         hasBedroom: home.hasBedroom || false,
         hasBalcony: home.hasBalcony || false,
@@ -644,7 +618,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
     onClose();
   };
 
-  // Get available owners data
   const getAvailableOwners = () => {
     if (homeOwnersData?.data && Array.isArray(homeOwnersData.data)) {
       return homeOwnersData.data;
@@ -865,7 +838,7 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
                                       </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <div className="font-medium text-gray-900 truncate">
+                                      <div className="font-medium text-gray-500 truncate">
                                         {owner.fullname}
                                       </div>
                                       <div className="flex items-center text-sm text-mainTextV1">
@@ -1107,7 +1080,7 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
                                 <div className="w-full h-32 border border-lightBorderV1 rounded-lg overflow-hidden">
                                   {uploadingImages[index] ? (
                                     <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                                      <IconLoader2 className="h-6 w-6 animate-spin text-gray-400" />
+                                      <IconLoader2 className="h-6 w-6 animate-spin text-gray-500" />
                                     </div>
                                   ) : (
                                     <img
@@ -1337,7 +1310,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
           }}
           contractId={selectedContractId}
           onSuccess={() => {
-            // Optionally refetch contracts data
           }}
         />
       )}
@@ -1353,7 +1325,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
           }}
           contractId={selectedContractId}
           onSuccess={() => {
-            // Optionally refetch contracts data
           }}
         />
       )}

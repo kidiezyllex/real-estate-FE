@@ -37,7 +37,7 @@ export default function ContractStats() {
     );
   }
 
-  const contractData = data?.data;
+  const contractData = data?.data?.statistics;
   
   if (!contractData) {
     return null;

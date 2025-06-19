@@ -38,7 +38,6 @@ interface HomeContractCreateDialogProps {
   onSuccess?: () => void;
 }
 
-// Extend the interface to include optional note field and selection mode
 interface ExtendedCreateHomeContractBody extends ICreateHomeContractBody {
   note?: string;
 }
@@ -369,13 +368,11 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
         suggestions.push(numValue * 10000000); // chục triệu
       }
     }
-    // Nếu nhập số lớn hơn, chỉ thêm các số 0
     else if (numValue < 1000000) {
       suggestions.push(numValue * 1000); // nghìn
       suggestions.push(numValue * 10000); // chục nghìn
     }
     
-    // Sử dụng Array.from thay vì spread operator để tránh lỗi downlevelIteration
     return Array.from(new Set(suggestions)).sort((a: number, b: number) => a - b).slice(0, 3);
   };
 
@@ -387,15 +384,12 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     
     const suggestions: number[] = [];
     
-    // Gợi ý cho tiền đặt cọc: tối thiểu 6 chữ số (100,000), tối đa 8 chữ số (99,999,999)
     if (numValue < 1000) {
-      // Với số có 3 chữ số (100-999), thêm gợi ý nghìn và chục nghìn
       if (numValue >= 100) {
         suggestions.push(numValue * 1000); // nghìn (VD: 345 -> 345,000)
         suggestions.push(numValue * 10000); // chục nghìn (VD: 345 -> 3,450,000)
       }
       
-      // Với số nhỏ, tạo gợi ý hàng trăm nghìn và triệu
       suggestions.push(numValue * 100000); // trăm nghìn (6 chữ số)
       suggestions.push(numValue * 1000000); // triệu (7 chữ số)
       if (numValue <= 99) {
@@ -403,7 +397,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
       }
     }
     else if (numValue < 100000) {
-      // Với số trung bình, tạo gợi ý nghìn và chục nghìn
       const thousand = numValue * 1000;
       const tenThousand = numValue * 10000;
       
@@ -411,7 +404,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
       if (tenThousand >= 100000 && tenThousand <= 99999999) suggestions.push(tenThousand);
     }
     
-    // Lọc chỉ giữ các giá trị từ 6-8 chữ số
     const filteredSuggestions = suggestions.filter(val => val >= 100000 && val <= 99999999);
     
     return Array.from(new Set(filteredSuggestions)).sort((a: number, b: number) => a - b).slice(0, 3);
@@ -420,10 +412,8 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
   const handlePriceInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
     
-    // Gọi hàm handleChange gốc
     handleChange(e);
     
-    // Tạo gợi ý
     const suggestions = generatePriceSuggestions(value);
     setPriceSuggestions(suggestions);
     setShowPriceSuggestions(suggestions.length > 0 && value !== '');
@@ -431,11 +421,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
 
   const handleDepositInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = e.target;
-    
-    // Gọi hàm handleChange gốc
     handleChange(e);
-    
-    // Tạo gợi ý cho tiền đặt cọc
     const suggestions = generateDepositSuggestions(value);
     setDepositSuggestions(suggestions);
     setShowDepositSuggestions(suggestions.length > 0 && value !== '');
@@ -445,8 +431,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     setFormData(prev => ({ ...prev, price: suggestedPrice }));
     setShowPriceSuggestions(false);
     setPriceSuggestions([]);
-    
-    // Xóa lỗi nếu có
     if (errors.price) {
       setErrors(prev => ({ ...prev, price: "" }));
     }
@@ -457,7 +441,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     setShowDepositSuggestions(false);
     setDepositSuggestions([]);
     
-    // Xóa lỗi nếu có
     if (errors.deposit) {
       setErrors(prev => ({ ...prev, deposit: "" }));
     }
@@ -469,7 +452,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto bg-white">
+      <DialogContent size="medium" className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white">
         <DialogHeader>
           <DialogTitle>
             Tạo hợp đồng thuê nhà mới
@@ -484,7 +467,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
           <Card className="border border-lightBorderV1 bg-mainBackgroundV1">
             <CardContent className="space-y-6 pt-6">
               <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Selection Mode - Button Style */}
                 <div className="space-y-4">
                   <Label className="text-secondaryTextV1 font-medium">
                     Phương thức chọn nhà
@@ -516,7 +498,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                   </div>
                 </div>
 
-                {/* Home Selection */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {selectionMode === "owner-first" && (
                     <div className="space-y-2">
@@ -561,7 +542,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                                       </div>
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <div className="font-medium text-gray-900 truncate">
+                                      <div className="font-medium text-gray-500 truncate">
                                         {owner.fullname}
                                       </div>
                                       <div className="flex items-center text-sm text-mainTextV1">
@@ -598,7 +579,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                           {selectedHomeId && getAvailableHomes().length > 0 && (() => {
                             const selectedHome = getAvailableHomes().find(home => home._id === selectedHomeId);
                             if (selectedHome) {
-                              // Handle different home data structures
                               const homeName = selectedHome.name || selectedHome.address || 'Nhà không có tên';
                               const homeAddress = selectedHome.address || 'Không có địa chỉ';
                               return `${homeName} (${homeAddress})`;
@@ -636,7 +616,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                                     </div>
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-gray-900 truncate">
+                                    <div className="font-medium text-gray-500 truncate">
                                       {home.building || 'Nhà không có tên'}
                                     </div>
                                     <div className="flex items-center justify-between text-sm text-mainTextV1">
@@ -728,7 +708,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                                     </div>
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-gray-900 truncate">
+                                    <div className="font-medium text-gray-500 truncate">
                                       {guest.fullname}
                                     </div>
                                     <div className="flex items-center text-sm text-mainTextV1">
@@ -818,7 +798,6 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                           }
                         }}
                         onBlur={() => {
-                          // Delay để cho phép click vào suggestion
                           setTimeout(() => setShowPriceSuggestions(false), 200);
                         }}
                         placeholder="Nhập giá thuê"

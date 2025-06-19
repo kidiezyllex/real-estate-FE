@@ -39,7 +39,7 @@ export default function PaymentStats() {
     );
   }
 
-  const paymentData = data?.data;
+  const paymentData = data?.data?.statistics;
   
   if (!paymentData) {
     return null;

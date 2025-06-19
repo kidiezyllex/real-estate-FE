@@ -38,7 +38,7 @@ export const GuestDetailInfo = ({ guest }: GuestDetailInfoProps) => {
       value: guest.email,
     },
     {
-      icon: guest.gender !== undefined ? (guest.gender ? <IconGenderMale className="h-4 w-4 text-blue-600" /> : <IconGenderFemale className="h-4 w-4 text-pink-600" />) : <IconUser className="h-4 w-4 text-gray-400" />,
+      icon: guest.gender !== undefined ? (guest.gender ? <IconGenderMale className="h-4 w-4 text-blue-600" /> : <IconGenderFemale className="h-4 w-4 text-pink-600" />) : <IconUser className="h-4 w-4 text-gray-500" />,
       label: "Giới tính",
       value: guest.gender !== undefined ? (guest.gender ? "Nam" : "Nữ") : "",
     },

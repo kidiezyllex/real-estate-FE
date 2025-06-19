@@ -198,7 +198,7 @@ export const HomeContractDetailsDialog = ({
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent size="medium" className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle>
               Chi tiết hợp đồng thuê nhà
@@ -234,7 +234,7 @@ export const HomeContractDetailsDialog = ({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
+        <DialogContent size="medium" className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle>
               {isEditing ? "Chỉnh sửa hợp đồng thuê nhà" : "Chi tiết hợp đồng thuê nhà"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useGetHomeStatistics } from "@/hooks/useStatistics";
+import { useGetPaymentMethodsPieChart } from "@/hooks/useStatistics";
 import { Card } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,13 +9,12 @@ import {
   Pie, 
   Cell, 
   ResponsiveContainer,
-  Legend 
 } from "recharts";
-import { Home, HomeMinus } from "tabler-icons-react";
 import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
+import { CreditCard, Wallet, Cash } from "tabler-icons-react";
 
-export default function HomeStats() {
-  const { data, isLoading, error } = useGetHomeStatistics();
+export default function PaymentMethodsPieChart() {
+  const { data, isLoading, error } = useGetPaymentMethodsPieChart();
 
   if (isLoading) {
     return (
@@ -32,48 +31,37 @@ export default function HomeStats() {
     return (
       <Card className="p-6">
         <div className="text-mainDangerV1 p-4 bg-red-50 rounded-md">
-          Lỗi khi tải dữ liệu về nhà: {error.message}
+          Lỗi khi tải dữ liệu phương thức thanh toán: {error.message}
         </div>
       </Card>
     );
   }
 
-  const homeData = data?.data?.statistics;
+  const pieData = data?.data;
   
-  if (!homeData) {
+  if (!pieData?.chartData) {
     return null;
   }
 
-  const chartData = [
-    {
-      name: "Đang trống",
-      value: homeData.availableHomes,
-      color: "#604AE3",
-      icon: Home,
-    },
-    {
-      name: "Đã cho thuê",
-      value: homeData.occupiedHomes,
-      color: "#45C5CD",
-      icon: HomeMinus,
-    }
-  ];
+  const { chartData, config } = pieData;
+  const totalCount = chartData.reduce((sum, item) => sum + (item.count as number || 0), 0);
 
-  const chartConfig: ChartConfig = {
-    "Đang trống": {
-      label: "Đang trống",
-      color: "#604AE3",
-      icon: Home,
-    },
-    "Đã cho thuê": {
-      label: "Đã cho thuê",
-      color: "#45C5CD",
-      icon: HomeMinus,
+  // Map icons to payment methods
+  const getIcon = (method: string) => {
+    switch (method.toLowerCase()) {
+      case 'tiền mặt':
+        return Cash;
+      case 'chuyển khoản':
+        return CreditCard;
+      case 'ví điện tử':
+        return Wallet;
+      default:
+        return CreditCard;
     }
   };
 
   const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, index, value }: any) => {
+  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
     const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
@@ -95,9 +83,9 @@ export default function HomeStats() {
   return (
     <Card className="p-6">
       <div className="mb-4">
-        <h3 className="text-xl font-semibold text-mainTextV1">Tình trạng nhà</h3>
+        <h3 className="text-xl font-semibold text-mainTextV1">Phương thức thanh toán</h3>
         <p className="text-secondaryTextV1">
-          Tổng số: <span className="font-semibold text-primary">{homeData.totalHomes}</span> nhà
+          Tổng số: <span className="font-semibold text-primary">{totalCount}</span> thanh toán
         </p>
       </div>
 
@@ -107,7 +95,7 @@ export default function HomeStats() {
         transition={{ duration: 0.5 }}
         className="h-[300px] w-full"
       >
-        <ChartContainer config={chartConfig} className="h-full w-full">
+        <ChartContainer config={config} className="h-full w-full">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
@@ -118,10 +106,10 @@ export default function HomeStats() {
                 label={renderCustomizedLabel}
                 outerRadius={120}
                 fill="#8884d8"
-                dataKey="value"
+                dataKey="count"
               >
                 {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
               <ChartLegend 
@@ -135,6 +123,21 @@ export default function HomeStats() {
           </ResponsiveContainer>
         </ChartContainer>
       </motion.div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        {chartData.map((item) => {
+          const IconComponent = getIcon(item.method as string);
+          return (
+            <div key={item.method} className="flex items-center justify-between bg-white p-3 rounded-md border border-lightBorderV1">
+              <div className="flex items-center gap-2">
+                <IconComponent size={16} style={{ color: item.fill }} />
+                <span className="text-sm font-medium text-secondaryTextV1">{item.method}</span>
+              </div>
+              <span className="font-semibold" style={{ color: item.fill }}>{item.count}</span>
+            </div>
+          );
+        })}
+      </div>
     </Card>
   );
 } 

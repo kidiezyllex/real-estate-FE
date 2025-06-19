@@ -151,14 +151,14 @@ export const HomeDetailInfo = ({ home }: HomeDetailInfoProps) => {
         ? 'bg-green-50 border-green-200 text-green-700'
         : 'bg-gray-50 border-gray-200 text-gray-500'
       }`}>
-      <div className={isAvailable ? 'text-green-600' : 'text-gray-400'}>
+      <div className={isAvailable ? 'text-green-600' : 'text-gray-500'}>
         {amenity.icon}
       </div>
       <span className="text-sm font-medium">{amenity.label}</span>
       {isAvailable ? (
         <IconCheck className="h-3 w-3 text-green-600 ml-auto" />
       ) : (
-        <IconX className="h-3 w-3 text-gray-400 ml-auto" />
+        <IconX className="h-3 w-3 text-gray-500 ml-auto" />
       )}
     </div>
   );

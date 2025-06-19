@@ -113,8 +113,8 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
     return (
       <Card>
         <CardContent className="p-12 text-center">
-          <IconFileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">Không có dữ liệu</h3>
+          <IconFileText className="h-12 w-12 text-gray-500 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-500 mb-2">Không có dữ liệu</h3>
           <p className="text-gray-500">Không thể tải thông tin hợp đồng</p>
         </CardContent>
       </Card>
@@ -209,37 +209,37 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-3">Thời gian hợp đồng</h4>
+                    <h4 className="font-medium text-gray-500 mb-3">Thời gian hợp đồng</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Ngày bắt đầu:</span>
+                        <span className="text-gray-500">Ngày bắt đầu:</span>
                         <span className="font-medium">{formatDate(contract.dateStar)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Ngày kết thúc:</span>
+                        <span className="text-gray-500">Ngày kết thúc:</span>
                         <span className="font-medium">{calculateEndDate(contract.dateStar, contract.duration)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Chu kỳ thanh toán:</span>
+                        <span className="text-gray-500">Chu kỳ thanh toán:</span>
                         <span className="font-medium">{getPayCycleText(contract.payCycle)}</span>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-3">Thông tin tài chính</h4>
+                    <h4 className="font-medium text-gray-500 mb-3">Thông tin tài chính</h4>
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Giá thuê:</span>
+                        <span className="text-gray-500">Giá thuê:</span>
                         <span className="font-medium">{formatCurrency(contract.renta)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Tiền đặt cọc:</span>
+                        <span className="text-gray-500">Tiền đặt cọc:</span>
                         <span className="font-medium">{formatCurrency(contract.deposit)}</span>
                       </div>
                       <Separator />
                       <div className="flex justify-between font-semibold">
-                        <span className="text-gray-900">Tổng tiền ban đầu:</span>
+                        <span className="text-gray-500">Tổng tiền ban đầu:</span>
                         <span className="text-green-600">{formatCurrency(contract.renta + contract.deposit)}</span>
                       </div>
                     </div>
@@ -260,7 +260,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                         <GenderIcon className="h-5 w-5 text-green-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Họ và tên</p>
+                          <p className="text-sm text-gray-500">Họ và tên</p>
                           <p className="font-medium">{guest.fullname}</p>
                           <p className="text-sm text-gray-500">{getGenderText(guest.gender)}</p>
                         </div>
@@ -269,7 +269,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                         <IconPhone className="h-5 w-5 text-blue-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Số điện thoại</p>
+                          <p className="text-sm text-gray-500">Số điện thoại</p>
                           <p className="font-medium">{guest.phone}</p>
                         </div>
                       </div>
@@ -277,7 +277,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                         <IconMail className="h-5 w-5 text-purple-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Email</p>
+                          <p className="text-sm text-gray-500">Email</p>
                           <p className="font-medium">{guest.email}</p>
                         </div>
                       </div>
@@ -285,37 +285,37 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
 
                     <div className="space-y-4">
                       <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium text-gray-900 mb-3">Thông tin cá nhân</h4>
+                        <h4 className="font-medium text-gray-500 mb-3">Thông tin cá nhân</h4>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">CCCD/CMND:</span>
+                            <span className="text-gray-500">CCCD/CMND:</span>
                             <span className="font-medium">{guest.citizenId}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Ngày cấp:</span>
+                            <span className="text-gray-500">Ngày cấp:</span>
                             <span className="font-medium">{formatDate(guest.citizen_date)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Nơi cấp:</span>
+                            <span className="text-gray-500">Nơi cấp:</span>
                             <span className="font-medium text-sm">{guest.citizen_place}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Ngày sinh:</span>
+                            <span className="text-gray-500">Ngày sinh:</span>
                             <span className="font-medium">{formatDate(guest.birthday)}</span>
                           </div>
                         </div>
                       </div>
 
                       <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium text-gray-900 mb-3">Địa chỉ & Ghi chú</h4>
+                        <h4 className="font-medium text-gray-500 mb-3">Địa chỉ & Ghi chú</h4>
                         <div className="space-y-2">
                           <div>
-                            <span className="text-gray-600 text-sm">Quê quán:</span>
+                            <span className="text-gray-500 text-sm">Quê quán:</span>
                             <p className="font-medium text-sm">{guest.hometown}</p>
                           </div>
                           {guest.note && (
                             <div>
-                              <span className="text-gray-600 text-sm">Ghi chú:</span>
+                              <span className="text-gray-500 text-sm">Ghi chú:</span>
                               <p className="font-medium text-sm">{guest.note}</p>
                             </div>
                           )}
@@ -339,7 +339,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                         <IconBuildingSkyscraper className="h-5 w-5 text-blue-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Tòa nhà</p>
+                          <p className="text-sm text-gray-500">Tòa nhà</p>
                           <p className="font-medium">{home.building}</p>
                           <p className="text-sm text-gray-500">Căn hộ: {home.apartmentNv}</p>
                         </div>
@@ -348,7 +348,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                         <IconMapPin className="h-5 w-5 text-green-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Địa chỉ</p>
+                          <p className="text-sm text-gray-500">Địa chỉ</p>
                           <p className="font-medium">{home.address}</p>
                           <p className="text-sm text-gray-500">{home.ward}, {home.district}</p>
                         </div>
@@ -359,7 +359,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                           <div className="flex items-start gap-3">
                             <IconNote className="h-5 w-5 text-yellow-600 mt-0.5" />
                             <div>
-                              <p className="text-sm text-gray-600">Ghi chú</p>
+                              <p className="text-sm text-gray-500">Ghi chú</p>
                               <p className="font-medium text-sm">{home.note}</p>
                             </div>
                           </div>
@@ -369,7 +369,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
 
                     <div className="space-y-4">
                       <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium text-gray-900 mb-3">Tiện ích căn hộ</h4>
+                        <h4 className="font-medium text-gray-500 mb-3">Tiện ích căn hộ</h4>
                         <div className="grid grid-cols-2 gap-2">
                           {amenities.map((amenity) => (
                             <div key={amenity.key} className="flex items-center gap-2">
@@ -403,7 +403,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-orange-50 rounded-lg">
                         <IconUser className="h-5 w-5 text-orange-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Họ và tên</p>
+                          <p className="text-sm text-gray-500">Họ và tên</p>
                           <p className="font-medium">{homeOwner.fullname}</p>
                         </div>
                       </div>
@@ -411,7 +411,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
                         <IconPhone className="h-5 w-5 text-blue-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Số điện thoại</p>
+                          <p className="text-sm text-gray-500">Số điện thoại</p>
                           <p className="font-medium">{homeOwner.phone}</p>
                         </div>
                       </div>
@@ -419,7 +419,7 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
                       <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                         <IconMail className="h-5 w-5 text-purple-600" />
                         <div>
-                          <p className="text-sm text-gray-600">Email</p>
+                          <p className="text-sm text-gray-500">Email</p>
                           <p className="font-medium">{homeOwner.email}</p>
                         </div>
                       </div>
@@ -427,36 +427,36 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
 
                     <div className="space-y-4">
                       <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium text-gray-900 mb-3">Thông tin ngân hàng</h4>
+                        <h4 className="font-medium text-gray-500 mb-3">Thông tin ngân hàng</h4>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Ngân hàng:</span>
+                            <span className="text-gray-500">Ngân hàng:</span>
                             <span className="font-medium text-sm">{homeOwner.bank}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Tên tài khoản:</span>
+                            <span className="text-gray-500">Tên tài khoản:</span>
                             <span className="font-medium">{homeOwner.bankAccount}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Số tài khoản:</span>
+                            <span className="text-gray-500">Số tài khoản:</span>
                             <span className="font-medium">{homeOwner.bankNumber}</span>
                           </div>
                         </div>
                       </div>
 
                       <div className="p-4 border rounded-lg">
-                        <h4 className="font-medium text-gray-900 mb-3">Thông tin cá nhân</h4>
+                        <h4 className="font-medium text-gray-500 mb-3">Thông tin cá nhân</h4>
                         <div className="space-y-2">
                           <div className="flex justify-between">
-                            <span className="text-gray-600">CCCD/CMND:</span>
+                            <span className="text-gray-500">CCCD/CMND:</span>
                             <span className="font-medium">{homeOwner.citizenId}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Ngày cấp:</span>
+                            <span className="text-gray-500">Ngày cấp:</span>
                             <span className="font-medium">{formatDate(homeOwner.citizen_date)}</span>
                           </div>
                           <div className="flex justify-between">
-                            <span className="text-gray-600">Ngày sinh:</span>
+                            <span className="text-gray-500">Ngày sinh:</span>
                             <span className="font-medium">{formatDate(homeOwner.birthday)}</span>
                           </div>
                         </div>
@@ -464,8 +464,8 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
 
                       {homeOwner.note && (
                         <div className="p-4 bg-gray-50 rounded-lg">
-                          <h4 className="font-medium text-gray-900 mb-2">Ghi chú</h4>
-                          <p className="text-sm text-gray-600">{homeOwner.note}</p>
+                          <h4 className="font-medium text-gray-500 mb-2">Ghi chú</h4>
+                          <p className="text-sm text-gray-500">{homeOwner.note}</p>
                         </div>
                       )}
                     </div>
@@ -482,11 +482,11 @@ export const HomeContractDetailInfo = ({ contractData, isLoading, onRefresh }: H
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Ngày tạo hợp đồng</p>
+                    <p className="text-sm text-gray-500 mb-1">Ngày tạo hợp đồng</p>
                     <p className="font-medium">{formatDateTime(contract.createdAt)}</p>
                   </div>
                   <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-1">Lần cập nhật cuối</p>
+                    <p className="text-sm text-gray-500 mb-1">Lần cập nhật cuối</p>
                     <p className="font-medium">{formatDateTime(contract.updatedAt)}</p>
                   </div>
                 </div>
