@@ -224,11 +224,11 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
         case 0:
           return <Badge variant="destructive">Hợp đồng đã hủy</Badge>;
         case 1:
-          return <Badge className="bg-green-500 hover:bg-green-600 text-white">Đang cho thuê</Badge>;
+          return <Badge className="bg-green-500 hover:bg-green-600 text-white text-nowrap">Đang cho thuê</Badge>;
         case 2:
           return <Badge variant="outline">Hợp đồng hết hạn</Badge>;
         default:
-          return <Badge variant="secondary">Không xác định</Badge>;
+          return <Badge className="bg-gray-500 hover:bg-gray-600 text-white text-nowrap">Không xác định</Badge>;
       }
     }
     return <Badge className="bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap">Chưa cho thuê</Badge>;
@@ -648,7 +648,7 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
       case 2:
         return <Badge variant="outline">Hết hạn</Badge>;
       default:
-        return <Badge variant="secondary">Không xác định</Badge>;
+        return <Badge className="bg-gray-500 hover:bg-gray-600 text-white text-nowrap">Không xác định</Badge>;
     }
   };
 
@@ -1256,7 +1256,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
         <DialogContent className="sm:max-w-md bg-white">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
-              <IconAlertTriangle className="h-5 w-5 mr-2" />
               Xác nhận xóa căn hộ
             </DialogTitle>
             <DialogDescription className="text-secondaryTextV1 pt-2">

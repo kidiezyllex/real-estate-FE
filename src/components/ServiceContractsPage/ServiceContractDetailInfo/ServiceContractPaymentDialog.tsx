@@ -7,12 +7,9 @@ import {
   IconPlus, 
   IconEdit, 
   IconTrash, 
-  IconCheck, 
-  IconX,
-  IconCalendar,
-  IconCurrencyDollar,
   IconAlertTriangle,
-  IconWand
+  IconWand,
+  IconCurrencyDollar
 } from '@tabler/icons-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -402,10 +399,9 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent size="medium" className="bg-white border-lightBorderV1 max-h-[90vh] overflow-y-auto">
+      <DialogContent size="medium" className="bg-white border-lightBorderV1 max-h-[90vh] h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <IconCreditCard className="h-5 w-5" />
             Quản lý thanh toán - {serviceName}
           </DialogTitle>
         </DialogHeader>
@@ -534,7 +530,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
           <TabsContent value="generate" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Tạo các đợt thanh toán tự động</CardTitle>
+              Tạo các đợt thanh toán tự động
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-sm text-gray-500 space-y-2">
@@ -578,7 +574,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
           }
           setIsCreatePaymentDialogOpen(open);
         }}>
-          <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
+          <DialogContent className="sm:max-w-md bg-white border-lightBorderV1 max-h-[90vh] h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Thêm đợt thanh toán</DialogTitle>
             </DialogHeader>
@@ -676,7 +672,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
         {/* Edit Payment Dialog */}
         <Dialog open={isEditPaymentDialogOpen} onOpenChange={setIsEditPaymentDialogOpen}>
-          <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
+          <DialogContent className="sm:max-w-md bg-white border-lightBorderV1 max-h-[90vh] h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Cập nhật đợt thanh toán</DialogTitle>
             </DialogHeader>
@@ -739,10 +735,9 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
         {/* Delete Payment Dialog */}
         <Dialog open={isDeletePaymentDialogOpen} onOpenChange={setIsDeletePaymentDialogOpen}>
-          <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
+          <DialogContent className="bg-white border-lightBorderV1 max-h-[90vh] h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-red-600">
-                <IconTrash className="h-5 w-5" />
                 Xác nhận xóa đợt thanh toán
               </DialogTitle>
             </DialogHeader>

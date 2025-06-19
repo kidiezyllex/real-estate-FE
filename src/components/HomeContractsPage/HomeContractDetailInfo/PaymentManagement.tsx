@@ -576,7 +576,6 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
         <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconTrash className="h-5 w-5 text-red-500" />
               Xác nhận xóa đợt thanh toán
             </DialogTitle>
           </DialogHeader>

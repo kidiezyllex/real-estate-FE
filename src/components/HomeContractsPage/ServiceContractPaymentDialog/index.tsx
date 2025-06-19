@@ -548,7 +548,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
                     <li>• Sẽ tạo các đợt thanh toán theo chu kỳ đã định</li>
                     <li>• Ngày đến hạn sẽ được tính từ ngày bắt đầu hợp đồng</li>
                     <li>• Số tiền mỗi đợt sẽ bằng giá dịch vụ trong hợp đồng</li>
-                    <li>• Tất cả đợt thanh toán sẽ có trạng thái "Chưa thanh toán"</li>
+                    <li>• Tất cả đợt thanh toán sẽ có trạng thái &quot;Chưa thanh toán&quot;</li>
                   </ul>
                 </div>
 
@@ -739,7 +739,6 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
           <DialogContent className="sm:max-w-md bg-white border-lightBorderV1">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-red-600">
-                <IconTrash className="h-5 w-5" />
                 Xác nhận xóa đợt thanh toán
               </DialogTitle>
             </DialogHeader>

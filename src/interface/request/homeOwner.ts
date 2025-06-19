@@ -38,6 +38,7 @@ export interface IUpdateHomeOwnerBody {
   address?: string;
   bankAccount?: string;
   bankName?: string;
+  bank?: string;
 }
 
 export interface IDeleteHomeOwnerParams {

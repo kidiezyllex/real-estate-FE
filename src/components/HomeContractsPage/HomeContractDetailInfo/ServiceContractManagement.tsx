@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useGetServiceContractsByHomeContract, useCreateServiceContract, useUpdateServiceContract, useDeleteServiceContract } from '@/hooks/useServiceContract';
 import { useGetServices } from '@/hooks/useService';
 import { toast } from 'react-toastify';
-import ServiceContractPaymentDialog from '../../ServiceContractPaymentDialog';
+import ServiceContractPaymentDialog from '../../ServiceContractsPage/ServiceContractDetailInfo/ServiceContractPaymentDialog';
 
 interface ServiceContractManagementProps {
   homeContractId: string;
@@ -692,7 +692,6 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
         <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconTrash className="h-5 w-5 text-red-500" />
               Xác nhận xóa hợp đồng dịch vụ
             </DialogTitle>
           </DialogHeader>

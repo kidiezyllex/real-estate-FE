@@ -592,18 +592,11 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                 {isEditing ? (
                   <form onSubmit={handleUpdate} className="p-6 space-y-6">
                     {/* Avatar Upload */}
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Ảnh đại diện</Label>
-                      <div className="flex items-center gap-4">
-                        {formData.avatarUrl && (
-                          <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white ">
-                            <img
-                              src={formData.avatarUrl}
-                              alt="Avatar"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        )}
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-secondaryTextV1">Ảnh đại diện</Label>
+                      </div>
+                      <div className="space-y-4">
                         <div>
                           <input
                             type="file"
@@ -613,12 +606,43 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
                             id="avatar-upload"
                           />
                           <Label htmlFor="avatar-upload" className="cursor-pointer">
-                            <div className="flex items-center gap-2 px-4 py-2 border border-lightBorderV1 rounded-sm hover:bg-gray-50">
-                              <IconUpload className="h-4 w-4" />
-                              Tải ảnh lên
+                            <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-lightBorderV1 rounded-lg hover:border-mainTextHoverV1 hover:bg-blue-50/50 transition-all duration-200 group">
+                              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors duration-200">
+                                <IconUpload className="h-5 w-5 text-blue-600" />
+                              </div>
+                              <div className="text-center">
+                                <div className="text-sm font-medium text-mainTextV1 group-hover:text-mainTextHoverV1">
+                                  Tải ảnh đại diện lên
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Chọn ảnh (tối đa 10MB)
+                                </div>
+                              </div>
                             </div>
                           </Label>
                         </div>
+
+                        {/* Avatar Preview */}
+                        {formData.avatarUrl && (
+                          <div className="grid grid-cols-1 gap-4">
+                            <div className="relative group">
+                              <div className="w-32 h-32 border border-lightBorderV1 rounded-lg overflow-hidden mx-auto">
+                                <img
+                                  src={formData.avatarUrl}
+                                  alt="Ảnh đại diện"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setFormData(prev => ({ ...prev, avatarUrl: "" }))}
+                                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <IconX className="h-3 w-3" />
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -993,7 +1017,6 @@ export const GuestDetailsDialog = ({ isOpen, onClose, guestId, onSuccess }: Gues
         <DialogContent className="bg-white max-h-[90vh] h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
-              <IconAlertTriangle className="h-5 w-5 mr-2" />
               Xác nhận xóa khách hàng
             </DialogTitle>
             <DialogDescription className="text-secondaryTextV1 pt-2">

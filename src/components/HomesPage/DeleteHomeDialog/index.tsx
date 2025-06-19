@@ -68,11 +68,10 @@ const DeleteHomeDialog = ({ homeId, homeName, onSuccess, trigger }: DeleteHomeDi
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center text-mainDangerV1">
-            <IconAlertTriangle className="h-5 w-5 mr-2" />
             Xác nhận xóa căn hộ
           </DialogTitle>
           <DialogDescription className="text-secondaryTextV1 pt-2">
-            Bạn có chắc chắn muốn xóa căn hộ <span className="font-medium text-mainTextV1">"{homeName}"</span>? 
+            Bạn có chắc chắn muốn xóa căn hộ <span className="font-medium text-mainTextV1">&quot;{homeName}&quot;</span>? 
             Hành động này không thể hoàn tác.
           </DialogDescription>
         </DialogHeader>

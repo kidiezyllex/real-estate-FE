@@ -30,7 +30,6 @@ export const ServiceContractDeleteDialog = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
-            <IconAlertTriangle className="h-5 w-5 mr-2" />
             Xác nhận xóa hợp đồng dịch vụ
           </DialogTitle>
           <DialogDescription className="text-secondaryTextV1 pt-2">

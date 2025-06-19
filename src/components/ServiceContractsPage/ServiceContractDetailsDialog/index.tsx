@@ -408,7 +408,7 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
                   </form>
                 ) : (
                   contractData?.data && <div className="p-4 bg-[#F9F9FC]">
-                    <ServiceContractDetailInfo contract={contractData.data} />
+                    <ServiceContractDetailInfo contract={contractData.data as any} />
                   </div>
                 )}
               </Card>
@@ -422,7 +422,6 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
-              <IconAlertTriangle className="h-5 w-5 mr-2" />
               Xác nhận xóa hợp đồng dịch vụ
             </DialogTitle>
             <DialogDescription className="text-secondaryTextV1 pt-2">

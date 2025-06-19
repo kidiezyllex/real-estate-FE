@@ -23,7 +23,6 @@ const ServiceDeleteDialog = ({ isOpen, onClose, onConfirm, isDeleting }: Service
       <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-            <IconTrash className="h-5 w-5 text-red-500" />
             Xác nhận xóa dịch vụ
           </DialogTitle>
         </DialogHeader>
