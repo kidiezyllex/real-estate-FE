@@ -20,7 +20,7 @@ export interface IHomeOwner {
 export interface IHome {
   _id: string;
   address: string;
-  province: string;
+  province?: string;
   district: string;
   ward: string;
   building: string;
@@ -34,6 +34,7 @@ export interface IHome {
   active: boolean;
   note: string;
   images: string[];
+  price?: number;
 
   // Amenities
   hasBathroom?: boolean;
@@ -155,9 +156,7 @@ export interface IHomeSearchResponse {
 export interface IHomeListByOwnerResponse {
   statusCode: number;
   message: string;
-  data: {
-    homes: IHomeAvailable[];
-  };
+  data: IHome[];
 }
 
 export interface IHomeDetailResponse {

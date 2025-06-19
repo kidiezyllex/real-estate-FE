@@ -93,8 +93,8 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
 
   useEffect(() => {
     if (selectionMode === "owner-first" && selectedHomeId) {
-      const homes = homesByOwnerData?.data?.homes || [];
-      const selectedHome = homes.find(home => home._id === selectedHomeId);
+      const homes = Array.isArray(homesByOwnerData?.data) ? homesByOwnerData.data : [];
+      const selectedHome = homes.find((home: any) => home._id === selectedHomeId);
       if (selectedHome) {
         setFormData(prev => ({
           ...prev,
@@ -291,15 +291,22 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
 
   // Get available homes based on selection mode
   const getAvailableHomes = () => {
+    let homes: any[] = [];
+    
     if (selectionMode === "owner-first") {
-      return homesByOwnerData?.data?.homes || [];
+      // Handle the API response structure - data is directly an array of homes
+      if (homesByOwnerData?.data) {
+        homes = Array.isArray(homesByOwnerData.data) ? homesByOwnerData.data : [];
+      }
     } else {
       // Handle different data structures for useGetHomes - following HomesPage pattern
       if (allHomesData?.data) {
-        return Array.isArray(allHomesData.data) ? allHomesData.data : allHomesData.data?.homes || [];
+        homes = Array.isArray(allHomesData.data) ? allHomesData.data : allHomesData.data?.homes || [];
       }
-      return [];
     }
+    
+    // Filter out homes that already have active contracts
+    return homes.filter((home: any) => !home.homeContract || home.homeContract.status !== 1);
   };
 
   // Get available owners data - try both patterns
@@ -326,7 +333,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
   const getSelectedHomeOwnerName = () => {
     if (selectionMode === "home-first" && selectedHomeId && allHomesData?.data) {
       const homes = Array.isArray(allHomesData.data) ? allHomesData.data : allHomesData.data?.homes || [];
-      const selectedHome = homes.find(home => home._id === selectedHomeId);
+      const selectedHome = homes.find((home: any) => home._id === selectedHomeId);
       // Handle different homeOwnerId structures
       if (selectedHome?.homeOwnerId) {
         if (typeof selectedHome.homeOwnerId === 'string') {
@@ -338,7 +345,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
       return "Không xác định";
     }
     if (selectionMode === "owner-first" && selectedHomeOwnerId && getAvailableOwners().length > 0) {
-      const selectedOwner = getAvailableOwners().find(owner => owner._id === selectedHomeOwnerId);
+      const selectedOwner = getAvailableOwners().find((owner: any) => owner._id === selectedHomeOwnerId);
       return selectedOwner?.fullname || "Không xác định";
     }
     return "";
@@ -579,9 +586,10 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                           {selectedHomeId && getAvailableHomes().length > 0 && (() => {
                             const selectedHome = getAvailableHomes().find(home => home._id === selectedHomeId);
                             if (selectedHome) {
-                              const homeName = selectedHome.name || selectedHome.address || 'Nhà không có tên';
+                              const homeName = selectedHome.building || selectedHome.name || 'Nhà không có tên';
+                              const homeApartment = selectedHome.apartmentNv ? ` - ${selectedHome.apartmentNv}` : '';
                               const homeAddress = selectedHome.address || 'Không có địa chỉ';
-                              return `${homeName} (${homeAddress})`;
+                              return `${homeName}${homeApartment} (${homeAddress})`;
                             }
                             return "Chọn nhà";
                           })()}
@@ -617,7 +625,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <div className="font-medium text-gray-500 truncate">
-                                      {home.building || 'Nhà không có tên'}
+                                      {home.building || 'Nhà không có tên'}{home.apartmentNv ? ` - ${home.apartmentNv}` : ''}
                                     </div>
                                     <div className="flex items-center justify-between text-sm text-mainTextV1">
                                       <div className="flex items-center">
