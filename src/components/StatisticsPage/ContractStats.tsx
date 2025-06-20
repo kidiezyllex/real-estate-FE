@@ -1,17 +1,14 @@
 "use client";
 
 import { useGetContractStatistics } from "@/hooks/useStatistics";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  PieChart, 
-  Pie, 
-  Cell, 
-  ResponsiveContainer,
+import {
+  PieChart,
+  Pie
 } from "recharts";
-import { ChartConfig, ChartContainer, ChartLegend, ChartLegendContent } from "@/components/ui/chart";
-import { ClipboardCheck, ClipboardX, Home, Tool } from "tabler-icons-react";
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 
 export default function ContractStats() {
   const { data, isLoading, error } = useGetContractStatistics();
@@ -37,23 +34,31 @@ export default function ContractStats() {
     );
   }
 
-  const contractData = data?.data?.statistics;
-  
+  // Handle the actual data structure from API - could be direct or nested
+  const apiResponse = data as any;
+  const contractData = apiResponse?.data || apiResponse;
+
   if (!contractData) {
-    return null;
+    return (
+      <Card className="p-6">
+        <div className="text-gray-500 p-4">
+          Không có dữ liệu hợp đồng
+        </div>
+      </Card>
+    );
   }
 
   // Biểu đồ loại hợp đồng
   const contractTypeData = [
     {
       name: "Hợp đồng nhà",
-      value: contractData.homeContracts,
-      color: "#604AE3"
+      value: contractData.homeContracts || 0,
+      fill: "var(--color-home)"
     },
     {
       name: "Hợp đồng dịch vụ",
-      value: contractData.serviceContracts,
-      color: "#45C5CD"
+      value: contractData.serviceContracts || 0,
+      fill: "var(--color-service)"
     }
   ];
 
@@ -61,139 +66,118 @@ export default function ContractStats() {
   const contractStatusData = [
     {
       name: "Đang hoạt động",
-      value: contractData.activeContracts,
-      color: "#5CC184"
+      value: (contractData.activeHomeContracts || 0) + (contractData.activeServiceContracts || 0),
+      fill: "var(--color-active)"
     },
     {
       name: "Đã hết hạn",
-      value: contractData.expiredContracts,
-      color: "#F0934E"
+      value: (contractData.totalContracts || 0) - ((contractData.activeHomeContracts || 0) + (contractData.activeServiceContracts || 0)),
+      fill: "var(--color-expired)"
     }
   ];
 
-  const typeChartConfig: ChartConfig = {
-    "Hợp đồng nhà": {
+  const typeChartConfig = {
+    value: {
+      label: "Số lượng",
+    },
+    home: {
       label: "Hợp đồng nhà",
       color: "#604AE3",
-      icon: Home
     },
-    "Hợp đồng dịch vụ": {
+    service: {
       label: "Hợp đồng dịch vụ",
       color: "#45C5CD",
-      icon: Tool
     }
-  };
+  } satisfies ChartConfig;
 
-  const statusChartConfig: ChartConfig = {
-    "Đang hoạt động": {
+  const statusChartConfig = {
+    value: {
+      label: "Số lượng",
+    },
+    active: {
       label: "Đang hoạt động",
       color: "#5CC184",
-      icon: ClipboardCheck
     },
-    "Đã hết hạn": {
+    expired: {
       label: "Đã hết hạn",
       color: "#F0934E",
-      icon: ClipboardX
     }
-  };
+  } satisfies ChartConfig;
 
-  const RADIAN = Math.PI / 180;
-  const renderCustomizedLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }: any) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-    return (
-      <text 
-        x={x} 
-        y={y} 
-        fill="white" 
-        textAnchor="middle" 
-        dominantBaseline="central"
-        className="font-medium text-[12px]"
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
+  const totalContracts = contractData.totalContracts || 0;
 
   return (
     <Card className="p-6">
       <div className="mb-4">
         <h3 className="text-xl font-semibold text-mainTextV1">Thống kê hợp đồng</h3>
         <p className="text-secondaryTextV1">
-          Tổng số: <span className="font-semibold text-primary">{contractData.totalContracts}</span> hợp đồng
+          Tổng số: <span className="font-semibold text-primary">{totalContracts}</span> hợp đồng
         </p>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
-        className="grid grid-cols-1 md:grid-cols-2 gap-4 h-[300px] w-full"
-      >
-        <div className="h-full">
-          <h4 className="text-md font-medium text-center mb-2 text-secondaryTextV1">Loại hợp đồng</h4>
-          <ChartContainer config={typeChartConfig} className="h-[calc(100%-30px)] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={contractTypeData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {contractTypeData.map((entry, index) => (
-                    <Cell key={`cell-type-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <ChartLegend 
-                  content={
-                    <ChartLegendContent 
-                      itemType="circle" 
-                    />
-                  } 
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
+      {totalContracts > 0 ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col gap-4"
+        >
+          {/* Contract Types Chart */}
+          <Card className="flex flex-col">
+            <CardHeader className="flex items-center justify-between">
+              Loại hợp đồng
+              <p className="text-secondaryTextV1 text-xs">Phân bố theo loại hợp đồng</p>
+            </CardHeader>
+            <CardContent className="flex-1 pb-0">
+              <ChartContainer
+                config={typeChartConfig}
+                className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[250px] pb-0"
+              >
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                  <Pie
+                    data={contractTypeData}
+                    dataKey="value"
+                    label
+                    nameKey="name"
+                  />
+                </PieChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
 
-        <div className="h-full">
-          <h4 className="text-md font-medium text-center mb-2 text-secondaryTextV1">Tình trạng hợp đồng</h4>
-          <ChartContainer config={statusChartConfig} className="h-[calc(100%-30px)] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={contractStatusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={renderCustomizedLabel}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {contractStatusData.map((entry, index) => (
-                    <Cell key={`cell-status-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <ChartLegend 
-                  content={
-                    <ChartLegendContent 
-                      itemType="circle" 
-                    />
-                  } 
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {/* Contract Status Chart */}
+          <Card className="flex flex-col">
+            <CardHeader className="flex items-center justify-between">
+              Tình trạng hợp đồng
+              <p className="text-secondaryTextV1 text-xs">Phân bố theo tình trạng</p>
+            </CardHeader>
+            <CardContent className="flex-1 pb-0">
+              <ChartContainer
+                config={statusChartConfig}
+                className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[250px] pb-0"
+              >
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                  <Pie
+                    data={contractStatusData}
+                    dataKey="value"
+                    label
+                    nameKey="name"
+                  />
+                </PieChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ) : (
+        <div className="h-[300px] flex items-center justify-center text-gray-500">
+          <div className="text-center">
+            <p className="text-lg mb-2">Chưa có dữ liệu hợp đồng</p>
+            <p className="text-sm">Biểu đồ sẽ hiển thị khi có dữ liệu</p>
+          </div>
         </div>
-      </motion.div>
+      )}
     </Card>
   );
 } 

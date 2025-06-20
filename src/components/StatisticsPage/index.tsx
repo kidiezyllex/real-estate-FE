@@ -13,6 +13,8 @@ import EnhancedRevenueChart from "./EnhancedRevenueChart";
 import ContractsComparisonChart from "./ContractsComparisonChart";
 import PaymentMethodsPieChart from "./PaymentMethodsPieChart";
 import RevenueTrendChart from "./RevenueTrendChart";
+import HomesRentalStatusPieChart from "./HomesRentalStatusPieChart";
+import PaymentsMonthlyChart from "./PaymentsMonthlyChart";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -69,21 +71,12 @@ export default function StatisticsPage() {
 				animate="show"
 			>
 				<motion.div variants={item}>
-					<h1 className="text-3xl font-semibold mb-8 text-mainTextV1">Dashboard</h1>
+					<h1 className="text-3xl font-semibold mb-8 text-mainTextV1">Bảng điều khiển</h1>
 				</motion.div>
 
 				<motion.div variants={item}>
 					<StatCards />
 				</motion.div>
-
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					<motion.div variants={item}>
-						<RevenueChart />
-					</motion.div>
-					<motion.div variants={item}>
-						<HomeStats />
-					</motion.div>
-				</div>
 
 				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 					<motion.div variants={item}>
@@ -102,16 +95,6 @@ export default function StatisticsPage() {
 						<ContractsComparisonChart />
 					</motion.div>
 				</div>
-
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-					<motion.div variants={item}>
-						<PaymentMethodsPieChart />
-					</motion.div>
-					<motion.div variants={item}>
-						<DuePayments />
-					</motion.div>
-				</div>
-
 				<div className="grid grid-cols-1 gap-8">
 					<motion.div variants={item}>
 						<RevenueTrendChart />

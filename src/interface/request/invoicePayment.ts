@@ -66,6 +66,20 @@ export interface IGenerateInvoicePaymentForHomeContractParams {
   homeContractId: string;
 }
 
+export interface IGenerateInvoicePaymentForHomeContractBody {
+  startDate?: string;
+  endDate?: string;
+  paymentCycle?: number;
+  amount?: number;
+}
+
 export interface IGenerateInvoicePaymentForServiceContractParams {
   serviceContractId: string;
+}
+
+export interface IGenerateInvoicePaymentForServiceContractBody {
+  startDate?: string;
+  endDate?: string;
+  paymentCycle?: number;
+  amount?: number;
 } 

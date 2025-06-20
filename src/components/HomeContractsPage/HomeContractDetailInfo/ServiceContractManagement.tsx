@@ -563,10 +563,9 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
 
       {/* Edit Service Contract Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+        <DialogContent size='medium' className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white border-lightBorderV1">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-mainTextV1">
-              <IconEdit className="h-5 w-5" />
               Cập nhật hợp đồng dịch vụ
             </DialogTitle>
           </DialogHeader>

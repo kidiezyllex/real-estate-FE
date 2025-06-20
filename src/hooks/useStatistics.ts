@@ -16,7 +16,9 @@ import {
   getContractsDistributionPieChart,
   getPaymentMethodsPieChart,
   getRevenueSourcesPieChart,
-  getDashboardOverview
+  getDashboardOverview,
+  getHomesRentalStatusPieChart,
+  getPaymentsMonthlyChart
 } from '@/api/statistics';
 import {
   IGeneralStatisticsResponse,
@@ -28,7 +30,9 @@ import {
   IBarChartResponse,
   ILineChartResponse,
   IPieChartResponse,
-  IDashboardOverviewResponse
+  IDashboardOverviewResponse,
+  IHomesRentalStatusPieResponse,
+  IPaymentsMonthlyResponse
 } from '@/interface/response/statistics';
 import { 
   IGetRevenueStatisticsParams, 
@@ -165,5 +169,22 @@ export const useGetDashboardOverview = (params: IGetDashboardOverviewParams = {}
   return useQuery<IDashboardOverviewResponse, Error>({
     queryKey: ['statistics', 'dashboard', 'overview', year],
     queryFn: () => getDashboardOverview(params),
+  });
+};
+
+// Homes Rental Status Pie Chart Hook
+export const useGetHomesRentalStatusPieChart = () => {
+  return useQuery<IHomesRentalStatusPieResponse, Error>({
+    queryKey: ['statistics', 'charts', 'pie', 'homes-rental-status'],
+    queryFn: getHomesRentalStatusPieChart,
+  });
+};
+
+// Payments Monthly Line Chart Hook
+export const useGetPaymentsMonthlyChart = (params: IGetChartParams) => {
+  return useQuery<IPaymentsMonthlyResponse, Error>({
+    queryKey: ['statistics', 'charts', 'line', 'payments-monthly', params.year],
+    queryFn: () => getPaymentsMonthlyChart(params),
+    enabled: !!params.year,
   });
 }; 

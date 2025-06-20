@@ -46,17 +46,6 @@ export default function EnhancedRevenueChart() {
       </Card>
     );
   }
-
-  if (!data?.data?.chartData) {
-    return (
-      <Card className="p-6">
-        <div className="text-mainDangerV1 p-4 bg-red-50 rounded-md">
-          Chưa có dữ liệu doanh thu cho năm này.
-        </div>
-      </Card>
-    );
-  }
-
   const { chartData, config } = data.data;
   const totalRevenue = chartData.reduce((sum, item) => sum + (item.revenue as number || 0), 0);
 

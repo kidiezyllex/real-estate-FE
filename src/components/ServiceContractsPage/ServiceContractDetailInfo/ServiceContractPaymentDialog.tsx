@@ -198,6 +198,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
   const handleCreatePayment = (e: React.FormEvent) => {
     e.preventDefault();
+    toast.info('Đang xử lý yêu cầu tạo đợt thanh toán...');
     
     if (!formData.amount || formData.amount <= 0) {
       toast.error('Vui lòng nhập số tiền hợp lệ');
@@ -232,22 +233,23 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
         totalReceive: formData.amount,
         datePaymentExpec: formData.dueDate,
         statusPaym: formData.status,
-        type: 3, // 3: Service payment
+        type: 2, // 2: Service payment (changed from 3 to 2)
         note: formData.note
       },
       {
         onSuccess: (data) => {
-          if (data.statusCode === 201) {
-            toast.success('Tạo đợt thanh toán thành công');
+          if (data?.statusCode === 201 || data?.statusCode === 200) {
+            toast.success(data.message || 'Tạo đợt thanh toán thành công');
             refetch();
             setIsCreatePaymentDialogOpen(false);
             resetForm();
             onRefresh?.();
           } else {
-            toast.error(data.message || 'Tạo đợt thanh toán thất bại');
+            toast.error(data?.message || 'Tạo đợt thanh toán thất bại');
           }
         },
         onError: (error: any) => {
+          console.error('Create payment error:', error);
           const errorMessage = error?.response?.data?.message || error.message || 'Đã xảy ra lỗi khi tạo đợt thanh toán';
           toast.error(errorMessage);
         }
@@ -364,21 +366,48 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
   };
 
   const handleGeneratePayments = () => {
+    console.log('handleGeneratePayments called');
+    console.log('serviceContract:', serviceContract);
+    toast.info('Đang xử lý yêu cầu tạo các đợt thanh toán tự động...');
+    
     if (!serviceContract) return;
 
+    // Calculate contract dates and payment info
+    const contractStart = new Date(serviceContract.dateStar || serviceContract.signDate);
+    const contractEndMonths = serviceContract.duration || 12;
+    const contractEnd = new Date(contractStart);
+    contractEnd.setMonth(contractEnd.getMonth() + contractEndMonths);
+
     generatePaymentsMutation(
-      { serviceContractId: serviceContract._id },
+      {
+        params: { serviceContractId: serviceContract._id },
+        body: {
+          startDate: contractStart.toISOString().split('T')[0],
+          endDate: contractEnd.toISOString().split('T')[0],
+          paymentCycle: serviceContract.payCycle || 1,
+          amount: serviceContract.price || serviceContract.unitCost || 0
+        }
+      },
       {
         onSuccess: (data) => {
-          if (data.statusCode === 201) {
-            toast.success('Tạo các đợt thanh toán tự động thành công');
+          console.log('Generate payments success:', data);
+          // Always show the response message
+          if (data?.statusCode === 201 || data?.statusCode === 200) {
+            // Show success message with the count of generated payments
+            const generatedCount = data.data?.length || 0;
+            if (generatedCount > 0) {
+              toast.success(`${data.message || 'Tạo các đợt thanh toán tự động thành công'} (${generatedCount} đợt thanh toán)`);
+            } else {
+              toast.warning(data.message || 'Không có đợt thanh toán nào được tạo. Có thể đã tồn tại đầy đủ các đợt thanh toán.');
+            }
             refetch();
             onRefresh?.();
           } else {
-            toast.error(data.message || 'Tạo các đợt thanh toán tự động thất bại');
+            toast.error(data?.message || 'Tạo các đợt thanh toán tự động thất bại');
           }
         },
         onError: (error: any) => {
+          console.error('Generate payments error:', error);
           const errorMessage = error?.response?.data?.message || error.message || 'Đã xảy ra lỗi khi tạo các đợt thanh toán tự động';
           toast.error(errorMessage);
         }
@@ -414,7 +443,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
           <TabsContent value="list" className="space-y-4">
             <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
+              <div className="text-gray-500">
                 <p>Hợp đồng: {serviceName}</p>
                 <p>Giá: {formatCurrency(serviceContract.price || serviceContract.unitCost)} / {serviceContract.payCycle} tháng</p>
               </div>
@@ -553,7 +582,10 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
                 <div className="flex gap-3">
                   <Button 
-                    onClick={handleGeneratePayments}
+                    onClick={(e) => {
+                      console.log('Generate payments button clicked');
+                      handleGeneratePayments();
+                    }}
                     disabled={isGenerating}
                     className="flex-1"
                   >
@@ -574,11 +606,11 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
           }
           setIsCreatePaymentDialogOpen(open);
         }}>
-          <DialogContent className="sm:max-w-md bg-white border-lightBorderV1 max-h-[90vh] h-[90vh] overflow-y-auto">
+          <DialogContent size='medium' className="max-h-[90vh] h-[90vh] overflow-y-auto bg-white border-lightBorderV1">
             <DialogHeader>
               <DialogTitle>Thêm đợt thanh toán</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleCreatePayment} className="space-y-4">
+            <form onSubmit={handleCreatePayment} className="space-y-4" noValidate>
               <div className="space-y-2">
                 <Label htmlFor="amount">Số tiền <span className="text-red-500">*</span></Label>
                 <div className="relative">
@@ -662,7 +694,14 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
                 <Button type="button" variant="outline" onClick={() => setIsCreatePaymentDialogOpen(false)} disabled={isCreating}>
                   Hủy
                 </Button>
-                <Button type="submit" disabled={isCreating}>
+                <Button 
+                  type="submit" 
+                  disabled={isCreating}
+                  onClick={(e) => {
+                    console.log('Submit button clicked');
+                    // Let the form handle the submission
+                  }}
+                >
                   {isCreating ? 'Đang tạo...' : 'Tạo đợt thanh toán'}
                 </Button>
               </div>

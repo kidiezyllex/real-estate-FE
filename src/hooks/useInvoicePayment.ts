@@ -36,7 +36,9 @@ import {
   IUpdateInvoicePaymentStatusBody,
   IDeleteInvoicePaymentParams,
   IGenerateInvoicePaymentForHomeContractParams,
-  IGenerateInvoicePaymentForServiceContractParams
+  IGenerateInvoicePaymentForServiceContractParams,
+  IGenerateInvoicePaymentForHomeContractBody,
+  IGenerateInvoicePaymentForServiceContractBody
 } from '@/interface/request/invoicePayment';
 
 export const useGetInvoicePayments = () => {
@@ -118,13 +120,13 @@ export const useDeleteInvoicePayment = () => {
 };
 
 export const useGenerateInvoicePaymentForHomeContract = () => {
-  return useMutation<IInvoicePaymentGenerateResponse, Error, IGenerateInvoicePaymentForHomeContractParams>({
-    mutationFn: generateInvoicePaymentForHomeContract,
+  return useMutation<IInvoicePaymentGenerateResponse, Error, { params: IGenerateInvoicePaymentForHomeContractParams, body: IGenerateInvoicePaymentForHomeContractBody }>({
+    mutationFn: ({ params, body }) => generateInvoicePaymentForHomeContract(params, body),
   });
 };
 
 export const useGenerateInvoicePaymentForServiceContract = () => {
-  return useMutation<IInvoicePaymentGenerateResponse, Error, IGenerateInvoicePaymentForServiceContractParams>({
-    mutationFn: generateInvoicePaymentForServiceContract,
+  return useMutation<IInvoicePaymentGenerateResponse, Error, { params: IGenerateInvoicePaymentForServiceContractParams, body: IGenerateInvoicePaymentForServiceContractBody }>({
+    mutationFn: ({ params, body }) => generateInvoicePaymentForServiceContract(params, body),
   });
 }; 

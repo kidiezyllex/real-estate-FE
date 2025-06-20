@@ -21,7 +21,9 @@ import {
   IUpdateInvoicePaymentStatusBody,
   IDeleteInvoicePaymentParams,
   IGenerateInvoicePaymentForHomeContractParams,
-  IGenerateInvoicePaymentForServiceContractParams
+  IGenerateInvoicePaymentForServiceContractParams,
+  IGenerateInvoicePaymentForHomeContractBody,
+  IGenerateInvoicePaymentForServiceContractBody
 } from '@/interface/request/invoicePayment';
 
 export const getInvoicePayments = async (): Promise<IInvoicePaymentListResponse> => {
@@ -79,12 +81,12 @@ export const deleteInvoicePayment = async (params: IDeleteInvoicePaymentParams):
   return res;
 };
 
-export const generateInvoicePaymentForHomeContract = async (params: IGenerateInvoicePaymentForHomeContractParams): Promise<IInvoicePaymentGenerateResponse> => {
-  const res = await sendPost(`/invoice-payments/generate/home-contract/${params.homeContractId}`);
+export const generateInvoicePaymentForHomeContract = async (params: IGenerateInvoicePaymentForHomeContractParams, body: IGenerateInvoicePaymentForHomeContractBody): Promise<IInvoicePaymentGenerateResponse> => {
+  const res = await sendPost(`/invoice-payments/generate/home-contract/${params.homeContractId}`, body);
   return res;
 };
 
-export const generateInvoicePaymentForServiceContract = async (params: IGenerateInvoicePaymentForServiceContractParams): Promise<IInvoicePaymentGenerateResponse> => {
-  const res = await sendPost(`/invoice-payments/generate/service-contract/${params.serviceContractId}`);
+export const generateInvoicePaymentForServiceContract = async (params: IGenerateInvoicePaymentForServiceContractParams, body: IGenerateInvoicePaymentForServiceContractBody): Promise<IInvoicePaymentGenerateResponse> => {
+  const res = await sendPost(`/invoice-payments/generate/service-contract/${params.serviceContractId}`, body);
   return res;
 }; 

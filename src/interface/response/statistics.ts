@@ -206,4 +206,46 @@ export interface IDashboardOverviewResponse {
       };
     };
   };
+}
+
+// Homes Rental Status Pie Chart Interface
+export interface IHomesRentalStatusData {
+  label: string;
+  value: number;
+  percentage: number;
+  color: string;
+}
+
+export interface IHomesRentalStatusPieResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    totalHomes: number;
+    chartData: IHomesRentalStatusData[];
+  };
+}
+
+// Payments Monthly Line Chart Interface
+export interface IPaymentsMonthlyData {
+  month: number;
+  monthName: string;
+  totalPayments: number;
+  paidPayments: number;
+  unpaidPayments: number;
+  totalAmount: number;
+}
+
+export interface IPaymentsMonthlyResponse {
+  statusCode: number;
+  message: string;
+  data: {
+    year: number;
+    chartData: IPaymentsMonthlyData[];
+    summary: {
+      totalPaymentsYear: number;
+      totalPaidYear: number;
+      totalUnpaidYear: number;
+      totalAmountYear: number;
+    };
+  };
 } 

@@ -9,7 +9,9 @@ import {
   IBarChartResponse,
   ILineChartResponse,
   IPieChartResponse,
-  IDashboardOverviewResponse
+  IDashboardOverviewResponse,
+  IHomesRentalStatusPieResponse,
+  IPaymentsMonthlyResponse
 } from "@/interface/response/statistics";
 import { 
   IGetRevenueStatisticsParams, 
@@ -104,5 +106,18 @@ export const getRevenueSourcesPieChart = async (params: IGetChartParams): Promis
 export const getDashboardOverview = async (params: IGetDashboardOverviewParams): Promise<IDashboardOverviewResponse> => {
   const year = params.year || new Date().getFullYear();
   const res = await sendGet(`/statistics/dashboard/overview?year=${year}`);
+  return res;
+};
+
+// Homes Rental Status Pie Chart API
+export const getHomesRentalStatusPieChart = async (): Promise<IHomesRentalStatusPieResponse> => {
+  const res = await sendGet(`/statistics/charts/pie/homes-rental-status`);
+  return res;
+};
+
+// Payments Monthly Line Chart API
+export const getPaymentsMonthlyChart = async (params: IGetChartParams): Promise<IPaymentsMonthlyResponse> => {
+  const year = params.year || new Date().getFullYear();
+  const res = await sendGet(`/statistics/charts/line/payments-monthly?year=${year}`);
   return res;
 }; 

@@ -73,7 +73,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
   const getPaymentTypeText = (type: number) => {
     switch (type) {
-      case 1: return { text: "Tiền thuê", color: "bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-400 text-nowrap" };
+      case 1: return { text: "Tiền thuê nhà", color: "bg-blue-500 hover:bg-blue-600 text-white border-2 border-blue-400 text-nowrap" };
       case 2: return { text: "Tiền cọc", color: "bg-purple-500 hover:bg-purple-600 text-white border-2 border-purple-400 text-nowrap" };
       case 3: return { text: "Phí dịch vụ", color: "bg-orange-500 hover:bg-orange-600 text-white border-2 border-orange-400 text-nowrap" };
       default: return { text: "Khác", color: "bg-gray-500 hover:bg-gray-600 text-white border-2 border-gray-400 text-nowrap" };
@@ -173,7 +173,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
         totalReceive: formData.amount,
         datePaymentExpec: formData.dueDate,
         statusPaym: formData.status,
-        type: 1, // 1: Tiền thuê
+        type: 1, // 1: Tiền thuê nhà
         note: formData.note
       },
       {
