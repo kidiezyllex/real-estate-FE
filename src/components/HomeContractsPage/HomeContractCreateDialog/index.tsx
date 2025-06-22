@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { DatePicker } from "@/components/ui/date-picker";
+
 import {
   Select,
   SelectContent,
@@ -66,6 +66,33 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
   const [depositSuggestions, setDepositSuggestions] = useState<number[]>([]);
   const [showPriceSuggestions, setShowPriceSuggestions] = useState(false);
   const [showDepositSuggestions, setShowDepositSuggestions] = useState(false);
+
+  // Date input state for display (dd/MM/yyyy format)
+  const [dateStarInput, setDateStarInput] = useState("");
+
+  // Date format validation function
+  const isValidDateFormat = (dateString: string): boolean => {
+    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!dateRegex.test(dateString)) return false;
+    
+    const [, day, month, year] = dateString.match(dateRegex)!;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    
+    return (
+      date.getDate() === parseInt(day) &&
+      date.getMonth() === parseInt(month) - 1 &&
+      date.getFullYear() === parseInt(year)
+    );
+  };
+
+  // Convert dd/MM/yyyy to ISO string
+  const convertToISOString = (dateString: string): string => {
+    if (!dateString || !isValidDateFormat(dateString)) return "";
+    
+    const [day, month, year] = dateString.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toISOString();
+  };
 
   // Hooks for data fetching
   const { data: homeOwnersData, isLoading: isLoadingHomeOwners, error: homeOwnersError } = useGetHomeOwners();
@@ -132,6 +159,7 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     setDepositSuggestions([]);
     setShowPriceSuggestions(false);
     setShowDepositSuggestions(false);
+    setDateStarInput("");
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -166,12 +194,44 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     return fieldNames[fieldName] || fieldName;
   };
 
-  const handleDateChange = (name: string, date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, [name]: date.toISOString() }));
-      if (errors[name]) {
-        setErrors((prev) => ({ ...prev, [name]: "" }));
-      }
+  const handleDateInputChange = (field: 'dateStar', value: string) => {
+    // Update display value
+    setDateStarInput(value);
+
+    // Clear previous error
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    // Validate and convert to ISO if valid
+    if (value.trim() === "") {
+      // Empty value is allowed
+      setFormData((prev) => ({ ...prev, [field]: "" }));
+    } else if (isValidDateFormat(value)) {
+      // Valid format, convert to ISO
+      const isoString = convertToISOString(value);
+      setFormData((prev) => ({ ...prev, [field]: isoString }));
+    } else if (value.length === 10) {
+      // Full length but invalid format, show error
+      setErrors((prev) => ({ 
+        ...prev, 
+        [field]: "Định dạng ngày không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy" 
+      }));
+    }
+  };
+
+  const handleTodayClick = () => {
+    const today = new Date();
+    const day = today.getDate().toString().padStart(2, '0');
+    const month = (today.getMonth() + 1).toString().padStart(2, '0');
+    const year = today.getFullYear().toString();
+    const todayString = `${day}/${month}/${year}`;
+    
+    setDateStarInput(todayString);
+    setFormData((prev) => ({ ...prev, dateStar: today.toISOString() }));
+    
+    if (errors.dateStar) {
+      setErrors((prev) => ({ ...prev, dateStar: "" }));
     }
   };
 
@@ -211,6 +271,12 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
     }
     if (!formData.dateStar) {
       newErrors.dateStar = "Vui lòng chọn ngày bắt đầu";
+      hasErrors = true;
+    }
+    
+    // Validate date format
+    if (dateStarInput && !isValidDateFormat(dateStarInput)) {
+      newErrors.dateStar = "Định dạng ngày bắt đầu không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
       hasErrors = true;
     }
     if (formData.duration <= 0) {
@@ -749,19 +815,24 @@ export const HomeContractCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCon
                       Ngày bắt đầu <span className="text-mainDangerV1">*</span>
                     </Label>
                     <div className="flex items-center space-x-2">
-                      <DatePicker
-                        date={formData.dateStar ? new Date(formData.dateStar) : undefined}
-                        onDateChange={(date) => handleDateChange("dateStar", date)}
-                        placeholder="Chọn ngày bắt đầu"
+                      <Input
+                        id="dateStar"
+                        value={dateStarInput}
+                        onChange={(e) => handleDateInputChange('dateStar', e.target.value)}
+                        placeholder="dd/MM/yyyy"
+                        className={`border-lightBorderV1 ${errors.dateStar ? "border-mainDangerV1" : ""}`}
+                        maxLength={10}
                       />
                       <Button
+                        type="button"
                         variant="outline"
-                        onClick={() => handleDateChange("dateStar", new Date())}
+                        onClick={handleTodayClick}
                         className="flex-shrink-0"
                       >
                         Chọn hôm nay
                       </Button>
                     </div>
+                    <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/2024)</p>
                     {errors.dateStar && (
                       <p className="text-sm text-mainDangerV1">{errors.dateStar}</p>
                     )}

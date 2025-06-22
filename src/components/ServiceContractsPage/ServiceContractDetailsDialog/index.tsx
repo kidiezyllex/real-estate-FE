@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
 import { ServiceContractDetailInfo } from "@/components/ServiceContractsPage/ServiceContractDetailInfo";
 import { toast } from "react-toastify";
 import { motion } from "framer-motion";
@@ -35,8 +34,8 @@ interface ServiceContractDetailsDialogProps {
 interface ServiceContractFormData {
   serviceId?: string;
   guestId?: string;
-  startDate?: string;
-  endDate?: string;
+  dateStar?: string;
+  dateEnd?: string;
   price?: number;
   status?: number;
   note?: string;
@@ -48,43 +47,77 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
   const [formData, setFormData] = useState<ServiceContractFormData>({
     serviceId: "",
     guestId: "",
-    startDate: "",
-    endDate: "",
+    dateStar: "",
+    dateEnd: "",
     price: 0,
     status: 1,
     note: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Date input states for display (dd/MM/yyyy format)
+  const [startDateInput, setStartDateInput] = useState("");
+  const [endDateInput, setEndDateInput] = useState("");
+
+  // Date format validation function
+  const isValidDateFormat = (dateString: string): boolean => {
+    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!dateRegex.test(dateString)) return false;
+    
+    const [, day, month, year] = dateString.match(dateRegex)!;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    
+    return (
+      date.getDate() === parseInt(day) &&
+      date.getMonth() === parseInt(month) - 1 &&
+      date.getFullYear() === parseInt(year)
+    );
+  };
+
+  // Convert dd/MM/yyyy to ISO string
+  const convertToISOString = (dateString: string): string => {
+    if (!dateString || !isValidDateFormat(dateString)) return "";
+    
+    const [day, month, year] = dateString.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toISOString();
+  };
+
+  // Convert ISO string to dd/MM/yyyy
+  const convertFromISOString = (isoString: string): string => {
+    if (!isoString) return "";
+    
+    const date = new Date(isoString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString();
+    
+    return `${day}/${month}/${year}`;
+  };
+
   const { data: contractData, isLoading, error, refetch } = useGetServiceContractDetail({ 
     id: contractId 
   });
   
-  // Using a placeholder for update mutation
-  const isUpdating = false; // Will be replaced when the hook is available
-  
+  const isUpdating = false;
   const { mutate: deleteContractMutation, isPending: isDeleting } = useDeleteServiceContract();
 
   useEffect(() => {
-    if (error) {
-      toast.error("Không thể tải thông tin hợp đồng");
-      onClose();
-    }
-  }, [error, onClose]);
-
-  useEffect(() => {
-    if (contractData?.data) {
-      const contract = contractData.data;
+    if (contractData?.data?.contract) {
+      const contract = contractData.data.contract;
       // Update this mapping according to your actual service contract structure
       setFormData({
         serviceId: typeof contract.serviceId === 'object' ? contract.serviceId._id : contract.serviceId,
         guestId: typeof contract.guestId === 'object' ? contract.guestId._id : contract.guestId,
-        startDate: contract.startDate,
-        endDate: contract.endDate,
+        dateStar: contract.dateStar,
+        dateEnd: contract.dateEnd,
         price: contract.price,
         status: contract.status,
-        note: contract.note,
       });
+
+      // Set date input values
+      setStartDateInput(contract.dateStar ? convertFromISOString(contract.dateStar) : "");
+      setEndDateInput(contract.dateEnd ? convertFromISOString(contract.dateEnd) : "");
     }
   }, [contractData]);
 
@@ -104,22 +137,79 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
     }
   };
 
-  const handleDateChange = (name: string, date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, [name]: date.toISOString() }));
-      if (errors[name]) {
-        setErrors((prev) => ({ ...prev, [name]: "" }));
-      }
+  const handleDateInputChange = (field: 'dateStar' | 'dateEnd', value: string) => {
+    // Update display value
+    if (field === 'dateStar') {
+      setStartDateInput(value);
+    } else {
+      setEndDateInput(value);
+    }
+
+    // Clear previous error
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    // Validate and convert to ISO if valid
+    if (value.trim() === "") {
+      // Empty value is allowed
+      setFormData((prev) => ({ ...prev, [field]: "" }));
+    } else if (isValidDateFormat(value)) {
+      // Valid format, convert to ISO
+      const isoString = convertToISOString(value);
+      setFormData((prev) => ({ ...prev, [field]: isoString }));
+    } else if (value.length === 10) {
+      // Full length but invalid format, show error
+      setErrors((prev) => ({ 
+        ...prev, 
+        [field]: "Định dạng ngày không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy" 
+      }));
     }
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.serviceId) newErrors.serviceId = "Dịch vụ không được để trống";
-    if (!formData.guestId) newErrors.guestId = "Khách hàng không được để trống";
-    if (!formData.startDate) newErrors.startDate = "Ngày bắt đầu không được để trống";
-    if (!formData.endDate) newErrors.endDate = "Ngày kết thúc không được để trống";
-    if (!formData.price || formData.price <= 0) newErrors.price = "Giá dịch vụ phải lớn hơn 0";
+    
+    if (!formData.serviceId) {
+      newErrors.serviceId = "Dịch vụ không được để trống";
+      toast.error("Vui lòng chọn dịch vụ");
+    }
+    if (!formData.guestId) {
+      newErrors.guestId = "Khách hàng không được để trống";
+      toast.error("Vui lòng chọn khách hàng");
+    }
+    if (!formData.dateStar) {
+      newErrors.dateStar = "Ngày bắt đầu không được để trống";
+      toast.error("Vui lòng nhập ngày bắt đầu");
+    }
+    if (!formData.dateEnd) {
+      newErrors.dateEnd = "Ngày kết thúc không được để trống";
+      toast.error("Vui lòng nhập ngày kết thúc");
+    }
+    if (!formData.price || formData.price <= 0) {
+      newErrors.price = "Giá dịch vụ phải lớn hơn 0";
+      toast.error("Giá dịch vụ phải lớn hơn 0");
+    }
+
+    // Validate date formats
+    if (startDateInput && !isValidDateFormat(startDateInput)) {
+      newErrors.dateStar = "Định dạng ngày bắt đầu không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày bắt đầu không hợp lệ");
+    }
+    if (endDateInput && !isValidDateFormat(endDateInput)) {
+      newErrors.dateEnd = "Định dạng ngày kết thúc không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày kết thúc không hợp lệ");
+    }
+
+    // Validate date range
+    if (formData.dateStar && formData.dateEnd) {
+      const startDate = new Date(formData.dateStar);
+      const endDate = new Date(formData.dateEnd);
+      if (endDate <= startDate) {
+        newErrors.dateEnd = "Ngày kết thúc phải sau ngày bắt đầu";
+        toast.error("Ngày kết thúc phải sau ngày bắt đầu");
+      }
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -133,17 +223,20 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
     setIsEditing(false);
     setErrors({});
     // Reset form data to original values
-    if (contractData?.data) {
-      const contract = contractData.data;
+    if (contractData?.data?.contract) {
+      const contract = contractData.data.contract;
       setFormData({
         serviceId: typeof contract.serviceId === 'object' ? contract.serviceId._id : contract.serviceId,
         guestId: typeof contract.guestId === 'object' ? contract.guestId._id : contract.guestId,
-        startDate: contract.startDate,
-        endDate: contract.endDate,
+        dateStar: contract.dateStar,
+        dateEnd: contract.dateEnd,
         price: contract.price,
         status: contract.status,
-        note: contract.note,
       });
+
+      // Reset date input values
+      setStartDateInput(contract.dateStar ? convertFromISOString(contract.dateStar) : "");
+      setEndDateInput(contract.dateEnd ? convertFromISOString(contract.dateEnd) : "");
     }
   };
 
@@ -185,50 +278,35 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
   const handleClose = () => {
     setIsEditing(false);
     setErrors({});
+    setStartDateInput("");
+    setEndDateInput("");
     onClose();
   };
 
   // Get service and guest names for display
   const getServiceName = () => {
-    if (!contractData?.data) return "";
-    const contract = contractData.data;
+    if (!contractData?.data?.contract) return "";
+    const contract = contractData.data.contract;
     return typeof contract.serviceId === 'object' ? contract.serviceId.name : "Unknown Service";
   };
 
   const getGuestName = () => {
-    if (!contractData?.data) return "";
-    const contract = contractData.data;
+    if (!contractData?.data?.contract) return "";
+    const contract = contractData.data.contract;
     return typeof contract.guestId === 'object' ? contract.guestId.fullname : "Unknown Guest";
   };
 
   if (isLoading) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
           <DialogHeader>
-            <DialogTitle  >
-              Chi tiết hợp đồng dịch vụ
-            </DialogTitle>
+            <DialogTitle>Thông tin hợp đồng dịch vụ</DialogTitle>
           </DialogHeader>
-          
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-8 w-64" />
-              <div className="flex gap-4">
-                <Skeleton className="h-10 w-24" />
-                <Skeleton className="h-10 w-24" />
-              </div>
-            </div>
-            <Card className="p-6">
-              <div className="space-y-4">
-                {[...Array(6)].map((_, index) => (
-                  <div key={index} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Skeleton className="h-6 w-full" />
-                    <Skeleton className="h-6 w-full" />
-                  </div>
-                ))}
-              </div>
-            </Card>
+            <Skeleton className="h-4 w-[250px]" />
+            <Skeleton className="h-4 w-[200px]" />
+            <Skeleton className="h-4 w-[300px]" />
           </div>
         </DialogContent>
       </Dialog>
@@ -238,216 +316,190 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
   return (
     <>
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle  >
-              {isEditing ? "Chỉnh sửa thông tin hợp đồng dịch vụ" : "Chi tiết hợp đồng dịch vụ"}
-            </DialogTitle>
+        <DialogContent size="medium" className="max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader className="flex flex-row items-center justify-between">
+            <DialogTitle>Thông tin hợp đồng dịch vụ</DialogTitle>
+            <div className="flex flex-row items-center justify-between gap-4">
+              <div className="flex w-full items-center justify-end gap-4">
+                {!isEditing ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleDelete}
+                    >
+                      <IconTrash className="h-4 w-4" />
+                      Xóa
+                    </Button>
+                    <Button
+                      variant="default"
+                      onClick={handleEdit}
+                    >
+                      <IconPencil className="h-4 w-4" />
+                      Chỉnh sửa
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={handleCancelEdit}
+                      disabled={isUpdating}
+                    >
+                      <IconX className="h-4 w-4" />
+                      Hủy
+                    </Button>
+                    <Button
+                      onClick={handleUpdate}
+                      disabled={isUpdating}
+                      className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
+                    >
+                      {isUpdating ? (
+                        <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
+                      ) : (
+                        <IconCheck className="h-4 w-4" />
+                      )}
+                      Cập nhật
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
           </DialogHeader>
-          
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex w-full items-center justify-end gap-4">
-                  {!isEditing ? (
+
+          {isEditing ? (
+            <form onSubmit={handleUpdate} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="serviceId">Dịch vụ</Label>
+                  <Input
+                    id="serviceId"
+                    value={getServiceName()}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="guestId">Khách hàng</Label>
+                  <Input
+                    id="guestId"
+                    value={getGuestName()}
+                    readOnly
+                    className="bg-gray-50"
+                  />
+                </div>
+                                 <div className="space-y-2">
+                   <Label htmlFor="dateStar">Ngày bắt đầu</Label>
+                   <Input
+                     id="dateStar"
+                     value={startDateInput}
+                     onChange={(e) => handleDateInputChange('dateStar', e.target.value)}
+                     placeholder="dd/MM/yyyy"
+                     className={`${errors.dateStar ? "border-red-500" : ""}`}
+                     maxLength={10}
+                   />
+                   {errors.dateStar && (
+                     <p className="text-sm text-red-500">{errors.dateStar}</p>
+                   )}
+                   <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/2024)</p>
+                 </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="dateEnd">Ngày kết thúc</Label>
+                   <Input
+                     id="dateEnd"
+                     value={endDateInput}
+                     onChange={(e) => handleDateInputChange('dateEnd', e.target.value)}
+                     placeholder="dd/MM/yyyy"
+                     className={`${errors.dateEnd ? "border-red-500" : ""}`}
+                     maxLength={10}
+                   />
+                   {errors.dateEnd && (
+                     <p className="text-sm text-red-500">{errors.dateEnd}</p>
+                   )}
+                   <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 30/03/2024)</p>
+                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="price">Giá dịch vụ</Label>
+                  <Input
+                    id="price"
+                    name="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={handleChange}
+                    placeholder="Nhập giá dịch vụ"
+                    className={errors.price ? "border-red-500" : ""}
+                  />
+                  {errors.price && <p className="text-sm text-red-500">{errors.price}</p>}
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Trạng thái</Label>
+                  <Select
+                    value={formData.status?.toString()}
+                    onValueChange={(value) => handleSelectChange('status', value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Đang thực hiện</SelectItem>
+                      <SelectItem value="2">Hoàn thành</SelectItem>
+                      <SelectItem value="3">Đã hủy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="note">Ghi chú</Label>
+                <Textarea
+                  id="note"
+                  name="note"
+                  value={formData.note}
+                  onChange={handleChange}
+                  placeholder="Nhập ghi chú"
+                  rows={3}
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={handleCancelEdit}>
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? (
                     <>
-                      <Button
-                        variant="outline"
-                        onClick={handleDelete}
-                      >
-                        <IconTrash className="h-4 w-4" />
-                        Xóa
-                      </Button>
-                      <Button
-                        variant="default"
-                        onClick={handleEdit}
-                      >
-                        <IconPencil className="h-4 w-4" />
-                        Chỉnh sửa
-                      </Button>
+                      <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Đang cập nhật...
                     </>
                   ) : (
                     <>
-                      <Button
-                        variant="outline"
-                        onClick={handleCancelEdit}
-                        disabled={isUpdating}
-                      >
-                        <IconX className="h-4 w-4" />
-                        Hủy
-                      </Button>
-                      <Button
-                        onClick={handleUpdate}
-                        disabled={isUpdating}
-                        className="bg-mainTextHoverV1 hover:bg-primary/90 text-white"
-                      >
-                        {isUpdating ? (
-                          <IconLoader2 className="h-4 w-4 animate-spin mr-2" />
-                        ) : (
-                          <IconCheck className="h-4 w-4" />
-                        )}
-                        Cập nhật
-                      </Button>
+                      <IconCheck className="mr-2 h-4 w-4" />
+                      Lưu thay đổi
                     </>
                   )}
-                </div>
-              </div>
-
-              <Card className="  border border-lightBorderV1">
-                {isEditing ? (
-                  <form onSubmit={handleUpdate} className="p-6 space-y-6">
-                    {/* Edit form fields */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="serviceName" className="text-secondaryTextV1">
-                          Tên dịch vụ <span className="text-mainDangerV1">*</span>
-                        </Label>
-                        <Input
-                          id="serviceName"
-                          value={getServiceName()}
-                          readOnly
-                          className="border-lightBorderV1 bg-gray-50"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="guestName" className="text-secondaryTextV1">
-                          Tên khách hàng <span className="text-mainDangerV1">*</span>
-                        </Label>
-                        <Input
-                          id="guestName"
-                          value={getGuestName()}
-                          readOnly
-                          className="border-lightBorderV1 bg-gray-50"
-                        />
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="startDate" className="text-secondaryTextV1">
-                          Ngày bắt đầu <span className="text-mainDangerV1">*</span>
-                        </Label>
-                        <DatePicker
-                          date={formData.startDate ? new Date(formData.startDate) : undefined}
-                          onDateChange={(date) => handleDateChange("startDate", date)}
-                          placeholder="Chọn ngày bắt đầu"
-                        />
-                        {errors.startDate && (
-                          <p className="text-sm text-mainDangerV1">{errors.startDate}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="endDate" className="text-secondaryTextV1">
-                          Ngày kết thúc <span className="text-mainDangerV1">*</span>
-                        </Label>
-                        <DatePicker
-                          date={formData.endDate ? new Date(formData.endDate) : undefined}
-                          onDateChange={(date) => handleDateChange("endDate", date)}
-                          placeholder="Chọn ngày kết thúc"
-                        />
-                        {errors.endDate && (
-                          <p className="text-sm text-mainDangerV1">{errors.endDate}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="price" className="text-secondaryTextV1">
-                          Giá dịch vụ <span className="text-mainDangerV1">*</span>
-                        </Label>
-                        <Input
-                          id="price"
-                          name="price"
-                          type="number"
-                          value={formData.price}
-                          onChange={handleChange}
-                          placeholder="Nhập giá dịch vụ"
-                          className={`border-lightBorderV1 ${errors.price ? "border-mainDangerV1" : ""}`}
-                        />
-                        {errors.price && (
-                          <p className="text-sm text-mainDangerV1">{errors.price}</p>
-                        )}
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label htmlFor="status" className="text-secondaryTextV1">
-                          Trạng thái
-                        </Label>
-                        <Select
-                          value={String(formData.status)}
-                          onValueChange={(value) => handleSelectChange("status", value)}
-                        >
-                          <SelectTrigger className="border-lightBorderV1">
-                            <SelectValue placeholder="Chọn trạng thái" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="0">Đã hủy</SelectItem>
-                            <SelectItem value="1">Đang hoạt động</SelectItem>
-                            <SelectItem value="2">Đã hết hạn</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="note" className="text-secondaryTextV1">
-                        Ghi chú
-                      </Label>
-                      <Textarea
-                        id="note"
-                        name="note"
-                        value={formData.note}
-                        onChange={handleChange}
-                        placeholder="Nhập ghi chú"
-                        className="border-lightBorderV1 min-h-[120px]"
-                      />
-                    </div>
-                  </form>
-                ) : (
-                  contractData?.data && <div className="p-4 bg-[#F9F9FC]">
-                    <ServiceContractDetailInfo contract={contractData.data as any} />
-                  </div>
-                )}
-              </Card>
-            </div>
-          </motion.div>
+                </Button>
+              </DialogFooter>
+            </form>
+                     ) : (
+             <>
+               {contractData?.data && (
+                 <ServiceContractDetailInfo contractData={contractData.data} isLoading={false} />
+               )}
+             </>
+           )}
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => !open && setIsDeleteDialogOpen(false)}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="flex items-center text-red-600">
-              Xác nhận xóa hợp đồng dịch vụ
-            </DialogTitle>
-            <DialogDescription className="text-secondaryTextV1 pt-2">
+            <DialogTitle>Xác nhận xóa</DialogTitle>
+            <DialogDescription>
               Bạn có chắc chắn muốn xóa hợp đồng dịch vụ này? Hành động này không thể hoàn tác.
             </DialogDescription>
           </DialogHeader>
-
-          <div className="bg-red-50 p-4 my-4 rounded-sm border border-red-200">
-            <p className="text-mainTextV1 text-sm">
-              Khi xóa hợp đồng dịch vụ, tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn khỏi hệ thống và không thể khôi phục.
-            </p>
-          </div>
-
-          <DialogFooter className="flex flex-row justify-end gap-2 sm:gap-0">
-            <DialogClose asChild>
-              <Button type="button" variant="outline" disabled={isDeleting} className="text-secondaryTextV1">
-                Hủy
-              </Button>
-            </DialogClose>
-
-            <Button
-              type="button"
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-              disabled={isDeleting}
-            >
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={isDeleting}>
               {isDeleting ? (
                 <>
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -465,4 +517,4 @@ export const ServiceContractDetailsDialog = ({ isOpen, onClose, contractId, onSu
       </Dialog>
     </>
   );
-}; 
+};

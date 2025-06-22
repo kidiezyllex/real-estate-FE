@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
 import { HomeOwnerDetailInfo } from "@/components/HomeOwnerPage/HomeOwnerDetailInfo";
 import { IUpdateHomeOwnerBody } from "@/interface/request/homeOwner";
 import { IHomeOwnerDetailResponse } from "@/interface/response/homeOwner";
@@ -44,25 +43,56 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
     citizen_date: "",
     citizen_place: "",
     birthday: "",
-    bank: "",
     bankAccount: "",
-    bankNumber: "",
-    note: "",
+    bankName: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Date input states for display (dd/MM/yyyy format)
+  const [citizenDateInput, setCitizenDateInput] = useState("");
+  const [birthdayInput, setBirthdayInput] = useState("");
+
+  // Date format validation function
+  const isValidDateFormat = (dateString: string): boolean => {
+    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!dateRegex.test(dateString)) return false;
+    
+    const [, day, month, year] = dateString.match(dateRegex)!;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    
+    return (
+      date.getDate() === parseInt(day) &&
+      date.getMonth() === parseInt(month) - 1 &&
+      date.getFullYear() === parseInt(year)
+    );
+  };
+
+  // Convert dd/MM/yyyy to ISO string
+  const convertToISOString = (dateString: string): string => {
+    if (!dateString || !isValidDateFormat(dateString)) return "";
+    
+    const [day, month, year] = dateString.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toISOString();
+  };
+
+  // Convert ISO string to dd/MM/yyyy
+  const convertFromISOString = (isoString: string): string => {
+    if (!isoString) return "";
+    
+    const date = new Date(isoString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString();
+    
+    return `${day}/${month}/${year}`;
+  };
 
   const { data: ownerData, isLoading, error, refetch } = useGetHomeOwnerDetail({ 
     id: ownerId 
   });
   const { mutate: updateOwnerMutation, isPending: isUpdating } = useUpdateHomeOwner();
   const { mutate: deleteOwnerMutation, isPending: isDeleting } = useDeleteHomeOwner();
-  useEffect(() => {
-    if (error) {
-      toast.error("Không thể tải thông tin chủ nhà");
-      onClose();
-    }
-  }, [error, onClose]);
-
   useEffect(() => {
     if (ownerData?.data?.owner) {
       const owner = ownerData.data.owner;
@@ -74,11 +104,13 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
         citizen_date: owner.citizen_date || "",
         citizen_place: owner.citizen_place || "",
         birthday: owner.birthday || "",
-        bank: owner.bank || "",
         bankAccount: owner.bankAccount || "",
-        bankNumber: owner.bankNumber || "",
-        note: owner.note || "",
+        bankName: owner.bankName || "",
       });
+
+      // Set date input values
+      setCitizenDateInput(owner.citizen_date ? convertFromISOString(owner.citizen_date) : "");
+      setBirthdayInput(owner.birthday ? convertFromISOString(owner.birthday) : "");
     }
   }, [ownerData]);
 
@@ -90,24 +122,62 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
     }
   };
 
-  const handleDateChange = (name: string, date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, [name]: date.toISOString() }));
-      if (errors[name]) {
-        setErrors((prev) => ({ ...prev, [name]: "" }));
-      }
+  const handleDateInputChange = (field: 'citizen_date' | 'birthday', value: string) => {
+    // Update display value
+    if (field === 'citizen_date') {
+      setCitizenDateInput(value);
+    } else {
+      setBirthdayInput(value);
+    }
+
+    // Clear previous error
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    // Validate and convert to ISO if valid
+    if (value.trim() === "") {
+      // Empty value is allowed
+      setFormData((prev) => ({ ...prev, [field]: "" }));
+    } else if (isValidDateFormat(value)) {
+      // Valid format, convert to ISO
+      const isoString = convertToISOString(value);
+      setFormData((prev) => ({ ...prev, [field]: isoString }));
+    } else if (value.length === 10) {
+      // Full length but invalid format, show error
+      setErrors((prev) => ({ 
+        ...prev, 
+        [field]: "Định dạng ngày không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy" 
+      }));
     }
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.phone?.trim()) newErrors.phone = "Số điện thoại không được để trống";
+    
+    if (!formData.phone?.trim()) {
+      newErrors.phone = "Số điện thoại không được để trống";
+      toast.error("Vui lòng nhập số điện thoại");
+    }
     if (formData.phone && !/^(0|\+84)[3|5|7|8|9][0-9]{8}$/.test(formData.phone)) {
       newErrors.phone = "Số điện thoại không hợp lệ";
+      toast.error("Số điện thoại không đúng định dạng");
     }
     if (formData.email && !/^\S+@\S+\.\S+$/.test(formData.email)) {
       newErrors.email = "Email không hợp lệ";
+      toast.error("Email không đúng định dạng");
     }
+
+    // Validate date formats
+    if (citizenDateInput && !isValidDateFormat(citizenDateInput)) {
+      newErrors.citizen_date = "Định dạng ngày cấp không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày cấp không hợp lệ");
+    }
+    if (birthdayInput && !isValidDateFormat(birthdayInput)) {
+      newErrors.birthday = "Định dạng ngày sinh không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày sinh không hợp lệ");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -130,11 +200,13 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
         citizen_date: owner.citizen_date || "",
         citizen_place: owner.citizen_place || "",
         birthday: owner.birthday || "",
-        bank: owner.bank || "",
         bankAccount: owner.bankAccount || "",
-        bankNumber: owner.bankNumber || "",
-        note: owner.note || "",
+        bankName: owner.bankName || "",
       });
+
+      // Reset date input values
+      setCitizenDateInput(owner.citizen_date ? convertFromISOString(owner.citizen_date) : "");
+      setBirthdayInput(owner.birthday ? convertFromISOString(owner.birthday) : "");
     }
   };
 
@@ -194,6 +266,8 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
   const handleClose = () => {
     setIsEditing(false);
     setErrors({});
+    setCitizenDateInput("");
+    setBirthdayInput("");
     onClose();
   };
 
@@ -316,10 +390,18 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="citizen_date">Ngày cấp</Label>
-                  <DatePicker
-                    date={formData.citizen_date ? new Date(formData.citizen_date) : undefined}
-                    onDateChange={(date) => handleDateChange("citizen_date", date)}
+                  <Input
+                    id="citizen_date"
+                    value={citizenDateInput}
+                    onChange={(e) => handleDateInputChange('citizen_date', e.target.value)}
+                    placeholder="dd/MM/yyyy"
+                    className={`${errors.citizen_date ? "border-red-500" : ""}`}
+                    maxLength={10}
                   />
+                  {errors.citizen_date && (
+                    <p className="text-sm text-red-500">{errors.citizen_date}</p>
+                  )}
+                  <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/2020)</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="citizen_place">Nơi cấp</Label>
@@ -333,21 +415,20 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="birthday">Ngày sinh</Label>
-                  <DatePicker
-                    date={formData.birthday ? new Date(formData.birthday) : undefined}
-                    onDateChange={(date) => handleDateChange("birthday", date)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="bank">Tên ngân hàng</Label>
                   <Input
-                    id="bank"
-                    name="bank"
-                    value={formData.bank}
-                    onChange={handleChange}
-                    placeholder="Nhập tên ngân hàng"
+                    id="birthday"
+                    value={birthdayInput}
+                    onChange={(e) => handleDateInputChange('birthday', e.target.value)}
+                    placeholder="dd/MM/yyyy"
+                    className={`${errors.birthday ? "border-red-500" : ""}`}
+                    maxLength={10}
                   />
+                  {errors.birthday && (
+                    <p className="text-sm text-red-500">{errors.birthday}</p>
+                  )}
+                  <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/1990)</p>
                 </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="bankAccount">Số tài khoản</Label>
                   <Input
@@ -359,26 +440,15 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="bankNumber">Số thẻ</Label>
+                  <Label htmlFor="bankName">Tên ngân hàng</Label>
                   <Input
-                    id="bankNumber"
-                    name="bankNumber"
-                    value={formData.bankNumber}
+                    id="bankName"
+                    name="bankName"
+                    value={formData.bankName}
                     onChange={handleChange}
-                    placeholder="Nhập số thẻ"
+                    placeholder="Nhập tên ngân hàng"
                   />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="note">Ghi chú</Label>
-                <Textarea
-                  id="note"
-                  name="note"
-                  value={formData.note}
-                  onChange={handleChange}
-                  placeholder="Nhập ghi chú"
-                  rows={3}
-                />
               </div>
               <DialogFooter>
                 <Button type="button" variant="outline" onClick={handleCancelEdit}>
@@ -410,7 +480,7 @@ export const HomeOwnerDetailsDialog = ({ isOpen, onClose, ownerId, onSuccess }: 
       </Dialog>
 
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent size="small" className="bg-white max-w-[400px]">
+        <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Xác nhận xóa</DialogTitle>
             <DialogDescription>

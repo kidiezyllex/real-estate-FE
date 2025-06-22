@@ -7,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { DatePicker } from "@/components/ui/date-picker";
 import { useCreateGuest } from "@/hooks/useGuest";
+import { useUploadFile } from "@/hooks/useUpload";
 import { ICreateGuestBody } from "@/interface/request/guest";
+import { IUploadResponse } from "@/interface/response/upload";
 import { toast } from "react-toastify"
 import { IconLoader2, IconUpload, IconX } from "@tabler/icons-react";
 import { motion } from 'framer-motion';
@@ -60,6 +61,10 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Date input states for display (dd/MM/yyyy format)
+  const [citizenDateInput, setCitizenDateInput] = useState("");
+  const [birthdayInput, setBirthdayInput] = useState("");
+
   // Address selection states
   const [provinces, setProvinces] = useState<Province[]>([]);
   const [districts, setDistricts] = useState<District[]>([]);
@@ -72,7 +77,47 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
   const [loadingDistricts, setLoadingDistricts] = useState(false);
   const [loadingWards, setLoadingWards] = useState(false);
 
+  // Avatar upload state
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
   const { mutate: createGuestMutation, isPending } = useCreateGuest();
+  const { mutate: uploadFileMutation } = useUploadFile();
+
+  // Date format validation function
+  const isValidDateFormat = (dateString: string): boolean => {
+    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!dateRegex.test(dateString)) return false;
+    
+    const [, day, month, year] = dateString.match(dateRegex)!;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    
+    return (
+      date.getDate() === parseInt(day) &&
+      date.getMonth() === parseInt(month) - 1 &&
+      date.getFullYear() === parseInt(year)
+    );
+  };
+
+  // Convert dd/MM/yyyy to ISO string
+  const convertToISOString = (dateString: string): string => {
+    if (!dateString || !isValidDateFormat(dateString)) return "";
+    
+    const [day, month, year] = dateString.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toISOString();
+  };
+
+  // Convert ISO string to dd/MM/yyyy
+  const convertFromISOString = (isoString: string): string => {
+    if (!isoString) return "";
+    
+    const date = new Date(isoString);
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear().toString();
+    
+    return `${day}/${month}/${year}`;
+  };
 
   useEffect(() => {
     const fetchProvinces = async () => {
@@ -165,12 +210,33 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
     }
   };
 
-  const handleDateChange = (name: string, date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, [name]: date.toISOString() }));
-      if (errors[name]) {
-        setErrors((prev) => ({ ...prev, [name]: "" }));
-      }
+  const handleDateInputChange = (field: 'citizen_date' | 'birthday', value: string) => {
+    // Update display value
+    if (field === 'citizen_date') {
+      setCitizenDateInput(value);
+    } else {
+      setBirthdayInput(value);
+    }
+
+    // Clear previous error
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    // Validate and convert to ISO if valid
+    if (value.trim() === "") {
+      // Empty value is allowed
+      setFormData((prev) => ({ ...prev, [field]: "" }));
+    } else if (isValidDateFormat(value)) {
+      // Valid format, convert to ISO
+      const isoString = convertToISOString(value);
+      setFormData((prev) => ({ ...prev, [field]: isoString }));
+    } else if (value.length === 10) {
+      // Full length but invalid format, show error
+      setErrors((prev) => ({ 
+        ...prev, 
+        [field]: "Định dạng ngày không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy" 
+      }));
     }
   };
 
@@ -178,19 +244,58 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
     setFormData((prev) => ({ ...prev, gender: value === "male" }));
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData((prev) => ({ ...prev, avatarUrl: event.target?.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Validate file type and size
+    const isValidType = file.type.startsWith('image/');
+    const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
+    
+    if (!isValidType) {
+      toast.error(`File ${file.name} không phải là hình ảnh hợp lệ`);
+      return;
     }
+    if (!isValidSize) {
+      toast.error(`File ${file.name} quá lớn (tối đa 10MB)`);
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+
+    uploadFileMutation({ file }, {
+      onSuccess: (response: IUploadResponse) => {
+        if (response?.statusCode === 200 || response?.statusCode === 201) {
+          const imageUrl = response?.data?.url;
+          
+          if (imageUrl) {
+            setFormData(prev => ({ ...prev, avatarUrl: imageUrl }));
+            toast.success(`Upload ảnh "${file.name}" thành công!`);
+          } else {
+            console.error('No URL in response:', response);
+            toast.error(`Lỗi: Không nhận được URL ảnh từ server cho file "${file.name}"`);
+          }
+        } else {
+          console.error('Upload failed with status:', response?.statusCode, response?.message);
+          toast.error(`Lỗi upload ảnh "${file.name}": ${response?.message || 'Lỗi không xác định'}`);
+        }
+        setIsUploadingAvatar(false);
+      },
+      onError: (error: any) => {
+        console.error('Upload error for file:', file.name, error);
+        const errorMessage = error?.response?.data?.message || error?.message || 'Không thể upload ảnh';
+        toast.error(`Lỗi upload ảnh "${file.name}": ${errorMessage}`);
+        setIsUploadingAvatar(false);
+      }
+    });
+
+    // Clear the input value to allow re-uploading the same file
+    e.target.value = '';
   };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+    
     if (!formData.fullname.trim()) {
       newErrors.fullname = "Họ tên không được để trống";
       toast.error("Vui lòng nhập họ tên");
@@ -211,6 +316,17 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
       newErrors.phone = "Số điện thoại không hợp lệ";
       toast.error("Số điện thoại không đúng định dạng");
     }
+
+    // Validate date formats
+    if (citizenDateInput && !isValidDateFormat(citizenDateInput)) {
+      newErrors.citizen_date = "Định dạng ngày cấp không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày cấp không hợp lệ");
+    }
+    if (birthdayInput && !isValidDateFormat(birthdayInput)) {
+      newErrors.birthday = "Định dạng ngày sinh không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày sinh không hợp lệ");
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -240,6 +356,8 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
             avatarUrl: "",
           });
           setErrors({});
+          setCitizenDateInput("");
+          setBirthdayInput("");
           setSelectedProvince("");
           setSelectedDistrict("");
           setSelectedWard("");
@@ -273,6 +391,8 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
       avatarUrl: "",
     });
     setErrors({});
+    setCitizenDateInput("");
+    setBirthdayInput("");
     setSelectedProvince("");
     setSelectedDistrict("");
     setSelectedWard("");
@@ -324,6 +444,12 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label className="text-secondaryTextV1">Ảnh đại diện</Label>
+                    {isUploadingAvatar && (
+                      <div className="flex items-center gap-2 text-sm text-blue-600">
+                        <IconLoader2 className="h-4 w-4 animate-spin" />
+                        <span>Đang tải ảnh...</span>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-4">
                     <div>
@@ -333,15 +459,20 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                         onChange={handleImageUpload}
                         className="hidden"
                         id="avatar-upload"
+                        disabled={isUploadingAvatar}
                       />
-                      <Label htmlFor="avatar-upload" className="cursor-pointer">
+                      <Label htmlFor="avatar-upload" className={`cursor-pointer ${isUploadingAvatar ? 'opacity-50 cursor-not-allowed' : ''}`}>
                         <div className="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-lightBorderV1 rounded-lg hover:border-mainTextHoverV1 hover:bg-blue-50/50 transition-all duration-200 group">
                           <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 group-hover:bg-blue-200 transition-colors duration-200">
-                            <IconUpload className="h-5 w-5 text-blue-600" />
+                            {isUploadingAvatar ? (
+                              <IconLoader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                            ) : (
+                              <IconUpload className="h-5 w-5 text-blue-600" />
+                            )}
                           </div>
                           <div className="text-center">
                             <div className="text-sm font-medium text-mainTextV1 group-hover:text-mainTextHoverV1">
-                              Tải ảnh đại diện lên
+                              {isUploadingAvatar ? "Đang tải ảnh..." : "Tải ảnh đại diện lên"}
                             </div>
                             <div className="text-xs text-gray-500 mt-1">
                               Chọn ảnh (tối đa 10MB)
@@ -366,6 +497,7 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                             type="button"
                             onClick={() => setFormData(prev => ({ ...prev, avatarUrl: "" }))}
                             className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            disabled={isUploadingAvatar}
                           >
                             <IconX className="h-3 w-3" />
                           </button>
@@ -450,11 +582,18 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                     <Label htmlFor="citizen_date" className="text-secondaryTextV1">
                       Ngày cấp
                     </Label>
-                    <DatePicker
-                      date={formData.citizen_date ? new Date(formData.citizen_date) : undefined}
-                      onDateChange={(date) => handleDateChange("citizen_date", date)}
-                      placeholder="Chọn ngày cấp"
+                    <Input
+                      id="citizen_date"
+                      value={citizenDateInput}
+                      onChange={(e) => handleDateInputChange('citizen_date', e.target.value)}
+                      placeholder="dd/MM/yyyy"
+                      className={`border-lightBorderV1 ${errors.citizen_date ? "border-mainDangerV1" : ""}`}
+                      maxLength={10}
                     />
+                    {errors.citizen_date && (
+                      <p className="text-sm text-mainDangerV1">{errors.citizen_date}</p>
+                    )}
+                    <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/2020)</p>
                   </div>
 
                   <div className="space-y-2">
@@ -475,11 +614,18 @@ export const GuestCreateDialog = ({ isOpen, onClose, onSuccess }: GuestCreateDia
                     <Label htmlFor="birthday" className="text-secondaryTextV1">
                       Ngày sinh
                     </Label>
-                    <DatePicker
-                      date={formData.birthday ? new Date(formData.birthday) : undefined}
-                      onDateChange={(date) => handleDateChange("birthday", date)}
-                      placeholder="Chọn ngày sinh"
+                    <Input
+                      id="birthday"
+                      value={birthdayInput}
+                      onChange={(e) => handleDateInputChange('birthday', e.target.value)}
+                      placeholder="dd/MM/yyyy"
+                      className={`border-lightBorderV1 ${errors.birthday ? "border-mainDangerV1" : ""}`}
+                      maxLength={10}
                     />
+                    {errors.birthday && (
+                      <p className="text-sm text-mainDangerV1">{errors.birthday}</p>
+                    )}
+                    <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/1990)</p>
                   </div>
 
                   <div className="space-y-2">

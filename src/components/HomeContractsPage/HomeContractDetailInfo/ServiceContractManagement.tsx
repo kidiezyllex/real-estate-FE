@@ -688,7 +688,7 @@ const ServiceContractManagement = ({ homeContractId, homeId, guestId, onRefresh 
 
       {/* Delete Service Contract Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+        <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-mainTextV1">
               Xác nhận xóa hợp đồng dịch vụ

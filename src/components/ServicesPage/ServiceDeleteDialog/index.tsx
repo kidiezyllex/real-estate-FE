@@ -20,7 +20,7 @@ interface ServiceDeleteDialogProps {
 const ServiceDeleteDialog = ({ isOpen, onClose, onConfirm, isDeleting }: ServiceDeleteDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+      <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-mainTextV1">
             Xác nhận xóa dịch vụ

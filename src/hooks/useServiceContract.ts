@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getServiceContracts,
   searchServiceContracts,
@@ -88,19 +88,36 @@ export const useGetServiceContractDetail = (params: IGetServiceContractDetailPar
 };
 
 export const useCreateServiceContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IServiceContractCreateResponse, Error, ICreateServiceContractBody>({
     mutationFn: createServiceContract,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['service-contracts'] });
+    },
   });
 };
 
 export const useUpdateServiceContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IServiceContractUpdateResponse, Error, { params: IUpdateServiceContractParams, body: IUpdateServiceContractBody }>({
     mutationFn: ({ params, body }) => updateServiceContract(params, body),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['service-contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['service-contracts', 'detail', variables.params.id] });
+    },
   });
 };
 
 export const useDeleteServiceContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IServiceContractDeleteResponse, Error, IDeleteServiceContractParams>({
     mutationFn: deleteServiceContract,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['service-contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['service-contracts', 'detail', variables.id] });
+    },
   });
 }; 

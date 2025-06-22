@@ -65,7 +65,7 @@ const DeleteHomeDialog = ({ homeId, homeName, onSuccess, trigger }: DeleteHomeDi
         )}
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-mainDangerV1">
             Xác nhận xóa căn hộ

@@ -44,7 +44,7 @@ export const GuestDeleteDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent size="small" className="bg-white max-h-[90vh] h-[90vh] overflow-y-auto">
+      <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
             Xác nhận xóa khách hàng

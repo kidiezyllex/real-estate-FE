@@ -53,14 +53,6 @@ export const HomeContractDetailsDialog = ({
   
   const { mutate: updateContractMutation, isPending: isUpdating } = useUpdateHomeContract();
   const { mutate: deleteContractMutation, isPending: isDeleting } = useDeleteHomeContract();
-
-  useEffect(() => {
-    if (error) {
-      toast.error("Không thể tải thông tin hợp đồng thuê nhà");
-      onClose();
-    }
-  }, [error, onClose]);
-
   useEffect(() => {
     if (contractData?.data) {
       const contract = contractData.data;
@@ -399,7 +391,7 @@ export const HomeContractDetailsDialog = ({
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => !open && setIsDeleteDialogOpen(false)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
               Xác nhận xóa hợp đồng

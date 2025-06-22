@@ -573,7 +573,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
       {/* Delete Payment Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-mainBackgroundV1 border-lightBorderV1">
+        <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-mainTextV1">
               Xác nhận xóa đợt thanh toán

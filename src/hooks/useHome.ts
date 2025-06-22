@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getHomes,
   getAvailableHomes,
@@ -86,19 +86,42 @@ export const useGetHomeDetail = (params: IGetHomeDetailParams) => {
 };
 
 export const useCreateHome = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IHomeCreateResponse, Error, ICreateHomeBody>({
     mutationFn: createHome,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['homes'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'available'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'available-for-rent'] });
+    },
   });
 };
 
 export const useUpdateHome = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IHomeUpdateResponse, Error, { params: IUpdateHomeParams, body: IUpdateHomeBody }>({
     mutationFn: ({ params, body }) => updateHome(params, body),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['homes'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'available'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'available-for-rent'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'detail', variables.params.id] });
+    },
   });
 };
 
 export const useDeleteHome = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IHomeDeleteResponse, Error, IDeleteHomeParams>({
     mutationFn: deleteHome,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['homes'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'available'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'available-for-rent'] });
+      queryClient.invalidateQueries({ queryKey: ['homes', 'detail', variables.id] });
+    },
   });
 }; 

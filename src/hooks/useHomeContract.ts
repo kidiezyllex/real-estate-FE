@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getHomeContracts,
   searchHomeContracts,
@@ -68,19 +68,36 @@ export const useGetHomeContractDetail = (params: IGetHomeContractDetailParams) =
 };
 
 export const useCreateHomeContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IHomeContractCreateResponse, Error, ICreateHomeContractBody>({
     mutationFn: createHomeContract,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['home-contracts'] });
+    },
   });
 };
 
 export const useUpdateHomeContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IHomeContractUpdateResponse, Error, { params: IUpdateHomeContractParams, body: IUpdateHomeContractBody }>({
     mutationFn: ({ params, body }) => updateHomeContract(params, body),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['home-contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['home-contracts', 'detail', variables.params.id] });
+    },
   });
 };
 
 export const useDeleteHomeContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IHomeContractDeleteResponse, Error, IDeleteHomeContractParams>({
     mutationFn: deleteHomeContract,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['home-contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['home-contracts', 'detail', variables.id] });
+    },
   });
 }; 

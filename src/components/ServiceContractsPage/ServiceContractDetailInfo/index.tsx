@@ -79,8 +79,8 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
     );
   }
 
-  const contract = contractData.contract;
-  const statusInfo = getStatusText(contract.status);
+  const contract = contractData;
+  const statusInfo = getStatusText(contract.statusContrac);
 
   return (
     <div className="space-y-6">
@@ -132,7 +132,7 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                       <IconUser className="h-5 w-5 text-green-600" />
                       <div>
                         <p className="text-sm text-gray-600">Khách sử dụng</p>
-                        <p className="font-medium">{contract.guestId?.name || 'N/A'}</p>
+                        <p className="font-medium">{contract.guestId?.fullname || 'N/A'}</p>
                         <p className="text-sm text-gray-500">{contract.guestId?.email || 'N/A'}</p>
                       </div>
                     </div>
@@ -141,7 +141,9 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                       <IconHome className="h-5 w-5 text-purple-600" />
                       <div>
                         <p className="text-sm text-gray-600">Căn hộ</p>
-                        <p className="font-medium">{contract.homeId?.name || 'N/A'}</p>
+                        <p className="font-medium">
+                          {contract.homeId?.building ? `${contract.homeId.building} - ${contract.homeId.apartmentNv}` : 'N/A'}
+                        </p>
                         <p className="text-sm text-gray-500">{contract.homeId?.address || 'N/A'}</p>
                       </div>
                     </div>
@@ -152,7 +154,7 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                         <p className="text-sm text-gray-600">Thời gian sử dụng</p>
                         <p className="font-medium">{contract.duration} tháng</p>
                         <p className="text-sm text-gray-500">
-                          Từ {new Date(contract.dateStar || contract.signDate).toLocaleDateString('vi-VN')}
+                          Từ {new Date(contract.dateStar).toLocaleDateString('vi-VN')} đến {new Date(contract.dateEnd).toLocaleDateString('vi-VN')}
                         </p>
                       </div>
                     </div>
@@ -164,7 +166,7 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                       <div className="space-y-2">
                         <div className="flex justify-between">
                           <span className="text-gray-600">Giá dịch vụ:</span>
-                          <span className="font-medium">{formatCurrency(contract.price || contract.unitCost)}</span>
+                          <span className="font-medium">{formatCurrency(contract.unitCost)}</span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-600">Chu kỳ thanh toán:</span>
@@ -173,9 +175,15 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                         <div className="flex justify-between">
                           <span className="text-gray-600">Tổng giá trị:</span>
                           <span className="font-medium text-green-600">
-                            {formatCurrency((contract.price || contract.unitCost) * Math.ceil(contract.duration / contract.payCycle))}
+                            {formatCurrency(contract.unitCost * Math.ceil(contract.duration / contract.payCycle))}
                           </span>
                         </div>
+                        {contract.limit > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-600">Giới hạn:</span>
+                            <span className="font-medium">{contract.limit}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -183,18 +191,12 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                       <h4 className="font-medium text-gray-900 mb-3">Thông tin khác</h4>
                       <div className="space-y-2">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Ngày tạo:</span>
+                          <span className="text-gray-600">Ngày ký:</span>
                           <span className="font-medium">
-                            {new Date(contract.createdAt).toLocaleDateString('vi-VN')}
+                            {new Date(contract.signDate).toLocaleDateString('vi-VN')}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Cập nhật:</span>
-                          <span className="font-medium">
-                            {new Date(contract.updatedAt).toLocaleDateString('vi-VN')}
-                          </span>
-                        </div>
-                        {contract.homeContractId && (
+                        {contract.homeContractStk && (
                           <div className="flex justify-between">
                             <span className="text-gray-600">Hợp đồng thuê:</span>
                             <span className="font-medium text-blue-600">
@@ -209,6 +211,17 @@ export const ServiceContractDetailInfo = ({ contractData, isLoading, onRefresh }
                       <div className="p-4 border rounded-lg">
                         <h4 className="font-medium text-gray-900 mb-2">Mô tả dịch vụ</h4>
                         <p className="text-sm text-gray-600">{contract.serviceId.description}</p>
+                      </div>
+                    )}
+
+                    {contract.homeId?.homeOwnerId && (
+                      <div className="p-4 border rounded-lg">
+                        <h4 className="font-medium text-gray-900 mb-2">Chủ nhà</h4>
+                        <div className="space-y-1">
+                          <p className="text-sm font-medium">{contract.homeId.homeOwnerId.fullname}</p>
+                          <p className="text-sm text-gray-600">{contract.homeId.homeOwnerId.phone}</p>
+                          <p className="text-sm text-gray-600">{contract.homeId.homeOwnerId.email}</p>
+                        </div>
                       </div>
                     )}
                   </div>

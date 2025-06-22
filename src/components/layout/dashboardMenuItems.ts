@@ -44,12 +44,12 @@ export const getDashboardMenuItems = (): MenuItem[] => [
 				path: "/admin/users/home-owners",
 				icon: mdiAccountTie,
 			},
-			{
-				id: "receiver",
-				name: "Người nhận",
-				path: "/admin/users/receivers",
-				icon: mdiAccountArrowRight,
-			},
+			// {
+			// 	id: "receiver",
+			// 	name: "Người nhận",
+			// 	path: "/admin/users/receivers",
+			// 	icon: mdiAccountArrowRight,
+			// },
 		],
 	},
 	{

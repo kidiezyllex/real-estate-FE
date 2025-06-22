@@ -325,13 +325,6 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
   }, [selectedProvince, selectedDistrict, selectedWard, specificAddress, provinces, districts, wards]);
 
   useEffect(() => {
-    if (error) {
-      toast.error("Không thể tải thông tin căn hộ");
-      onClose();
-    }
-  }, [error, onClose]);
-
-  useEffect(() => {
     if (homeData?.data) {
       const home = homeData.data as any;
       setFormData({
@@ -1253,7 +1246,7 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={(open) => !open && setIsDeleteDialogOpen(false)}>
-        <DialogContent className="sm:max-w-md bg-white">
+        <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center text-red-600">
               Xác nhận xóa căn hộ

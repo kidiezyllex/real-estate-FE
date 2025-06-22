@@ -27,7 +27,7 @@ export const HomeOwnerDeleteDialog = ({
 }: HomeOwnerDeleteDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center text-red-600">
             Xác nhận xóa chủ nhà

@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePicker } from "@/components/ui/date-picker";
 import { toast } from "react-toastify";
 import { IconLoader2 } from "@tabler/icons-react";
 import { motion } from 'framer-motion';
@@ -46,9 +45,37 @@ export const ServiceContractCreateDialog = ({ isOpen, onClose, onSuccess }: Serv
     note: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Date input states for display (dd/MM/yyyy format)
+  const [startDateInput, setStartDateInput] = useState("");
+  const [endDateInput, setEndDateInput] = useState("");
   
   // Placeholder for the actual mutation hook
   const isPending = false;
+
+  // Date format validation function
+  const isValidDateFormat = (dateString: string): boolean => {
+    const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+    if (!dateRegex.test(dateString)) return false;
+    
+    const [, day, month, year] = dateString.match(dateRegex)!;
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    
+    return (
+      date.getDate() === parseInt(day) &&
+      date.getMonth() === parseInt(month) - 1 &&
+      date.getFullYear() === parseInt(year)
+    );
+  };
+
+  // Convert dd/MM/yyyy to ISO string
+  const convertToISOString = (dateString: string): string => {
+    if (!dateString || !isValidDateFormat(dateString)) return "";
+    
+    const [day, month, year] = dateString.split('/');
+    const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    return date.toISOString();
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -61,12 +88,33 @@ export const ServiceContractCreateDialog = ({ isOpen, onClose, onSuccess }: Serv
     }
   };
 
-  const handleDateChange = (name: string, date: Date | undefined) => {
-    if (date) {
-      setFormData((prev) => ({ ...prev, [name]: date.toISOString() }));
-      if (errors[name]) {
-        setErrors((prev) => ({ ...prev, [name]: "" }));
-      }
+  const handleDateInputChange = (field: 'startDate' | 'endDate', value: string) => {
+    // Update display value
+    if (field === 'startDate') {
+      setStartDateInput(value);
+    } else {
+      setEndDateInput(value);
+    }
+
+    // Clear previous error
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+
+    // Validate and convert to ISO if valid
+    if (value.trim() === "") {
+      // Empty value is allowed
+      setFormData((prev) => ({ ...prev, [field]: "" }));
+    } else if (isValidDateFormat(value)) {
+      // Valid format, convert to ISO
+      const isoString = convertToISOString(value);
+      setFormData((prev) => ({ ...prev, [field]: isoString }));
+    } else if (value.length === 10) {
+      // Full length but invalid format, show error
+      setErrors((prev) => ({ 
+        ...prev, 
+        [field]: "Định dạng ngày không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy" 
+      }));
     }
   };
 
@@ -79,17 +127,44 @@ export const ServiceContractCreateDialog = ({ isOpen, onClose, onSuccess }: Serv
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.serviceId) newErrors.serviceId = "Dịch vụ không được để trống";
-    if (!formData.guestId) newErrors.guestId = "Khách hàng không được để trống";
-    if (!formData.startDate) newErrors.startDate = "Ngày bắt đầu không được để trống";
-    if (!formData.endDate) newErrors.endDate = "Ngày kết thúc không được để trống";
-    if (formData.price <= 0) newErrors.price = "Giá dịch vụ phải lớn hơn 0";
+    
+    if (!formData.serviceId) {
+      newErrors.serviceId = "Dịch vụ không được để trống";
+      toast.error("Vui lòng chọn dịch vụ");
+    }
+    if (!formData.guestId) {
+      newErrors.guestId = "Khách hàng không được để trống";
+      toast.error("Vui lòng chọn khách hàng");
+    }
+    if (!formData.startDate) {
+      newErrors.startDate = "Ngày bắt đầu không được để trống";
+      toast.error("Vui lòng nhập ngày bắt đầu");
+    }
+    if (!formData.endDate) {
+      newErrors.endDate = "Ngày kết thúc không được để trống";
+      toast.error("Vui lòng nhập ngày kết thúc");
+    }
+    if (!formData.price || formData.price <= 0) {
+      newErrors.price = "Giá dịch vụ phải lớn hơn 0";
+      toast.error("Giá dịch vụ phải lớn hơn 0");
+    }
+
+    // Validate date formats
+    if (startDateInput && !isValidDateFormat(startDateInput)) {
+      newErrors.startDate = "Định dạng ngày bắt đầu không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày bắt đầu không hợp lệ");
+    }
+    if (endDateInput && !isValidDateFormat(endDateInput)) {
+      newErrors.endDate = "Định dạng ngày kết thúc không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy";
+      toast.error("Định dạng ngày kết thúc không hợp lệ");
+    }
 
     if (formData.startDate && formData.endDate) {
       const start = new Date(formData.startDate);
       const end = new Date(formData.endDate);
       if (start >= end) {
         newErrors.endDate = "Ngày kết thúc phải sau ngày bắt đầu";
+        toast.error("Ngày kết thúc phải sau ngày bắt đầu");
       }
     }
 
@@ -115,6 +190,8 @@ export const ServiceContractCreateDialog = ({ isOpen, onClose, onSuccess }: Serv
       note: "",
     });
     setErrors({});
+    setStartDateInput("");
+    setEndDateInput("");
     onSuccess?.();
     onClose();
   };
@@ -130,6 +207,8 @@ export const ServiceContractCreateDialog = ({ isOpen, onClose, onSuccess }: Serv
       note: "",
     });
     setErrors({});
+    setStartDateInput("");
+    setEndDateInput("");
     onClose();
   };
 
@@ -217,28 +296,36 @@ export const ServiceContractCreateDialog = ({ isOpen, onClose, onSuccess }: Serv
                     <Label htmlFor="startDate" className="text-secondaryTextV1">
                       Ngày bắt đầu <span className="text-mainDangerV1">*</span>
                     </Label>
-                    <DatePicker
-                      date={formData.startDate ? new Date(formData.startDate) : undefined}
-                      onDateChange={(date) => handleDateChange("startDate", date)}
-                      placeholder="Chọn ngày bắt đầu"
+                    <Input
+                      id="startDate"
+                      value={startDateInput}
+                      onChange={(e) => handleDateInputChange('startDate', e.target.value)}
+                      placeholder="dd/MM/yyyy"
+                      className={`border-lightBorderV1 ${errors.startDate ? "border-mainDangerV1" : ""}`}
+                      maxLength={10}
                     />
                     {errors.startDate && (
                       <p className="text-sm text-mainDangerV1">{errors.startDate}</p>
                     )}
+                    <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/2024)</p>
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="endDate" className="text-secondaryTextV1">
                       Ngày kết thúc <span className="text-mainDangerV1">*</span>
                     </Label>
-                    <DatePicker
-                      date={formData.endDate ? new Date(formData.endDate) : undefined}
-                      onDateChange={(date) => handleDateChange("endDate", date)}
-                      placeholder="Chọn ngày kết thúc"
+                    <Input
+                      id="endDate"
+                      value={endDateInput}
+                      onChange={(e) => handleDateInputChange('endDate', e.target.value)}
+                      placeholder="dd/MM/yyyy"
+                      className={`border-lightBorderV1 ${errors.endDate ? "border-mainDangerV1" : ""}`}
+                      maxLength={10}
                     />
                     {errors.endDate && (
                       <p className="text-sm text-mainDangerV1">{errors.endDate}</p>
                     )}
+                    <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/12/2024)</p>
                   </div>
                   
                   <div className="space-y-2">

@@ -760,7 +760,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
         {/* Delete Payment Dialog */}
         <Dialog open={isDeletePaymentDialogOpen} onOpenChange={setIsDeletePaymentDialogOpen}>
-          <DialogContent className="bg-white border-lightBorderV1 max-h-[90vh] h-[90vh] overflow-y-auto">
+          <DialogContent size="small" className="bg-white max-h-[90vh] h-fit overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-red-600">
                 Xác nhận xóa đợt thanh toán

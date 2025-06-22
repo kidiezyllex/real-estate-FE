@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getInvoicePayments,
   getDueInvoicePayments,
@@ -96,37 +96,76 @@ export const useGetInvoicePaymentDetail = (params: IGetInvoicePaymentDetailParam
 };
 
 export const useCreateInvoicePayment = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IInvoicePaymentCreateResponse, Error, ICreateInvoicePaymentBody>({
     mutationFn: createInvoicePayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'due'] });
+    },
   });
 };
 
 export const useUpdateInvoicePayment = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IInvoicePaymentUpdateResponse, Error, { params: IUpdateInvoicePaymentParams, body: IUpdateInvoicePaymentBody }>({
     mutationFn: ({ params, body }) => updateInvoicePayment(params, body),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'due'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'detail', variables.params.id] });
+    },
   });
 };
 
 export const useUpdateInvoicePaymentStatus = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IInvoicePaymentUpdateResponse, Error, { params: IUpdateInvoicePaymentStatusParams, body: IUpdateInvoicePaymentStatusBody }>({
     mutationFn: ({ params, body }) => updateInvoicePaymentStatus(params, body),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'due'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'detail', variables.params.id] });
+    },
   });
 };
 
 export const useDeleteInvoicePayment = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IInvoicePaymentDeleteResponse, Error, IDeleteInvoicePaymentParams>({
     mutationFn: deleteInvoicePayment,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'due'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'detail', variables.id] });
+    },
   });
 };
 
 export const useGenerateInvoicePaymentForHomeContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IInvoicePaymentGenerateResponse, Error, { params: IGenerateInvoicePaymentForHomeContractParams, body: IGenerateInvoicePaymentForHomeContractBody }>({
     mutationFn: ({ params, body }) => generateInvoicePaymentForHomeContract(params, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'due'] });
+    },
   });
 };
 
 export const useGenerateInvoicePaymentForServiceContract = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IInvoicePaymentGenerateResponse, Error, { params: IGenerateInvoicePaymentForServiceContractParams, body: IGenerateInvoicePaymentForServiceContractBody }>({
     mutationFn: ({ params, body }) => generateInvoicePaymentForServiceContract(params, body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments'] });
+      queryClient.invalidateQueries({ queryKey: ['invoice-payments', 'due'] });
+    },
   });
 }; 

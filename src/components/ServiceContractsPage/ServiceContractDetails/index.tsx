@@ -71,7 +71,7 @@ export const ServiceContractDetails = ({ contractId }: ServiceContractDetailsPro
       </div>
       
       <Card className="p-4 bg-[#F9F9FC]">
-        <ServiceContractDetailInfo contract={contractData.data} />
+        <ServiceContractDetailInfo contractData={contractData.data as any} isLoading={isLoading} onRefresh={() => {}} />
       </Card>
     </div>
   );

@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   getGuests,
   searchGuests,
@@ -48,19 +48,36 @@ export const useGetGuestDetail = (params: IGetGuestDetailParams) => {
 };
 
 export const useCreateGuest = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IGuestCreateResponse, Error, ICreateGuestBody>({
     mutationFn: createGuest,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+    },
   });
 };
 
 export const useUpdateGuest = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IGuestUpdateResponse, Error, { params: IUpdateGuestParams, body: IUpdateGuestBody }>({
     mutationFn: ({ params, body }) => updateGuest(params, body),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+      queryClient.invalidateQueries({ queryKey: ['guests', 'detail', variables.params.id] });
+    },
   });
 };
 
 export const useDeleteGuest = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation<IGuestDeleteResponse, Error, IDeleteGuestParams>({
     mutationFn: deleteGuest,
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['guests'] });
+      queryClient.invalidateQueries({ queryKey: ['guests', 'detail', variables.id] });
+    },
   });
 }; 
