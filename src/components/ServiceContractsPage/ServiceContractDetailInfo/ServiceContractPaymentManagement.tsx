@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   IconCreditCard, 
@@ -75,14 +75,14 @@ const ServiceContractPaymentManagement = ({ serviceContractId, contractData, onR
     }));
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       amount: contractData?.price || 0,
       dueDate: '',
       status: 1,
       note: ''
     });
-  };
+  }, [contractData?.price]);
 
   const handleCreatePayment = (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,7 +212,7 @@ const ServiceContractPaymentManagement = ({ serviceContractId, contractData, onR
 
   useEffect(() => {
     resetForm();
-  }, [contractData]);
+  }, [contractData, resetForm]);
 
   if (isLoading) {
     return (

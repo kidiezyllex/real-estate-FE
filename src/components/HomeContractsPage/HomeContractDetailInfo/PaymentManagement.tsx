@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   IconCreditCard, 
@@ -87,14 +87,14 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
     }));
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       amount: contractData?.renta || 0,
       dueDate: '',
       status: 0,
       note: ''
     });
-  };
+  }, [contractData?.renta]);
 
   // Business logic validation
   const validatePaymentUpdate = (payment: any, newStatus: number): { isValid: boolean; message?: string } => {
@@ -303,7 +303,7 @@ const PaymentManagement = ({ contractId, contractData, onRefresh }: PaymentManag
 
   useEffect(() => {
     resetForm();
-  }, [contractData]);
+  }, [contractData, resetForm]);
 
   if (isLoading) {
     return (

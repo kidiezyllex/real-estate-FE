@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { 
   IconCreditCard, 
@@ -84,7 +84,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
     }));
   };
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       amount: serviceContract?.price || serviceContract?.unitCost || 0,
       dueDate: '',
@@ -93,7 +93,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
     });
     setPriceSuggestions([]);
     setShowPriceSuggestions(false);
-  };
+  }, [serviceContract?.price, serviceContract?.unitCost]);
 
   const generatePriceSuggestions = (inputValue: string): number[] => {
     if (!inputValue || inputValue === '0') return [];
@@ -416,7 +416,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
     if (serviceContract) {
       resetForm();
     }
-  }, [serviceContract]);
+  }, [serviceContract, resetForm]);
 
   if (!serviceContract) return null;
 
