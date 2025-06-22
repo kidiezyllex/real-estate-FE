@@ -60,10 +60,10 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
   const isValidDateFormat = (dateString: string): boolean => {
     const dateRegex = /^(\d{2})\/(\d{2})\/(\d{4})$/;
     if (!dateRegex.test(dateString)) return false;
-    
+
     const [, day, month, year] = dateString.match(dateRegex)!;
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-    
+
     return (
       date.getDate() === parseInt(day) &&
       date.getMonth() === parseInt(month) - 1 &&
@@ -74,7 +74,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
   // Convert dd/MM/yyyy to ISO string
   const convertToISOString = (dateString: string): string => {
     if (!dateString || !isValidDateFormat(dateString)) return "";
-    
+
     const [day, month, year] = dateString.split('/');
     const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
     return date.toISOString();
@@ -111,9 +111,9 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
       setFormData((prev) => ({ ...prev, [field]: isoString }));
     } else if (value.length === 10) {
       // Full length but invalid format, show error
-      setErrors((prev) => ({ 
-        ...prev, 
-        [field]: "Định dạng ngày không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy" 
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "Định dạng ngày không hợp lệ. Vui lòng nhập theo định dạng dd/MM/yyyy"
       }));
     }
   };
@@ -129,7 +129,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
     // Validate file type and size
     const isValidType = file.type.startsWith('image/');
     const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB limit
-    
+
     if (!isValidType) {
       toast.error(`File ${file.name} không phải là hình ảnh hợp lệ`);
       return;
@@ -145,7 +145,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
       onSuccess: (response: IUploadResponse) => {
         if (response?.statusCode === 200 || response?.statusCode === 201) {
           const imageUrl = response?.data?.url;
-          
+
           if (imageUrl) {
             setFormData(prev => ({ ...prev, avatarUrl: imageUrl }));
             toast.success(`Upload ảnh "${file.name}" thành công!`);
@@ -154,7 +154,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
             toast.error(`Lỗi: Không nhận được URL ảnh từ server cho file "${file.name}"`);
           }
         } else {
-          console.error('Upload failed with status:', response?.statusCode, response?.message);
+          console.error(response?.statusCode, response?.message);
           toast.error(`Lỗi upload ảnh "${file.name}": ${response?.message || 'Lỗi không xác định'}`);
         }
         setIsUploadingAvatar(false);
@@ -173,7 +173,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.fullname.trim()) {
       newErrors.fullname = "Họ tên không được để trống";
       toast.error("Vui lòng nhập họ tên");
@@ -278,7 +278,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
             Tạo chủ nhà mới
           </DialogTitle>
         </DialogHeader>
-        
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -372,7 +372,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
                       <p className="text-sm text-mainDangerV1">{errors.fullname}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="text-secondaryTextV1">
                       Số điện thoại <span className="text-mainDangerV1">*</span>
@@ -389,7 +389,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
                       <p className="text-sm text-mainDangerV1">{errors.phone}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-secondaryTextV1">
                       Email
@@ -406,7 +406,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
                       <p className="text-sm text-mainDangerV1">{errors.email}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="citizenId" className="text-secondaryTextV1">
                       Số CMND/CCCD <span className="text-mainDangerV1">*</span>
@@ -423,7 +423,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
                       <p className="text-sm text-mainDangerV1">{errors.citizenId}</p>
                     )}
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="citizen_date" className="text-secondaryTextV1">
                       Ngày cấp
@@ -441,7 +441,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
                     )}
                     <p className="text-xs text-gray-500">Định dạng: dd/MM/yyyy (ví dụ: 15/03/2020)</p>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="citizen_place" className="text-secondaryTextV1">
                       Nơi cấp
@@ -455,7 +455,7 @@ export const HomeOwnerCreateDialog = ({ isOpen, onClose, onSuccess }: HomeOwnerC
                       className="border-lightBorderV1"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label htmlFor="birthday" className="text-secondaryTextV1">
                       Ngày sinh
