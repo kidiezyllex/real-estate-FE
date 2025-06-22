@@ -198,8 +198,6 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
 
   const handleCreatePayment = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('handleCreatePayment called with formData:', formData);
-    console.log('serviceContract:', serviceContract);
     toast.info('Đang xử lý yêu cầu tạo đợt thanh toán...');
     
     if (!formData.amount || formData.amount <= 0) {
@@ -240,7 +238,6 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
       },
       {
         onSuccess: (data) => {
-          console.log('Create payment success:', data);
           // Always show the response message
           if (data?.statusCode === 201 || data?.statusCode === 200) {
             toast.success(data.message || 'Tạo đợt thanh toán thành công');
@@ -370,8 +367,6 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
   };
 
   const handleGeneratePayments = () => {
-    console.log('handleGeneratePayments called');
-    console.log('serviceContract:', serviceContract);
     toast.info('Đang xử lý yêu cầu tạo các đợt thanh toán tự động...');
     
     if (!serviceContract) return;
@@ -394,8 +389,6 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
       },
       {
         onSuccess: (data) => {
-          console.log('Generate payments success:', data);
-          // Always show the response message
           if (data?.statusCode === 201 || data?.statusCode === 200) {
             // Show success message with the count of generated payments
             const generatedCount = data.data?.length || 0;
@@ -701,10 +694,6 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
                 <Button 
                   type="submit" 
                   disabled={isCreating}
-                  onClick={(e) => {
-                    console.log('Submit button clicked');
-                    // Let the form handle the submission
-                  }}
                 >
                   {isCreating ? 'Đang tạo...' : 'Tạo đợt thanh toán'}
                 </Button>

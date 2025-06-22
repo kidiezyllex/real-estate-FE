@@ -366,13 +366,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
   };
 
   const handleGeneratePayments = () => {
-    console.log('handleGeneratePayments called');
-    console.log('serviceContract:', serviceContract);
-    toast.info('Đang xử lý yêu cầu tạo các đợt thanh toán tự động...');
-    
     if (!serviceContract) return;
-
-    // Calculate contract dates and payment info
     const contractStart = new Date(serviceContract.dateStar || serviceContract.signDate);
     const contractEndMonths = serviceContract.duration || 12;
     const contractEnd = new Date(contractStart);
@@ -390,10 +384,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
       },
       {
         onSuccess: (data) => {
-          console.log('Generate payments success:', data);
-          // Always show the response message
           if (data?.statusCode === 201 || data?.statusCode === 200) {
-            // Show success message with the count of generated payments
             const generatedCount = data.data?.length || 0;
             if (generatedCount > 0) {
               toast.success(`${data.message || 'Tạo các đợt thanh toán tự động thành công'} (${generatedCount} đợt thanh toán)`);
@@ -419,7 +410,7 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
     if (serviceContract) {
       resetForm();
     }
-  }, [serviceContract]);
+  }, [serviceContract, resetForm]);
 
   if (!serviceContract) return null;
 
@@ -576,14 +567,13 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
                     <li>• Sẽ tạo các đợt thanh toán theo chu kỳ đã định</li>
                     <li>• Ngày đến hạn sẽ được tính từ ngày bắt đầu hợp đồng</li>
                     <li>• Số tiền mỗi đợt sẽ bằng giá dịch vụ trong hợp đồng</li>
-                    <li>• Tất cả đợt thanh toán sẽ có trạng thái "Chưa thanh toán"</li>
+                    <li>• Tất cả đợt thanh toán sẽ có trạng thái &quot;Chưa thanh toán&quot;</li>
                   </ul>
                 </div>
 
                 <div className="flex gap-3">
                   <Button 
                     onClick={(e) => {
-                      console.log('Generate payments button clicked');
                       handleGeneratePayments();
                     }}
                     disabled={isGenerating}
@@ -697,10 +687,6 @@ const ServiceContractPaymentDialog = ({ isOpen, onClose, serviceContract, onRefr
                 <Button 
                   type="submit" 
                   disabled={isCreating}
-                  onClick={(e) => {
-                    console.log('Submit button clicked');
-                    // Let the form handle the submission
-                  }}
                 >
                   {isCreating ? 'Đang tạo...' : 'Tạo đợt thanh toán'}
                 </Button>

@@ -41,20 +41,11 @@ const ServiceDetailsDialog = ({ isOpen, onClose, serviceId, onSuccess }: Service
   const { data: serviceDetail, isLoading, error } = useGetServiceDetail({ id: serviceId || '' });
   const { mutate: updateServiceMutation, isPending: isUpdating } = useUpdateService();
 
-  // Debug effect to track isEditing state
   useEffect(() => {
-    console.log('ServiceDetailsDialog - isEditing changed:', isEditing);
-  }, [isEditing]);
-
-  // Debug effect to track dialog open state
-  useEffect(() => {
-    console.log('ServiceDetailsDialog - isOpen changed:', isOpen, 'serviceId:', serviceId);
     if (!isOpen) {
-      console.log('Dialog closed, resetting isEditing to false');
-      setIsEditing(false); // Reset editing state when dialog closes
+      setIsEditing(false);
     } else if (isOpen && serviceId) {
-      console.log('Dialog opened, ensuring isEditing is false initially');
-      setIsEditing(false); // Ensure we start in view mode when dialog opens
+      setIsEditing(false);
     }
   }, [isOpen, serviceId]);
 
@@ -78,11 +69,7 @@ const ServiceDetailsDialog = ({ isOpen, onClose, serviceId, onSuccess }: Service
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    
-    console.log('Form submitted, isEditing:', isEditing);
-    
     if (!isEditing) {
-      console.log('Not in editing mode, ignoring form submission');
       return;
     }
     
@@ -110,14 +97,10 @@ const ServiceDetailsDialog = ({ isOpen, onClose, serviceId, onSuccess }: Service
       }
     };
 
-    console.log('Updating service with data:', updateData);
-
     updateServiceMutation(
       updateData,
       {
         onSuccess: (data) => {
-          console.log('Update service response:', data);
-          
           if (data.statusCode === 200) {
             toast.success('Cập nhật dịch vụ thành công');
             onSuccess();
@@ -136,13 +119,11 @@ const ServiceDetailsDialog = ({ isOpen, onClose, serviceId, onSuccess }: Service
   };
 
   const handleClose = () => {
-    console.log('Dialog closing, resetting isEditing to false');
     setIsEditing(false);
     onClose();
   };
 
   const handleCancelEdit = () => {
-    console.log('Cancel edit clicked, resetting form data and isEditing');
     if (serviceDetail?.data) {
       setFormData({
         name: serviceDetail.data.name || '',
@@ -290,17 +271,7 @@ const ServiceDetailsDialog = ({ isOpen, onClose, serviceId, onSuccess }: Service
                   </Button>
                   <Button
                     type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      console.log('Edit button clicked, setting isEditing to true');
-                      try {
-                        setIsEditing(true);
-                        console.log('isEditing set to true successfully');
-                      } catch (error) {
-                        console.error('Error setting isEditing:', error);
-                      }
-                    }}
+                    onClick={() => setIsEditing(true)}
                     className="bg-mainTextHoverV1 hover:bg-primary/90"
                   >
                     <IconEdit className="h-4 w-4" />

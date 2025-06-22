@@ -64,8 +64,6 @@ export const HomeContractDetailsDialog = ({
   useEffect(() => {
     if (contractData?.data) {
       const contract = contractData.data;
-      console.log("contract", contract);
-      console.log("contractData", contractData);
       setFormData({
         duration: (contract as any).duration,
         price: (contract as any).renta,
