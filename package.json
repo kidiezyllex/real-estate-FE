@@ -1,6 +1,8 @@
 {
 	"dependencies": {
 		"@fortawesome/fontawesome-svg-core": "^6.7.2",
+		"@googlemaps/js-api-loader": "^1.16.10",
+		"@googlemaps/react-wrapper": "^1.2.0",
 		"@hookform/resolvers": "^5.0.1",
 		"@mdi/js": "^7.4.47",
 		"@mdi/react": "^1.6.1",
@@ -34,6 +36,7 @@
 		"flag-icons": "^7.3.2",
 		"framer-motion": "^12.9.2",
 		"js-cookie": "^3.0.5",
+		"leaflet": "^1.9.4",
 		"lodash": "^4.17.21",
 		"lucide-react": "^0.483.0",
 		"moment": "^2.30.1",
@@ -44,6 +47,7 @@
 		"react-day-picker": "^9.7.0",
 		"react-dom": "^18.3.1",
 		"react-hook-form": "^7.55.0",
+		"react-leaflet": "^4.2.1",
 		"react-toastify": "^11.0.5",
 		"recharts": "^2.15.3",
 		"sass": "^1.86.1",
@@ -61,8 +65,10 @@
 		"zustand": "^5.0.3"
 	},
 	"devDependencies": {
+		"@types/google.maps": "^3.58.1",
 		"@types/js-cookie": "^3.0.6",
 		"@types/jsonwebtoken": "^9.0.9",
+		"@types/leaflet": "^1.9.20",
 		"@types/lodash": "^4.17.16",
 		"@types/node": "^20.17.30",
 		"@types/react": "^18.3.20",
