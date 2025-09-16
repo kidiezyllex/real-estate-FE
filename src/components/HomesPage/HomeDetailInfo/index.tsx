@@ -31,6 +31,7 @@ import {
 } from "@tabler/icons-react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import GoogleMapLocationPicker from "@/components/ui/GoogleMapLocationPicker";
 
 interface HomeDetailInfoProps {
   home: IHome;
@@ -57,14 +58,20 @@ export const HomeDetailInfo = ({ home }: HomeDetailInfoProps) => {
     },
     {
       icon: <IconMapPin className="h-4 w-4 text-orange-600" />,
-      label: "Quận/Huyện",
-      value: homeData.district,
+      label: "Bản đồ",
+      value: homeData.address,
+      isMap: true,
     },
-    {
-      icon: <IconMapPin className="h-4 w-4 text-purple-600" />,
-      label: "Phường/Xã",
-      value: homeData.ward,
-    },
+    // {
+    //   icon: <IconMapPin className="h-4 w-4 text-orange-600" />,
+    //   label: "Quận/Huyện",
+    //   value: homeData.district,
+    // },
+    // {
+    //   icon: <IconMapPin className="h-4 w-4 text-purple-600" />,
+    //   label: "Phường/Xã",
+    //   value: homeData.ward,
+    // },
     {
       icon: homeData.active ? <IconCheck className="h-4 w-4 text-green-600" /> : <IconX className="h-4 w-4 text-red-600" />,
       label: "Trạng thái",
@@ -116,19 +123,30 @@ export const HomeDetailInfo = ({ home }: HomeDetailInfoProps) => {
 
 
 
-  const InfoRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string }) => (
-    <div className="flex items-center gap-3 py-2">
-      <div className="flex-shrink-0">
-        {icon}
+  const InfoRow = ({ icon, label, value, isMap }: { icon: React.ReactNode, label: string, value: string, isMap?: boolean }) => (
+    <div className="py-2">
+      <div className="flex items-center gap-3 mb-2">
+        <div className="flex-shrink-0">
+          {icon}
+        </div>
+        <div className="flex-1 min-w-0">
+          <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
+            {label}
+          </span>
+          <p className="text-sm text-slate-900 mt-0.5 truncate">
+            {value || <span className="text-slate-400 italic">Chưa cập nhật</span>}
+          </p>
+        </div>
       </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-xs font-medium text-slate-500 uppercase tracking-wide">
-          {label}
-        </span>
-        <p className="text-sm text-slate-900 mt-0.5 truncate">
-          {value || <span className="text-slate-400 italic">Chưa cập nhật</span>}
-        </p>
-      </div>
+      {isMap && value && (
+        <div className="mt-3">
+          <GoogleMapLocationPicker
+            onLocationSelect={() => {}} // Read-only mode
+            initialAddress={value}
+            readOnly={true}
+          />
+        </div>
+      )}
     </div>
   );
 

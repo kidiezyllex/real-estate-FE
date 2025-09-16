@@ -23,6 +23,7 @@ interface GoogleMapLocationPickerProps {
   initialLat?: number;
   initialLng?: number;
   className?: string;
+  readOnly?: boolean;
 }
 
 const LeafletEvents: React.FC<{ onPick: (lat: number, lng: number, address: string) => void }> = ({ onPick }) => {
@@ -71,12 +72,37 @@ const MapComponent: React.FC<{
   initialLng?: number;
   searchInput: string;
   setSearchInput: (v: string) => void;
-}> = ({ onLocationSelect, initialAddress, initialLat, initialLng, searchInput, setSearchInput }) => {
+  readOnly?: boolean;
+}> = ({ onLocationSelect, initialAddress, initialLat, initialLng, searchInput, setSearchInput, readOnly = false }) => {
   const mapRef = useRef<L.Map | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [markerPos, setMarkerPos] = useState<LatLngExpression | null>(
     initialLat && initialLng ? [initialLat, initialLng] : null
   );
+
+  // Auto-geocode when in readOnly mode and have initialAddress
+  useEffect(() => {
+    if (readOnly && initialAddress && !initialLat && !initialLng) {
+      const autoGeocode = async () => {
+        const result = await geocode(initialAddress);
+        if (result) {
+          setMarkerPos([result.lat, result.lng]);
+          // Zoom to maximum level when in readOnly mode
+          if (mapRef.current) {
+            mapRef.current.setView([result.lat, result.lng], 18); // Maximum zoom level
+          }
+        }
+      };
+      autoGeocode();
+    }
+  }, [readOnly, initialAddress, initialLat, initialLng]);
+
+  // Zoom to maximum level when in readOnly mode with coordinates
+  useEffect(() => {
+    if (readOnly && initialLat && initialLng && mapRef.current) {
+      mapRef.current.setView([initialLat, initialLng], 18); // Maximum zoom level
+    }
+  }, [readOnly, initialLat, initialLng]);
 
   const center = useMemo<LatLngExpression>(() => {
     if (initialLat && initialLng) return [initialLat, initialLng];
@@ -110,44 +136,48 @@ const MapComponent: React.FC<{
 
   return (
     <div className="space-y-4">
-      {/* Search Input */}
-      <div className="space-y-2">
-        <Label className="text-secondaryTextV1">Tìm kiếm vị trí</Label>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              id="search-input"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Nhập địa chỉ để tìm kiếm..."
-              className="pl-10 border-lightBorderV1"
-            />
+      {/* Search Input - Only show when not readOnly */}
+      {!readOnly && (
+        <div className="space-y-2">
+          <Label className="text-secondaryTextV1">Tìm kiếm vị trí</Label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <IconSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                id="search-input"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Nhập địa chỉ để tìm kiếm..."
+                className="pl-10 border-lightBorderV1"
+              />
+            </div>
+            <Button
+              type="button"
+              onClick={handleSearch}
+              disabled={isSearching || !searchInput.trim()}
+              className="px-4"
+            >
+              {isSearching ? (
+                <IconLoader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <IconSearch className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-          <Button
-            type="button"
-            onClick={handleSearch}
-            disabled={isSearching || !searchInput.trim()}
-            className="px-4"
-          >
-            {isSearching ? (
-              <IconLoader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <IconSearch className="h-4 w-4" />
-            )}
-          </Button>
         </div>
-      </div>
+      )}
 
       {/* Map Container */}
       <div className="space-y-2">
-        <Label className="text-secondaryTextV1">Chọn vị trí trên bản đồ</Label>
+        <Label className="text-secondaryTextV1">
+          {readOnly ? "Vị trí trên bản đồ" : "Chọn vị trí trên bản đồ"}
+        </Label>
         <div className="relative">
           <MapContainer
             whenReady={() => { /* assigned in ref callback below */ }}
             center={center}
-            zoom={initialLat && initialLng ? 15 : 6}
+            zoom={readOnly ? (initialLat && initialLng ? 18 : 6) : (initialLat && initialLng ? 15 : 6)}
             className="w-full h-96 border border-lightBorderV1 rounded-lg overflow-hidden"
             style={{ minHeight: '384px' }}
             ref={(instance) => { if (instance) { mapRef.current = instance; } }}
@@ -156,12 +186,12 @@ const MapComponent: React.FC<{
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
-            <LeafletEvents onPick={(lat, lng, address) => handlePick(lat, lng, address)} />
+            {!readOnly && <LeafletEvents onPick={(lat, lng, address) => handlePick(lat, lng, address)} />}
             {markerPos && (
               <Marker
                 position={markerPos}
-                draggable
-                eventHandlers={{
+                draggable={!readOnly}
+                eventHandlers={readOnly ? {} : {
                   dragend: async (e) => {
                     const m = e.target as L.Marker;
                     const pos = m.getLatLng();
@@ -172,12 +202,14 @@ const MapComponent: React.FC<{
               />
             )}
           </MapContainer>
-          <div className="absolute top-4 left-4 bg-white px-3 py-2 rounded-lg shadow-md border border-lightBorderV1">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <IconMapPin className="h-4 w-4" />
-              <span>Click hoặc kéo marker để chọn vị trí</span>
+          {!readOnly && (
+            <div className="absolute top-4 left-4 bg-white px-3 py-2 rounded-lg shadow-md border border-lightBorderV1">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <IconMapPin className="h-4 w-4" />
+                <span>Click hoặc kéo marker để chọn vị trí</span>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
@@ -189,7 +221,8 @@ const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = ({
   initialAddress,
   initialLat,
   initialLng,
-  className = ''
+  className = '',
+  readOnly = false,
 }) => {
   const [searchInput, setSearchInput] = useState(initialAddress || '');
 
@@ -202,6 +235,7 @@ const GoogleMapLocationPicker: React.FC<GoogleMapLocationPickerProps> = ({
         initialLng={initialLng}
         searchInput={searchInput}
         setSearchInput={setSearchInput}
+        readOnly={readOnly}
       />
     </div>
   );
