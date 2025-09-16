@@ -469,14 +469,8 @@ export const HomeDetailsDialog = ({ isOpen, onClose, homeId, onSuccess }: HomeDe
 
     if (!validateForm()) return;
 
-    // Thêm tọa độ vào dữ liệu gửi đi
-    const updateData = {
-      ...formData,
-      // ...(selectedLocation && {
-      //   lat: selectedLocation.lat,
-      //   lng: selectedLocation.lng
-      // })
-    };
+    // Gửi dữ liệu cập nhật
+    const updateData = { ...formData };
 
     updateHomeMutation(
       {

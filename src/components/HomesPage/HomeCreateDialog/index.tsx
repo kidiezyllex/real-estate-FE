@@ -15,6 +15,7 @@ import { ICreateHomeBody } from "@/interface/request/home";
 import { IUploadResponse } from "@/interface/response/upload";
 import { toast } from "react-toastify";
 import { IconLoader2, IconUpload, IconX, IconMapPin, IconPhone } from "@tabler/icons-react";
+import GoogleMapLocationPicker from "@/components/ui/GoogleMapLocationPicker";
 import { motion } from 'framer-motion';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import {
@@ -32,22 +33,7 @@ interface HomeCreateDialogProps {
   onSuccess?: () => void;
 }
 
-interface Province {
-  code: number;
-  name: string;
-}
 
-interface District {
-  code: number;
-  name: string;
-  province_code: number;
-}
-
-interface Ward {
-  code: number;
-  name: string;
-  district_code: number;
-}
 
 export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialogProps) => {
   const [formData, setFormData] = useState<ICreateHomeBody>({
@@ -81,21 +67,17 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Address selection states
-  const [provinces, setProvinces] = useState<Province[]>([]);
-  const [districts, setDistricts] = useState<District[]>([]);
-  const [wards, setWards] = useState<Ward[]>([]);
-  const [selectedProvince, setSelectedProvince] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [selectedWard, setSelectedWard] = useState("");
-  const [specificAddress, setSpecificAddress] = useState("");
-  const [loadingProvinces, setLoadingProvinces] = useState(false);
-  const [loadingDistricts, setLoadingDistricts] = useState(false);
-  const [loadingWards, setLoadingWards] = useState(false);
 
   // Image upload states
   const [uploadingImages, setUploadingImages] = useState<boolean[]>([]);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
+
+  // Map location states
+  const [selectedLocation, setSelectedLocation] = useState<{
+    lat: number;
+    lng: number;
+    address: string;
+  } | null>(null);
 
   const { mutate: createHomeMutation, isPending } = useCreateHome();
   const { data: homeOwnersData, isLoading: isLoadingHomeOwners, error: homeOwnersError } = useGetHomeOwners();
@@ -121,103 +103,6 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
     { key: 'hasPetAllowed', label: 'Cho phép nuôi thú cưng' },
   ];
 
-  useEffect(() => {
-    const fetchProvinces = async () => {
-      try {
-        setLoadingProvinces(true);
-        const response = await fetch('https://provinces.open-api.vn/api/');
-        const data = await response.json();
-        setProvinces(data);
-      } catch (error) {
-        toast.error('Không thể tải danh sách tỉnh/thành');
-      } finally {
-        setLoadingProvinces(false);
-      }
-    };
-
-    if (isOpen) {
-      fetchProvinces();
-    }
-  }, [isOpen]);
-
-  // Fetch districts when province changes
-  useEffect(() => {
-    if (selectedProvince) {
-      const fetchDistricts = async () => {
-        try {
-          setLoadingDistricts(true);
-          const response = await fetch(`https://provinces.open-api.vn/api/p/${selectedProvince}?depth=2`);
-          const data = await response.json();
-          setDistricts(data.districts || []);
-          setSelectedDistrict("");
-          setSelectedWard("");
-          setWards([]);
-        } catch (error) {
-          toast.error('Không thể tải danh sách quận/huyện');
-        } finally {
-          setLoadingDistricts(false);
-        }
-      };
-
-      fetchDistricts();
-    } else {
-      setDistricts([]);
-      setWards([]);
-      setSelectedDistrict("");
-      setSelectedWard("");
-    }
-  }, [selectedProvince]);
-
-  // Fetch wards when district changes
-  useEffect(() => {
-    if (selectedDistrict) {
-      const fetchWards = async () => {
-        try {
-          setLoadingWards(true);
-          const response = await fetch(`https://provinces.open-api.vn/api/d/${selectedDistrict}?depth=2`);
-          const data = await response.json();
-          setWards(data.wards || []);
-          setSelectedWard("");
-        } catch (error) {
-          toast.error('Không thể tải danh sách phường/xã');
-        } finally {
-          setLoadingWards(false);
-        }
-      };
-
-      fetchWards();
-    } else {
-      setWards([]);
-      setSelectedWard("");
-    }
-  }, [selectedDistrict]);
-
-  // Update address when address components change
-  useEffect(() => {
-    if (selectedProvince && selectedDistrict && selectedWard && specificAddress) {
-      const provinceName = provinces.find(p => p.code.toString() === selectedProvince)?.name || "";
-      const districtName = districts.find(d => d.code.toString() === selectedDistrict)?.name || "";
-      const wardName = wards.find(w => w.code.toString() === selectedWard)?.name || "";
-
-      const fullAddress = `${specificAddress}, ${wardName}, ${districtName}, ${provinceName}`;
-      setFormData(prev => ({ ...prev, address: fullAddress, province: provinceName }));
-    }
-  }, [selectedProvince, selectedDistrict, selectedWard, specificAddress, provinces, districts, wards]);
-
-  // Update district and ward names when selections change
-  useEffect(() => {
-    if (selectedDistrict) {
-      const districtName = districts.find(d => d.code.toString() === selectedDistrict)?.name || "";
-      setFormData(prev => ({ ...prev, district: districtName }));
-    }
-  }, [selectedDistrict, districts]);
-
-  useEffect(() => {
-    if (selectedWard) {
-      const wardName = wards.find(w => w.code.toString() === selectedWard)?.name || "";
-      setFormData(prev => ({ ...prev, ward: wardName }));
-    }
-  }, [selectedWard, wards]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -239,6 +124,17 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
     setFormData((prev) => ({ ...prev, homeOwnerId }));
     if (errors.homeOwnerId) {
       setErrors((prev) => ({ ...prev, homeOwnerId: "" }));
+    }
+  };
+
+  const handleLocationSelect = (address: string, lat: number, lng: number) => {
+    console.log('handleLocationSelect called:', { address, lat, lng });
+    setSelectedLocation({ lat, lng, address });
+    setFormData((prev) => ({ ...prev, address }));
+    
+    // Xóa lỗi địa chỉ nếu có
+    if (errors.address) {
+      setErrors((prev) => ({ ...prev, address: "" }));
     }
   };
 
@@ -338,16 +234,10 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
     const newErrors: Record<string, string> = {};
     
     if (!formData.address.trim()) {
-      newErrors.address = "Địa chỉ không được để trống";
+      newErrors.address = "Vui lòng chọn vị trí trên bản đồ";
     }
     if (!formData.homeOwnerId.trim()) {
       newErrors.homeOwnerId = "Vui lòng chọn chủ nhà";
-    }
-    if (!formData.district.trim()) {
-      newErrors.district = "Quận/Huyện không được để trống";
-    }
-    if (!formData.ward.trim()) {
-      newErrors.ward = "Phường/Xã không được để trống";
     }
     if (!formData.building.trim()) {
       newErrors.building = "Tòa nhà không được để trống";
@@ -428,12 +318,9 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
       hasPetAllowed: false,
     });
     setErrors({});
-    setSelectedProvince("");
-    setSelectedDistrict("");
-    setSelectedWard("");
-    setSpecificAddress("");
     setImageFiles([]);
     setUploadingImages([]);
+    setSelectedLocation(null);
   };
 
   const handleClose = () => {
@@ -562,98 +449,26 @@ export const HomeCreateDialog = ({ isOpen, onClose, onSuccess }: HomeCreateDialo
 
                 {/* Address Selection */}
                 <div className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Tỉnh/Thành phố</Label>
-                      <Select
-                        value={selectedProvince}
-                        onValueChange={setSelectedProvince}
-                        disabled={loadingProvinces}
-                      >
-                        <SelectTrigger className="border-lightBorderV1">
-                          <SelectValue placeholder={loadingProvinces ? "Đang tải..." : "Chọn tỉnh/thành phố"} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {provinces.map((province) => (
-                            <SelectItem key={province.code} value={province.code.toString()}>
-                              {province.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Quận/Huyện</Label>
-                      <Select
-                        value={selectedDistrict}
-                        onValueChange={setSelectedDistrict}
-                        disabled={!selectedProvince || loadingDistricts}
-                      >
-                        <SelectTrigger className="border-lightBorderV1">
-                          <SelectValue placeholder={
-                            !selectedProvince
-                              ? "Vui lòng chọn tỉnh/thành phố trước"
-                              : loadingDistricts
-                                ? "Đang tải..."
-                                : "Chọn quận/huyện"
-                          } />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {districts.map((district) => (
-                            <SelectItem key={district.code} value={district.code.toString()}>
-                              {district.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Phường/Xã</Label>
-                      <Select
-                        value={selectedWard}
-                        onValueChange={setSelectedWard}
-                        disabled={!selectedDistrict || loadingWards}
-                      >
-                        <SelectTrigger className="border-lightBorderV1">
-                          <SelectValue placeholder={
-                            !selectedDistrict
-                              ? "Vui lòng chọn quận/huyện trước"
-                              : loadingWards
-                                ? "Đang tải..."
-                                : "Chọn phường/xã"
-                          } />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {wards.map((ward) => (
-                            <SelectItem key={ward.code} value={ward.code.toString()}>
-                              {ward.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label className="text-secondaryTextV1">Địa chỉ cụ thể</Label>
-                      <Input
-                        value={specificAddress}
-                        onChange={(e) => setSpecificAddress(e.target.value)}
-                        placeholder="Số nhà, tên đường..."
-                        className="border-lightBorderV1"
-                      />
-                    </div>
-                  </div>
-
                   <div className="space-y-2">
-                    <Label className="text-secondaryTextV1">Địa chỉ đầy đủ</Label>
-                    <Input
-                      value={formData.address}
-                      readOnly
-                      className="border-lightBorderV1 bg-gray-50"
-                      placeholder="Địa chỉ sẽ được tự động tạo từ các trường trên"
+                    <Label className="text-secondaryTextV1">
+                      Chọn vị trí trên bản đồ <span className="text-mainDangerV1">*</span>
+                    </Label>
+                    
+                    {/* Display selected address */}
+                    {formData.address && (
+                      <div className="mt-2 p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <Label className="text-sm font-medium text-green-800">Địa chỉ đã chọn:</Label>
+                        <p className="text-sm text-green-700 mt-1">{formData.address}</p>
+                      </div>
+                    )}
+                    
+                    <GoogleMapLocationPicker
+                      onLocationSelect={handleLocationSelect}
+                      initialAddress={selectedLocation?.address}
+                      initialLat={selectedLocation?.lat}
+                      initialLng={selectedLocation?.lng}
                     />
+                    
                     {errors.address && (
                       <p className="text-sm text-mainDangerV1">{errors.address}</p>
                     )}
